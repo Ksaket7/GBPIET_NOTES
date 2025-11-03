@@ -25,12 +25,6 @@ const noteSchema = new Schema(
       ref: "User",
       required: true,
     },
-    upvotes: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Upvote",
-      },
-    ],
     comments: [
       {
         user: { type: Schema.Types.ObjectId, ref: "User" },

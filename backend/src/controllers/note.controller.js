@@ -145,33 +145,6 @@ const addComment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, note.comments, "Comment added successfully"));
 });
 
-const verifyNote = asyncHandler(async (req, res) => {
-  const { noteId } = req.params;
-
-  if (!isValidObjectId(noteId)) {
-    throw new ApiError(400, "Invalid Note ID");
-  }
-
-  const note = await Note.findById(noteId);
-
-  if (!note) {
-    throw new ApiError(404, "Note not found");
-  }
-
-  const user = await User.findById(req.user._id);
-
-  if (user.role !== "admin") {
-    throw new ApiError(403, "Only admins can verify notes");
-  }
-
-  note.verified = true;
-  await note.save();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, note, "Note verified successfully"));
-});
-
 const deleteNote = asyncHandler(async (req, res) => {
   const { noteId } = req.params;
 
@@ -227,7 +200,6 @@ export {
   uploadNote,
   getNoteById,
   addComment,
-  verifyNote,
   deleteNote,
   getNoteBySubjectCode,
 };
