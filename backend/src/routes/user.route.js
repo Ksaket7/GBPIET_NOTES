@@ -8,8 +8,10 @@ import {
   updateAccountDetails,
   updateUserAvatar,
   changeCurrentPassword,
+  updateUserRole,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyRole } from "../middlewares/role.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = express.Router();
@@ -29,5 +31,5 @@ router
   .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
 
 router.route("/profile/:username").get(verifyJWT, getUserProfile);
-
+router.route("/update-role").patch(verifyRole("admin"), updateUserRole);
 export default router;

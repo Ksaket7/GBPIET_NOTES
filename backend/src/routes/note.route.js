@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyRole } from "../middlewares/role.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   uploadNote,
@@ -12,11 +13,18 @@ import {
 
 const router = express.Router();
 
-router.get("/", getAllNotes);
-router.get("/subject/:subjectCode", getNoteBySubjectCode);
-router.get("/:noteId", getNoteById);
-router.post("/upload", verifyJWT, upload.single("file"), uploadNote);
-router.post("/:noteId/comment", verifyJWT, addComment);
-router.delete("/:noteId", verifyJWT, deleteNote);
+router.route("/").get(getAllNotes);
+router.route("/subject/:subjectCode").get(getNoteBySubjectCode);
+router.route("/:noteId").get(getNoteById);
+
+router.use(verifyJWT);
+
+router
+  .route("/upload")
+  .post(verifyRole("cr", "faculty"), upload.single("file"), uploadNote);
+
+router.route("/:noteId/comment").post(addComment);
+
+router.route("/:noteId").delete(deleteNote);
 
 export default router;

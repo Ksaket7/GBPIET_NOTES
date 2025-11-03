@@ -25,7 +25,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, username, email, password } = req.body;
+  const { fullName, username, email, password, role } = req.body;
   if ([fullName, username, email, password].some((field) => !field?.trim())) {
     throw new ApiError(400, "All fields are required");
   }
@@ -55,6 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     avatar: avatarUrl,
+    role: role || "student",
   });
   const createdUser = await User.findById(user.id).select(
     "-password -refreshToken"
@@ -246,6 +247,37 @@ const getUserProfile = asyncHandler(async (req, res) => {
     );
 });
 
+const updateUserRole = asyncHandler(async (req, res) => {
+  const { userId, newRole } = req.body;
+
+  if (!userId || !newRole) {
+    throw new ApiError(400, "userId and newRole are required");
+  }
+
+  if (req.user.role !== "admin") {
+    throw new ApiError(403, "Only admin can change user roles");
+  }
+
+  const validRoles = ["student", "cr", "faculty", "admin"];
+  if (!validRoles.includes(newRole)) {
+    throw new ApiError(400, "Invalid role provided");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { role: newRole },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  if (!updatedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "User role updated succesfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -255,4 +287,5 @@ export {
   updateUserAvatar,
   changeCurrentPassword,
   getUserProfile,
+  updateUserRole,
 };
