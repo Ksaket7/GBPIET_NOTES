@@ -1,5 +1,6 @@
 import { Upvote } from "../models/upvote.model.js";
 import { Note } from "../models/note.model.js";
+import { updateUserReputation } from "../utils/updateUserReputation.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -29,7 +30,8 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   if (!content) {
     throw new ApiError(404, `${type} not found`);
   }
-
+  const authorId =
+    content.orinialStudent || content.askedBy || content.answeredBy;
   const existingUpvote = await Upvote.findOne({
     [type]: id,
     upvotedBy: userId,
@@ -39,6 +41,9 @@ const toggleUpvote = asyncHandler(async (req, res) => {
     await Upvote.findByIdAndDelete(existingUpvote._id);
     await Model.findByIdAndUpdate(id, { $pull: { upvotes: existingUpvote } });
 
+    if (authorId) {
+      await updateUserReputation(authorId, -1);
+    }
     return res
       .status(200)
       .json(new ApiResponse(200, null, "Upvote removed successfully"));
@@ -50,6 +55,9 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   });
 
   await Model.findByIdAndUpdate(id, { $push: { upvotes: newUpvote._id } });
+  if (authorId) {
+    await updateUserReputation(authorId, 1);
+  }
 
   return res
     .status(201)

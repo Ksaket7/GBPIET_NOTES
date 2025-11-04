@@ -54,11 +54,6 @@ const userSchema = new Schema(
       type: String,
       default: 0,
     },
-    coverImage: {
-      type: String,
-    },
-    following: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    follower: [{ type: Schema.Types.ObjectId, ref: "User" }],
     refreshToken: {
       type: String,
     },

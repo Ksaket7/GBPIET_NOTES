@@ -2,8 +2,8 @@ import express from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
   toggleFollow,
-  getFollowerCount,
-  getFollowersAndFollowing,
+  getUserFollowers,
+  getUserFollowing,
 } from "../controllers/follow.controller.js";
 
 const router = express.Router();
@@ -12,8 +12,8 @@ router.use(verifyJWT);
 
 router.route("/toggle/:userId").post(toggleFollow);
 
-router.route("/:userId/details").get(getFollowersAndFollowing);
+router.route("/:userId/followers").get(getUserFollowers);
 
-router.route("/:userId/count").get(getFollowerCount);
+router.route("/:userId/following").get(getUserFollowing);
 
 export default router;
