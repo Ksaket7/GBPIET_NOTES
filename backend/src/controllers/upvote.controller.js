@@ -1,24 +1,9 @@
 import { Upvote } from "../models/upvote.model.js";
-import { Note } from "../models/note.model.js";
 import { updateUserReputation } from "../utils/updateUserReputation.js";
-
+import { getModelByType } from "../utils/getModelByType.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
-const getModelByType = (type) => {
-  switch (type) {
-    case "note":
-      return Note;
-    case "question":
-      return Question;
-    case "answer":
-      return Answer;
-
-    default:
-      throw new ApiError(400, "Invalid content type for upvote");
-  }
-};
 
 const toggleUpvote = asyncHandler(async (req, res) => {
   const { type, id } = req.params;

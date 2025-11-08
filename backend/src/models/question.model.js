@@ -1,10 +1,9 @@
-import mongoose, { Schema } from "mongodb";
+import mongoose, { Schema } from "mongoose";
 
 const questionSchema = new Schema(
   {
     title: {
       type: String,
-      required: true,
       trim: true,
     },
     description: {

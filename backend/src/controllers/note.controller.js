@@ -20,7 +20,10 @@ const getAllNotes = asyncHandler(async (req, res) => {
     sortType = "desc",
   } = req.query;
   const filter = {};
-  if (query) filter.title = { $regex: query, $options: "i" };
+  if (query) {
+    const regex = new RegExp(query, "i");
+    filter.$or = [{ title: regex }, { description: regex }, { subject: regex }];
+  }
   if (subjectCode) filter.subjectCode = subjectCode;
   if (type) filter.type = type;
   const totalNotes = await Note.countDocuments(filter);
@@ -189,6 +192,25 @@ const getNoteBySubjectCode = asyncHandler(async (req, res) => {
   if (!notes || notes.length === 0) {
     throw new ApiError(404, "No notes found for this subject code");
   }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, notes, "Notes fetched successfully"));
+});
+
+const searchNotes = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+  if (!q?.trim()) {
+    throw new ApiError(400, "Search query is required");
+  }
+
+  const regex = new RegExp(q, "i");
+
+  const notes = await Note.find({
+    $or: [{ title: regex }, { subject: regex }, { description: regex }],
+  })
+    .populate("uploadedBy", "username fullName avatar")
+    .sort({ createdAt: -1 });
 
   return res
     .status(200)

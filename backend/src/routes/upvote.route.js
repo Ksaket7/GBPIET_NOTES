@@ -8,7 +8,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.route("/:type/:id").post(verifyJWT, toggleUpvote);
+router.route("/:type/:id/toggle").post(verifyJWT, toggleUpvote);
 
 router.route("/:type/:id/count").get(getUpvoteCount);
 

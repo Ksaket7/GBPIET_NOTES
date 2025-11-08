@@ -40,6 +40,7 @@ const userSchema = new Schema(
     },
     branch: {
       type: String,
+      required: true,
       trim: true,
     },
     year: {
@@ -87,7 +88,7 @@ userSchema.methods.generateAccessToken = function () {
   );
 };
 
-userSchema.methods.generateRrefreshToken = function () {
+userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,

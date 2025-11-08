@@ -25,8 +25,8 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, username, email, password, role } = req.body;
-  if ([fullName, username, email, password].some((field) => !field?.trim())) {
+  const { fullName, username, email, password, role ,branch} = req.body;
+  if ([fullName, username, email, password,branch].some((field) => !field?.trim())) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -34,7 +34,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User already exists");
   }
-  const avatarLocalPath = req.files?.avatar?.[0]?.path;
+  const avatarLocalPath = req.file?.path;
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar is required");
@@ -46,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
     "avatars"
   );
   if (!avatarUrl) {
-    throw new ApiError(400, "Error uploading on spabase");
+    throw new ApiError(400, "Error uploading on supabase");
   }
 
   const user = await User.create({
@@ -54,6 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
     username: username.toLowerCase(),
     email,
     password,
+    branch,
     avatar: avatarUrl,
     role: role || "student",
   });
@@ -72,10 +73,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email or username is required");
   }
 
-  const user = await User.findOne({ $or: [{ email }, { username }] });
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
+  const user = await User.findOne({ $or: [{ email }, { username }] }).select("+password");
 
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
