@@ -25,8 +25,12 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, username, email, password, role ,branch} = req.body;
-  if ([fullName, username, email, password,branch].some((field) => !field?.trim())) {
+  const { fullName, username, email, password, role, branch } = req.body;
+  if (
+    [fullName, username, email, password, branch].some(
+      (field) => !field?.trim()
+    )
+  ) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -73,7 +77,9 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email or username is required");
   }
 
-  const user = await User.findOne({ $or: [{ email }, { username }] }).select("+password");
+  const user = await User.findOne({ $or: [{ email }, { username }] }).select(
+    "+password"
+  );
 
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
@@ -119,12 +125,12 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullName, email } = req.body;
+  const { fullName, email, branch } = req.body;
   if (!fullName || !email) throw new ApiError(400, "All fields required");
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { fullName, email } },
+    { $set: { fullName, email, branch } },
     { new: true }
   ).select("-password");
 
@@ -137,6 +143,32 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
   if (!avatarLocalPath) throw new ApiError(400, "Avatar file missing");
 
+  // 1️⃣ Fetch user to get current avatar URL
+  const user = await User.findById(req.user._id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  // 2️⃣ If previous avatar exists, delete it from Supabase
+  if (user.avatar) {
+    try {
+      // Example: https://your-project.supabase.co/storage/v1/object/public/uploads/avatars/1730558341234-myimage.jpg
+      const publicUrl = user.avatar;
+      const filePath = publicUrl.split("/storage/v1/object/public/uploads/")[1];
+      // "avatars/1730558341234-myimage.jpg"
+
+      if (filePath) {
+        const deleted = await deleteFromSupabase(filePath, "uploads");
+        if (deleted) {
+          console.log("✅ Old avatar deleted:", filePath);
+        } else {
+          console.warn("⚠️ Failed to delete old avatar:", filePath);
+        }
+      }
+    } catch (err) {
+      console.error("Error while deleting old avatar:", err.message);
+    }
+  }
+
+  // 3️⃣ Upload new avatar to Supabase
   const avatarUrl = await uploadOnSupabase(
     avatarLocalPath,
     "uploads",
@@ -144,7 +176,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
   );
   if (!avatarUrl) throw new ApiError(500, "Avatar upload failed");
 
-  const user = await User.findByIdAndUpdate(
+  // 4️⃣ Update user record with new avatar URL
+  const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     { $set: { avatar: avatarUrl } },
     { new: true }
@@ -152,12 +185,15 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, user, "Avatar updated successfully"));
+    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
-  const user = await User.findById(req.user._id);
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, "Both old and new password are required");
+  }
+  const user = await User.findById(req.user._id).select("+password");
 
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
   if (!isPasswordCorrect) throw new ApiError(400, "Invalid old password");
@@ -179,57 +215,55 @@ const getUserProfile = asyncHandler(async (req, res) => {
   const userProfile = await User.aggregate([
     {
       $match: {
-        username: username.toLowerCase(),
+        username: { $regex: `^${username}$`, $options: "i" },
       },
     },
-    {
-      $lookup: {
-        from: "follows", // from same collection
-        localField: "following",
-        foreignField: "_id",
-        as: "followingList",
-      },
-    },
-    {
-      $lookup: {
-        from: "follows",
-        localField: "follower",
-        foreignField: "_id",
-        as: "followerList",
-      },
-    },
-    {
-      $addFields: {
-        followersCount: { $size: "$followerList" },
-        followingCount: { $size: "$followingList" },
-        isFollowing: {
-          $cond: {
-            if: {
-              $in: [
-                new mongoose.Types.ObjectId(req.user?._id),
-                "$followersList.follower",
-              ],
-            },
-            then: true,
-            else: false,
-          },
-        },
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: "follows", // from same collection
+    //     localField: "following",
+    //     foreignField: "_id",
+    //     as: "followingList",
+    //   },
+    // },
+    // {
+    //   $lookup: {
+    //     from: "follows",
+    //     localField: "follower",
+    //     foreignField: "_id",
+    //     as: "followerList",
+    //   },
+    // },
+    // {
+    //   $addFields: {
+    //     followersCount: { $size: "$followerList" },
+    //     followingCount: { $size: "$followingList" },
+    //     isFollowing: {
+    //       $cond: {
+    //         if: {
+    //           $in: [
+    //             new mongoose.Types.ObjectId(req.user?._id),
+    //             "$followersList.follower",
+    //           ],
+    //         },
+    //         then: true,
+    //         else: false,
+    //       },
+    //     },
+    //   },
+    // },
     {
       $project: {
         fullName: 1,
         username: 1,
         email: 1,
         avatar: 1,
-        coverImage: 1,
         branch: 1,
-        year: 1,
         role: 1,
         credits: 1,
-        followersCount: 1,
-        followingCount: 1,
-        isFollowing: 1,
+        // followersCount: 1,
+        // followingCount: 1,
+        // isFollowing: 1,
       },
     },
   ]);
@@ -246,9 +280,9 @@ const getUserProfile = asyncHandler(async (req, res) => {
 });
 
 const updateUserRole = asyncHandler(async (req, res) => {
-  const { userId, newRole } = req.body;
+  const { username, newRole } = req.body;
 
-  if (!userId || !newRole) {
+  if (!username || !newRole) {
     throw new ApiError(400, "userId and newRole are required");
   }
 
@@ -261,8 +295,8 @@ const updateUserRole = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid role provided");
   }
 
-  const updatedUser = await User.findByIdAndUpdate(
-    userId,
+  const updatedUser = await User.findOneAndUpdate(
+    { username: username },
     { role: newRole },
     { new: true }
   ).select("-password -refreshToken");

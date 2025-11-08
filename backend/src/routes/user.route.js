@@ -30,5 +30,5 @@ router
   .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
 
 router.route("/profile/:username").get(verifyJWT, getUserProfile);
-router.route("/update-role").patch(verifyRole("admin"), updateUserRole);
+router.route("/update-role").patch(verifyJWT,verifyRole("admin"), updateUserRole);
 export default router;
