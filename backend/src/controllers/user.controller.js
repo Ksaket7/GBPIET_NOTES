@@ -8,6 +8,7 @@ import {
   deleteFromSupabase,
 } from "../utils/supabaseStorage.js";
 import mongoose from "mongoose";
+import { verifyRealEmail } from "../utils/emailValidator.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -32,6 +33,10 @@ const registerUser = asyncHandler(async (req, res) => {
     )
   ) {
     throw new ApiError(400, "All fields are required");
+  }
+  const isReal = await verifyRealEmail(email);
+  if (!isReal) {
+    throw new ApiError(400, "Please enter a valid, real email address");
   }
 
   const existedUser = await User.findOne({ $or: [{ email }, { username }] });

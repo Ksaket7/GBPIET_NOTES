@@ -59,16 +59,21 @@ const uploadNote = asyncHandler(async (req, res) => {
     subjectCode,
     type,
     tags,
-    originalStudentId,
+    originalStudentUsername,
   } = req.body;
 
-  if (!title || !subjectName) {
+  if (!title || !subjectCode) {
     throw new ApiError(400, "Title and subject code are required");
   }
 
   if (!req.file) {
     throw new ApiError(400, "File is required");
   }
+  const studentUser = await User.findOne({ username: originalStudentUsername });
+  if (!studentUser) {
+    throw new ApiError(404, "No user found with that username");
+  }
+  let originalStudentId = studentUser._id;
 
   if (!originalStudentId || !isValidObjectId(originalStudentId)) {
     throw new ApiError(400, "Valid original student ID is required");
