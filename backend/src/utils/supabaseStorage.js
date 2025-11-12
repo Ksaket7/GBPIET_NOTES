@@ -45,24 +45,36 @@ const uploadOnSupabase = async (
   }
 };
 
-/**
- * Delete a file from Supabase Storage
- * @param {string} filePath - Full path of file in Supabase (e.g. 'files/filename.png')
- * @param {string} bucketName - Supabase bucket name (default: 'uploads')
- */
+// utils/supabase.utils.js
 const deleteFromSupabase = async (filePath, bucketName = "uploads") => {
   try {
-    const { error } = await supabase.storage.from(bucketName).remove([filePath]);
+    // Ensure path is valid
+    if (!filePath) {
+      console.error("❌ No file path provided for deletion");
+      return null;
+    }
+
+    // Remove any leading slashes to match Supabase storage keys
+    const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+
+    console.log("🗑️ Deleting from Supabase:", `${bucketName}/${cleanPath}`);
+
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .remove([cleanPath]);
 
     if (error) {
       console.error("Error deleting from Supabase:", error.message);
       return null;
     }
+
+    console.log("✅ File deleted successfully from Supabase");
     return true;
   } catch (error) {
     console.error("Deletion failed:", error.message);
     return null;
   }
 };
+
 
 export { uploadOnSupabase, deleteFromSupabase };

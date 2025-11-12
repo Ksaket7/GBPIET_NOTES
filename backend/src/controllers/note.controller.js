@@ -166,21 +166,28 @@ const deleteNote = asyncHandler(async (req, res) => {
   }
 
   if (note.uploadedBy.toString() !== req.user._id.toString()) {
-    throw new ApiError(403, "You are not authoried to delete this note");
+    throw new ApiError(403, "You are not authorized to delete this note");
   }
 
-  const filePath = note.fileUrl.split("storage/v1/object/public/uploads")[1];
+  // ✅ Extract relative file path correctly
+  let filePath = note.fileUrl.split("storage/v1/object/public/uploads")[1];
 
   if (filePath) {
+    // Remove leading slash if present
+    filePath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+
+    // Delete file from Supabase
     await deleteFromSupabase(filePath);
   }
 
+  // Delete note record from MongoDB
   await Note.findByIdAndDelete(noteId);
 
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Note deleted successfully"));
 });
+
 
 const getNoteBySubjectCode = asyncHandler(async (req, res) => {
   const { subjectCode } = req.params;
@@ -197,25 +204,6 @@ const getNoteBySubjectCode = asyncHandler(async (req, res) => {
   if (!notes || notes.length === 0) {
     throw new ApiError(404, "No notes found for this subject code");
   }
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, notes, "Notes fetched successfully"));
-});
-
-const searchNotes = asyncHandler(async (req, res) => {
-  const { q } = req.query;
-  if (!q?.trim()) {
-    throw new ApiError(400, "Search query is required");
-  }
-
-  const regex = new RegExp(q, "i");
-
-  const notes = await Note.find({
-    $or: [{ title: regex }, { subject: regex }, { description: regex }],
-  })
-    .populate("uploadedBy", "username fullName avatar")
-    .sort({ createdAt: -1 });
 
   return res
     .status(200)
