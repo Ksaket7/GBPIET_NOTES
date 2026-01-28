@@ -27,6 +27,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, username, email, password, role, branch } = req.body;
+
   if (
     [fullName, username, email, password, branch].some(
       (field) => !field?.trim()
@@ -34,6 +35,7 @@ const registerUser = asyncHandler(async (req, res) => {
   ) {
     throw new ApiError(400, "All fields are required");
   }
+
   const isReal = await verifyRealEmail(email);
   if (!isReal) {
     throw new ApiError(400, "Please enter a valid, real email address");
@@ -43,8 +45,21 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User already exists");
   }
-  const avatarLocalPath = req.file?.path;
 
+  // Check if an admin already exists
+  const adminExists = await User.exists({ role: "admin" });
+
+  let finalRole = "student"; // default role
+
+  if (!adminExists && role === "admin") {
+    // ✅ Allow admin ONLY if no admin exists yet
+    finalRole = "admin";
+  }
+
+  // If admin already exists, ignore role input completely
+  // Any "role" sent in req.body will be overridden
+
+  const avatarLocalPath = req.file?.path;
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar is required");
   }
@@ -54,8 +69,9 @@ const registerUser = asyncHandler(async (req, res) => {
     "uploads",
     "avatars"
   );
+
   if (!avatarUrl) {
-    throw new ApiError(400, "Error uploading on supabase");
+    throw new ApiError(400, "Error uploading avatar");
   }
 
   const user = await User.create({
@@ -65,16 +81,18 @@ const registerUser = asyncHandler(async (req, res) => {
     password,
     branch,
     avatar: avatarUrl,
-    role: role || "student",
+    role: finalRole, // ✅ controlled role
   });
-  const createdUser = await User.findById(user.id).select(
+
+  const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
 
   return res
     .status(201)
-    .json(new ApiResponse(201, createdUser, "User regsitered successfully"));
+    .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
+
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
