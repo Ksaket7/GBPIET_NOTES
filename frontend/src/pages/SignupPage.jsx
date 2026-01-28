@@ -10,7 +10,6 @@ export default function SignupPage() {
     password: "",
     branch: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -18,15 +17,30 @@ export default function SignupPage() {
       [e.target.name]: e.target.value,
     });
   };
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoading(true);
+
     try {
-      await API.post("/auth/register", form);
-      // later: redirect to login page
+      const response = await API.post("/users/register", form);
+      // ✅ ApiResponse
+      if (response.data?.success) {
+        setSuccessMessage(response.data.message);
+        // optional redirect later
+        // navigate("/login");
+      }
     } catch (error) {
-      console.error("Signup failed:", error);
+      // ✅ ApiError
+        setErrorMessage(error.response.data.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,6 +50,17 @@ export default function SignupPage() {
         <h1 className="font-poppins text-3xl text-textPrimary text-center mb-6">
           Create Account
         </h1>
+        {errorMessage && (
+          <div className="mb-4 text-sm text-red-600 text-center">
+            {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 text-sm text-green-600 text-center">
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 font-inter">
           <input
@@ -68,27 +93,15 @@ export default function SignupPage() {
                        focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
-          {/* Password Field with Toggle */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              required
-              onChange={handleChange}
-              className="w-full px-4 py-2 pr-12 border border-borderSoft rounded-md
-                         focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2
-                         text-sm text-primary hover:text-primaryDark"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-borderSoft rounded-md
+                       focus:outline-none focus:ring-2 focus:ring-primary"
+          />
 
           <input
             type="text"

@@ -5,20 +5,37 @@ import API from "../services/api";
 export default function LoginPage() {
   const [form, setForm] = useState({
     email: "",
+    username: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoading(true);
+
     try {
-      await API.post("/auth/login", form);
-      // later: redirect to dashboard
-    } catch (err) {
-      console.error("Login failed");
+      const response = await API.post("/users/login", form);
+      // ✅ ApiResponse
+      if (response.data?.success) {
+        setSuccessMessage(response.data.message);
+        // optional redirect later
+        // navigate("/login");
+      }
+    } catch (error) {
+      // ✅ ApiError
+      setErrorMessage(error.response.data.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,6 +45,16 @@ export default function LoginPage() {
         <h1 className="font-poppins text-3xl text-textPrimary text-center mb-6">
           Login
         </h1>
+        {errorMessage && (
+          <p className="text-sm text-red-600 text-center mb-4">
+            {errorMessage}
+          </p>
+        )}
+        {successMessage && (
+          <div className="mb-4 text-sm text-green-600 text-center">
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 font-inter">
           <div>
@@ -37,37 +64,43 @@ export default function LoginPage() {
             <input
               type="email"
               name="email"
-              required
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border border-borderSoft rounded-md
+                 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+            <div className="block text-center text-sm text-textSecondary mb-1">OR</div>
+          <div>
+            <label className="block text-sm text-textSecondary mb-1">
+              Username
+            </label>
+            <input
+              type="text"
+              name="username"
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-borderSoft rounded-md
+                 focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
-          {/* Password Field with Toggle */}
-          <div className="relative">
+          <div>
+            <label className="block text-sm text-textSecondary mb-1">
+              Password
+            </label>
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               name="password"
-              placeholder="Password"
               required
               onChange={handleChange}
-              className="w-full px-4 py-2 pr-12 border border-borderSoft rounded-md
-                         focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border border-borderSoft rounded-md
+                 focus:outline-none focus:ring-2 focus:ring-primary"
             />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2
-                         text-sm text-primary hover:text-primaryDark"
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
           </div>
 
           <button
             type="submit"
-            className="w-full mt-4 bg-primary text-white py-2 rounded-md hover:bg-primaryDark transition"
+            className="w-full mt-4 bg-primary text-white py-2 rounded-md
+               hover:bg-primaryDark transition"
           >
             Login
           </button>

@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import { errorHandler } from "./middlewares/error.middleware.js";
 const app = express();
 
 // middlewares
@@ -29,7 +29,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/notes", noteRoutes);
 app.use("/api/v1/upvotes", upvoteRoutes);
 app.use("/api/v1/follows", followRoutes);
-app.use("api/v1/questions", questionRoutes);
-app.use("api/v1/answers", answerRoutes);
-
+app.use("/api/v1/questions", questionRoutes);
+app.use("/api/v1/answers", answerRoutes);
+app.use(errorHandler);
 export { app };
