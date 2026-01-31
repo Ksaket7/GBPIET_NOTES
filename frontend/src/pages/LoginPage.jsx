@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [form, setForm] = useState({
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,15 +29,19 @@ export default function LoginPage() {
 
     try {
       const response = await API.post("/users/login", form);
+
       // ✅ ApiResponse
       if (response.data?.success) {
         setSuccessMessage(response.data.message);
-        // optional redirect later
-        // navigate("/login");
+
+        // 🔑 UPDATE AUTH CONTEXT
+        login(response.data.data.user);
+
+        // 🔁 Redirect to home (dashboard)
+        navigate("/");
       }
     } catch (error) {
-      // ✅ ApiError
-      setErrorMessage(error.response.data.message);
+      setErrorMessage(error.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -57,6 +65,8 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 font-inter">
+          
+          
           <div>
             <label className="block text-sm text-textSecondary mb-1">
               Email
@@ -69,7 +79,9 @@ export default function LoginPage() {
                  focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-            <div className="block text-center text-sm text-textSecondary mb-1">OR</div>
+          <div className="block text-center text-sm text-textSecondary mb-1">
+            OR
+          </div>
           <div>
             <label className="block text-sm text-textSecondary mb-1">
               Username
@@ -82,7 +94,6 @@ export default function LoginPage() {
                  focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-
           <div>
             <label className="block text-sm text-textSecondary mb-1">
               Password

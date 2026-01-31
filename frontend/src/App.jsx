@@ -1,27 +1,24 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-import LandingPage from "./pages/LandingPage";
+import { Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import AuthLayout from "./components/AuthLayout";
+import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-
 
 function App() {
   return (
-    <Router>
-      <Header/>
-      <Routes>
-        
-        {/* Landing / Home Page */}
-        <Route path="/" element={<LandingPage />} />
+    <Routes>
+      {/* Routes WITH header & footer */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+      </Route>
 
-        {/* Auth */}
+      {/* Routes WITHOUT header & footer (optional) */}
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-      </Routes>
-      <Footer/>
-    </Router>
+      </Route>
+    </Routes>
   );
 }
 

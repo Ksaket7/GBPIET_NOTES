@@ -59,20 +59,21 @@ const registerUser = asyncHandler(async (req, res) => {
   // If admin already exists, ignore role input completely
   // Any "role" sent in req.body will be overridden
 
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar is required");
-  }
+  // const avatarLocalPath = req.file?.path;
+  // if (!avatarLocalPath) {
+  //   throw new ApiError(400, "Avatar is required");
+  // }
 
-  const avatarUrl = await uploadOnSupabase(
-    avatarLocalPath,
-    "uploads",
-    "avatars"
-  );
+  const avatarUrl = "";
+  // await uploadOnSupabase(
+  //   avatarLocalPath,
+  //   "uploads",
+  //   "avatars"
+  // );
 
-  if (!avatarUrl) {
-    throw new ApiError(400, "Error uploading avatar");
-  }
+  // if (!avatarUrl) {
+  //   throw new ApiError(400, "Error uploading avatar");
+  // }
 
   const user = await User.create({
     fullName,
@@ -92,7 +93,6 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
-
 
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
