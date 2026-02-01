@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
 
 export default function SignupPage() {
@@ -21,6 +21,8 @@ export default function SignupPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -30,15 +32,17 @@ export default function SignupPage() {
 
     try {
       const response = await API.post("/users/register", form);
-      // ✅ ApiResponse
+
       if (response.data?.success) {
         setSuccessMessage(response.data.message);
-        // optional redirect later
-        // navigate("/login");
+
+        // 🔁 Redirect to login after short delay
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
       }
     } catch (error) {
-      // ✅ ApiError
-        setErrorMessage(error.response.data.message);
+      setErrorMessage(error.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
     }
