@@ -5,8 +5,7 @@ export default function NoteCard({ note }) {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const canDelete =
-    isAuthenticated && note.uploadedBy?._id === user?._id;
+  const canDelete = isAuthenticated && note.uploadedBy?._id === user?._id;
 
   const handleOpen = () => {
     if (!isAuthenticated) {
@@ -36,6 +35,9 @@ export default function NoteCard({ note }) {
 
       <p className="font-inter text-sm text-textSecondary">
         Uploaded by {note.uploadedBy?.fullName}
+      </p>
+      <p className="font-inter text-sm text-textSecondary">
+        Made by {note.originalStudent?.fullName}
       </p>
 
       <div className="flex gap-3 mt-3">
