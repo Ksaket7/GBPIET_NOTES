@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import NotesPage from "./pages/NotesPage";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
         <Route path="/" element={<Home />} />
 
         {/* Protected */}
-        {/* <Route
+         <Route
           path="/notes"
           element={
             <ProtectedRoute>
@@ -28,7 +29,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/*<Route
           path="/upload"
           element={
             <ProtectedRoute>
