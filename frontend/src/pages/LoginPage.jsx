@@ -65,8 +65,6 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 font-inter">
-          
-          
           <div>
             <label className="block text-sm text-textSecondary mb-1">
               Email
@@ -88,7 +86,7 @@ export default function LoginPage() {
             </label>
             <input
               type="text"
-              name="username"
+              name="usrname"
               onChange={handleChange}
               className="w-full px-4 py-2 border border-borderSoft rounded-md
                  focus:outline-none focus:ring-2 focus:ring-primary"
