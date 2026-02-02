@@ -86,7 +86,7 @@ export default function LoginPage() {
             </label>
             <input
               type="text"
-              name="usrname"
+              name="username"
               onChange={handleChange}
               className="w-full px-4 py-2 border border-borderSoft rounded-md
                  focus:outline-none focus:ring-2 focus:ring-primary"
