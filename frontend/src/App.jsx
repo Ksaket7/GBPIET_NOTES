@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import NotesPage from "./pages/NotesPage";
 import NoteDetailPage from "./pages/NoteDetailPage";
+import NoteAIPage from "./pages/NoteAIPage";
 
 function App() {
   return (
@@ -30,6 +31,11 @@ function App() {
           }
         />
         <Route path="/notes/:noteId" element={<NoteDetailPage />} />
+        <Route path="/notes/:noteId/ai" element={
+          <ProtectedRoute>
+            <NoteAIPage />
+          </ProtectedRoute>
+        } />
 
         {/* Protected */}
         {/*<Route
