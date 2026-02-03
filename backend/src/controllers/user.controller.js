@@ -248,40 +248,40 @@ const getUserProfile = asyncHandler(async (req, res) => {
         username: { $regex: `^${username}$`, $options: "i" },
       },
     },
-    // {
-    //   $lookup: {
-    //     from: "follows", // from same collection
-    //     localField: "following",
-    //     foreignField: "_id",
-    //     as: "followingList",
-    //   },
-    // },
-    // {
-    //   $lookup: {
-    //     from: "follows",
-    //     localField: "follower",
-    //     foreignField: "_id",
-    //     as: "followerList",
-    //   },
-    // },
-    // {
-    //   $addFields: {
-    //     followersCount: { $size: "$followerList" },
-    //     followingCount: { $size: "$followingList" },
-    //     isFollowing: {
-    //       $cond: {
-    //         if: {
-    //           $in: [
-    //             new mongoose.Types.ObjectId(req.user?._id),
-    //             "$followersList.follower",
-    //           ],
-    //         },
-    //         then: true,
-    //         else: false,
-    //       },
-    //     },
-    //   },
-    // },
+    {
+      $lookup: {
+        from: "follows", // from same collection
+        localField: "following",
+        foreignField: "_id",
+        as: "followingList",
+      },
+    },
+    {
+      $lookup: {
+        from: "follows",
+        localField: "follower",
+        foreignField: "_id",
+        as: "followerList",
+      },
+    },
+    {
+      $addFields: {
+        followersCount: { $size: "$followerList" },
+        followingCount: { $size: "$followingList" },
+        isFollowing: {
+          $cond: {
+            if: {
+              $in: [
+                new mongoose.Types.ObjectId(req.user?._id),
+                "$followersList.follower",
+              ],
+            },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
     {
       $project: {
         fullName: 1,
@@ -291,9 +291,9 @@ const getUserProfile = asyncHandler(async (req, res) => {
         branch: 1,
         role: 1,
         credits: 1,
-        // followersCount: 1,
-        // followingCount: 1,
-        // isFollowing: 1,
+        followersCount: 1,
+        followingCount: 1,
+        isFollowing: 1,
       },
     },
   ]);

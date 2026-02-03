@@ -1,11 +1,13 @@
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import UpvoteButton from "../upvote/UpvoteButton";
 
 export default function NoteCard({ note }) {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const canDelete = isAuthenticated && note.uploadedBy?._id === user?._id;
+  const canDelete =
+    isAuthenticated && note.uploadedBy?._id === user?._id;
 
   const handleOpen = () => {
     if (!isAuthenticated) {
@@ -16,9 +18,10 @@ export default function NoteCard({ note }) {
   };
 
   return (
-    <div className="bg-surface border border-borderSoft rounded-lg p-5 space-y-2">
+    <div onClick={() => navigate(`/notes/${note._id}`)} className= "cursor-pointer bg-surface border border-borderSoft rounded-lg p-5 space-y-3">
+      {/* Header */}
       <div className="flex justify-between items-start">
-        <h3 className="font-poppins text-lg text-textPrimary font-semibold">
+        <h3 className="font-poppins text-lg font-semibold text-textPrimary">
           {note.title}
         </h3>
 
@@ -29,6 +32,7 @@ export default function NoteCard({ note }) {
         )}
       </div>
 
+      {/* Meta */}
       <p className="font-inter text-sm text-textSecondary">
         {note.subjectCode} • {note.type}
       </p>
@@ -36,20 +40,25 @@ export default function NoteCard({ note }) {
       <p className="font-inter text-sm text-textSecondary">
         Uploaded by {note.uploadedBy?.fullName}
       </p>
-      <p className="font-inter text-sm text-textSecondary">
-        Made by {note.originalStudent?.fullName}
-      </p>
 
-      <div className="flex gap-3 mt-3">
-        <button
-          onClick={handleOpen}
-          className="px-4 py-2 text-sm bg-primary text-white rounded hover:bg-primaryDark"
-        >
-          {isAuthenticated ? "Open / Download" : "Login to view"}
-        </button>
+      {/* Actions */}
+      <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center gap-3">
+          {/* ✅ Upvote */}
+          <UpvoteButton type="note" id={note._id} />
+
+          {/* Open */}
+          <button
+            onClick={handleOpen}
+            className="px-4 py-1.5 text-sm bg-primary text-white rounded
+                       hover:bg-primaryDark transition"
+          >
+            {isAuthenticated ? "Open / Download" : "Login to view"}
+          </button>
+        </div>
 
         {canDelete && (
-          <button className="px-4 py-2 text-sm border border-red-500 text-red-500 rounded">
+          <button className="text-sm text-red-500 hover:underline">
             Delete
           </button>
         )}

@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const toggleUpvote = asyncHandler(async (req, res) => {
   const { type, id } = req.params;
-  const userId = req.user?._id;
+  const userId = req.user._id;
 
   const Model = getModelByType(type);
   const content = await Model.findById(id);
@@ -15,39 +15,62 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   if (!content) {
     throw new ApiError(404, `${type} not found`);
   }
+
   const authorId =
-    content.orinialStudent || content.askedBy || content.answeredBy;
+    content.originalStudent ??
+    content.askedBy ??
+    content.answeredBy ??
+    null;
+
   const existingUpvote = await Upvote.findOne({
     [type]: id,
     upvotedBy: userId,
   });
 
+  // 🔽 REMOVE
   if (existingUpvote) {
     await Upvote.findByIdAndDelete(existingUpvote._id);
-    await Model.findByIdAndUpdate(id, { $pull: { upvotes: existingUpvote } });
+
+    await Model.findByIdAndUpdate(id, {
+      $pull: { upvotes: existingUpvote._id },
+    });
 
     if (authorId) {
-      await updateUserReputation(authorId, -1);
+      try {
+        await updateUserReputation(authorId, -1);
+      } catch (e) {
+        console.error("Reputation decrement failed:", e.message);
+      }
     }
+
     return res
       .status(200)
       .json(new ApiResponse(200, null, "Upvote removed successfully"));
   }
 
+  // 🔼 ADD
   const newUpvote = await Upvote.create({
     [type]: id,
     upvotedBy: userId,
   });
 
-  await Model.findByIdAndUpdate(id, { $push: { upvotes: newUpvote._id } });
+  await Model.findByIdAndUpdate(id, {
+    $push: { upvotes: newUpvote._id },
+  });
+
   if (authorId) {
-    await updateUserReputation(authorId, 1);
+    try {
+      await updateUserReputation(authorId, 1);
+    } catch (e) {
+      console.error("Reputation increment failed:", e.message);
+    }
   }
 
   return res
     .status(201)
     .json(new ApiResponse(201, newUpvote, "Upvoted successfully"));
 });
+
 
 const getUpvoteCount = asyncHandler(async (req, res) => {
   const { type, id } = req.params;

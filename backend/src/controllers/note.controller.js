@@ -109,10 +109,10 @@ const getNoteById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Note id");
   }
 
-  const note = await Note.findById(noteId).populate(
-    "originalStudent",
-    "username email"
-  );
+  const note = await Note.findById(noteId)
+  .populate("originalStudent", "username email")
+  .populate("comments.user", "username avatar");
+
 
   if (!note) {
     throw new ApiError(404, "Note not found");

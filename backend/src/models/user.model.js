@@ -52,7 +52,7 @@ const userSchema = new Schema(
       default: 0,
     },
     upvotes: {
-      type: String,
+      type: Number,
       default: 0,
     },
     refreshToken: {

@@ -1,11 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import AuthLayout from "./components/AuthLayout";
-import ProtectedRoute from "./components/ProtectedRoute"
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import NotesPage from "./pages/NotesPage";
+import NoteDetailPage from "./pages/NoteDetailPage";
 
 function App() {
   return (
@@ -20,15 +21,17 @@ function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
 
-        {/* Protected */}
-         <Route
+        <Route
           path="/notes"
           element={
-            <ProtectedRoute>
-              <NotesPage />
-            </ProtectedRoute>
+            // <ProtectedRoute>
+            <NotesPage />
+            // </ProtectedRoute>
           }
         />
+        <Route path="/notes/:noteId" element={<NoteDetailPage />} />
+
+        {/* Protected */}
         {/*<Route
           path="/upload"
           element={
