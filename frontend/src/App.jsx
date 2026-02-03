@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import AuthLayout from "./components/AuthLayout";
-import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/common/Layout";
+import AuthLayout from "./components/common/AuthLayout";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";

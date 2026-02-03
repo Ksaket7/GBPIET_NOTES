@@ -1,12 +1,16 @@
 import { useState } from "react";
 import UpvoteButton from "../upvote/UpvoteButton";
 import UpvotersList from "./UpvotersList";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
-    <div className="space-y-3 border-b border-borderSoft pb-6">
+    <div className="space-y-3 border-b border-borderSoft p-6 bg-slate-50">
       <div className="flex items-start justify-between">
         <h1 className="font-poppins text-3xl text-textPrimary">{note.title}</h1>
 
@@ -29,9 +33,10 @@ export default function NoteHeader({ note }) {
       </p>
 
       <UpvoteButton type="note" id={note._id} />
-      <button
+      <div className="flex justify-between items-center">
+        <button
         onClick={() => setShowUpvoters(true)}
-        className="text-sm font-inter text-primary "
+        className="text-sm font-inter text-primary hover:underline"
       >
         View upvoters
       </button>
@@ -42,6 +47,20 @@ export default function NoteHeader({ note }) {
           onClose={() => setShowUpvoters(false)}
         />
       )}
+      <button
+        onClick={() => {
+          if (!isAuthenticated) {
+            navigate("/login");
+            return;
+          }
+          navigate(`/notes/${note._id}/ai`);
+        }}
+        className="mt-3 px-4 py-2 bg-primary text-white rounded
+             hover:bg-primaryDark transition font-inter"
+      >
+        🤖 Ask AI about this note
+      </button>
+      </div>
     </div>
   );
 }

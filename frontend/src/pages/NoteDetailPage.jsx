@@ -4,6 +4,7 @@ import API from "../services/api";
 import NoteHeader from "../components/notes/NoteHeader";
 import NotePreview from "../components/notes/NotePreview";
 import NoteComments from "../components/notes/NoteComments";
+import Loader from "../components/common/Loader";
 
 export default function NoteDetailPage() {
   const { noteId } = useParams();
@@ -18,9 +19,7 @@ export default function NoteDetailPage() {
         const res = await API.get(`/notes/${noteId}`);
         setNote(res.data.data);
       } catch (err) {
-        setError(
-          err.response?.data?.message || "Failed to load note"
-        );
+        setError(err.response?.data?.message || "Failed to load note");
       } finally {
         setLoading(false);
       }
@@ -30,11 +29,7 @@ export default function NoteDetailPage() {
   }, [noteId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center font-inter">
-        Loading note...
-      </div>
-    );
+    return <Loader message="Loading notes" />;
   }
 
   if (error) {

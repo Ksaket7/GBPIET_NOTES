@@ -1,4 +1,4 @@
-import Loader from "../Loader";
+import Loader from "../common/Loader";
 import NoteCard from "./NoteCard";
 
 export default function NotesList({ notes, loading }) {
