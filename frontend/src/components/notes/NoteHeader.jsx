@@ -35,31 +35,33 @@ export default function NoteHeader({ note }) {
       <UpvoteButton type="note" id={note._id} />
       <div className="flex justify-between items-center">
         <button
-        onClick={() => setShowUpvoters(true)}
-        className="text-sm font-inter text-primary hover:underline"
-      >
-        View upvoters
-      </button>
-      {showUpvoters && (
-        <UpvotersList
-          type="note"
-          id={note._id}
-          onClose={() => setShowUpvoters(false)}
-        />
-      )}
-      <button
-        onClick={() => {
-          if (!isAuthenticated) {
-            navigate("/login");
-            return;
-          }
-          navigate(`/notes/${note._id}/ai`);
-        }}
-        className="mt-3 px-4 py-2 bg-primary text-white rounded
+          onClick={() => setShowUpvoters(true)}
+          className="text-sm font-inter text-primary hover:underline"
+        >
+          View upvoters
+        </button>
+        {showUpvoters && (
+          <UpvotersList
+            type="note"
+            id={note._id}
+            onClose={() => setShowUpvoters(false)}
+          />
+        )}
+        <button
+          onClick={() => {
+            if (!isAuthenticated) {
+              navigate("/login");
+              return;
+            }
+            navigate(`/notes/${note._id}/ai`, {
+              state: { noteType: note.type, noteTitle: note.title },
+            });
+          }}
+          className="mt-3 px-4 py-2 bg-primary text-white rounded
              hover:bg-primaryDark transition font-inter"
-      >
-        🤖 Ask AI about this note
-      </button>
+        >
+          🤖 Ask AI about this note
+        </button>
       </div>
     </div>
   );
