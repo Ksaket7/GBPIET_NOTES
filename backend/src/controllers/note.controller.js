@@ -8,7 +8,7 @@ import {
   uploadOnSupabase,
   deleteFromSupabase,
 } from "../utils/supabaseStorage.js";
-
+import { Upvote } from "../models/upvote.model.js";
 const getAllNotes = asyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -110,8 +110,10 @@ const getNoteById = asyncHandler(async (req, res) => {
   }
 
   const note = await Note.findById(noteId)
-  .populate("originalStudent", "username email")
+  .populate("uploadedBy", "fullName username avatar")
+  .populate("originalStudent", "fullName username email")
   .populate("comments.user", "username avatar");
+
 
 
   if (!note) {
@@ -179,9 +181,12 @@ const deleteNote = asyncHandler(async (req, res) => {
     // Delete file from Supabase
     await deleteFromSupabase(filePath);
   }
+  // upvote deletion related to this note
+  await Upvote.deleteMany({ note: noteId });
 
   // Delete note record from MongoDB
   await Note.findByIdAndDelete(noteId);
+  await recalculateUserReputation(note.originalStudent);
 
   return res
     .status(200)

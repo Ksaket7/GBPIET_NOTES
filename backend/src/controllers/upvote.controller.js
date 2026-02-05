@@ -1,5 +1,5 @@
 import { Upvote } from "../models/upvote.model.js";
-import { updateUserReputation } from "../utils/updateUserReputation.js";
+import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 import { getModelByType } from "../utils/getModelByType.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
@@ -16,60 +16,45 @@ const toggleUpvote = asyncHandler(async (req, res) => {
     throw new ApiError(404, `${type} not found`);
   }
 
-  const authorId =
-    content.originalStudent ??
-    content.askedBy ??
-    content.answeredBy ??
-    null;
+  let authorId;
+  if (type === "note") authorId = content.originalStudent;
+  if (type === "question") authorId = content.askedBy;
+  if (type === "answer") authorId = content.answeredBy;
 
   const existingUpvote = await Upvote.findOne({
     [type]: id,
     upvotedBy: userId,
   });
 
-  // 🔽 REMOVE
   if (existingUpvote) {
-    await Upvote.findByIdAndDelete(existingUpvote._id);
-
+    await existingUpvote.deleteOne();
     await Model.findByIdAndUpdate(id, {
       $pull: { upvotes: existingUpvote._id },
     });
 
-    if (authorId) {
-      try {
-        await updateUserReputation(authorId, -1);
-      } catch (e) {
-        console.error("Reputation decrement failed:", e.message);
-      }
-    }
+    if (authorId) await recalculateUserReputation(authorId);
 
-    return res
-      .status(200)
-      .json(new ApiResponse(200, null, "Upvote removed successfully"));
+    return res.status(200).json(
+      new ApiResponse(200, null, "Upvote removed successfully")
+    );
   }
 
-  // 🔼 ADD
   const newUpvote = await Upvote.create({
     [type]: id,
     upvotedBy: userId,
   });
 
   await Model.findByIdAndUpdate(id, {
-    $push: { upvotes: newUpvote._id },
+    $addToSet: { upvotes: newUpvote._id }, // prevents duplicates
   });
 
-  if (authorId) {
-    try {
-      await updateUserReputation(authorId, 1);
-    } catch (e) {
-      console.error("Reputation increment failed:", e.message);
-    }
-  }
+  if (authorId) await recalculateUserReputation(authorId);
 
   return res
     .status(201)
     .json(new ApiResponse(201, newUpvote, "Upvoted successfully"));
 });
+
 
 
 const getUpvoteCount = asyncHandler(async (req, res) => {

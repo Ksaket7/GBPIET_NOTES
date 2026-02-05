@@ -9,6 +9,8 @@ import {
 } from "../utils/supabaseStorage.js";
 import mongoose from "mongoose";
 import { verifyRealEmail } from "../utils/emailValidator.js";
+import { Note } from "../models/note.model.js";
+
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -149,10 +151,30 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res
-    .status(200)
-    .json(new ApiResponse(200, req.user, "Current user fetched successfully"));
+  const user = await User.findById(req.user._id)
+    .select("-password -refreshToken");
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // 🔹 Count notes uploaded by user
+  const notesCount = await Note.countDocuments({
+    originalStudent: user._id,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        ...user.toObject(),
+        notesCount, // ✅ attached dynamically
+      },
+      "User fetched successfully"
+    )
+  );
 });
+
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, email, branch } = req.body;
