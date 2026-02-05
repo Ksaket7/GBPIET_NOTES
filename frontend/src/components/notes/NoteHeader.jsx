@@ -3,14 +3,40 @@ import UpvoteButton from "../upvote/UpvoteButton";
 import UpvotersList from "./UpvotersList";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import API from "../../services/api";
+import ConfirmModal from "../ui/ConfirmModal";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const [deleting, setDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const isOwner = user?._id === note.uploadedBy?._id;
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      await API.delete(`/notes/${note._id}`);
+      navigate("/notes");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete note");
+    } finally {
+      setDeleting(false);
+      setShowConfirm(false);
+    }
+  };
 
   return (
     <div className="space-y-3 border-b border-borderSoft p-6 bg-slate-50">
+      <button
+        onClick={() => navigate("/notes")}
+        className="flex items-center gap-2 text-sm font-inter
+             text-textSecondary hover:text-primary transition"
+      >
+        ← Back to Notes
+      </button>
       <div className="flex items-start justify-between">
         <h1 className="font-poppins text-3xl text-textPrimary">{note.title}</h1>
 
@@ -33,6 +59,7 @@ export default function NoteHeader({ note }) {
       </p>
 
       <UpvoteButton type="note" id={note._id} />
+
       <div className="flex justify-between items-center">
         <button
           onClick={() => setShowUpvoters(true)}
@@ -40,6 +67,7 @@ export default function NoteHeader({ note }) {
         >
           View upvoters
         </button>
+
         {showUpvoters && (
           <UpvotersList
             type="note"
@@ -47,6 +75,7 @@ export default function NoteHeader({ note }) {
             onClose={() => setShowUpvoters(false)}
           />
         )}
+
         <button
           onClick={() => {
             if (!isAuthenticated) {
@@ -57,12 +86,31 @@ export default function NoteHeader({ note }) {
               state: { noteType: note.type, noteTitle: note.title },
             });
           }}
-          className="mt-3 px-4 py-2 bg-primary text-white rounded
-             hover:bg-primaryDark transition font-inter"
+          className="px-4 py-2 bg-primary text-white rounded
+                     hover:bg-primaryDark transition font-inter"
         >
-          🤖 Ask AI about this note
+          🤖 Ask AI
         </button>
       </div>
+
+      {isOwner && (
+        <button
+          onClick={() => setShowConfirm(true)}
+          className="px-4 py-2 border border-red-500 text-red-500 rounded
+               hover:bg-red-500 hover:text-white transition font-inter"
+        >
+          Delete Note
+        </button>
+      )}
+      <ConfirmModal
+        open={showConfirm}
+        title="Delete Note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        confirmText="Delete"
+        onCancel={() => setShowConfirm(false)}
+        loading={deleting}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

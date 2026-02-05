@@ -5,6 +5,7 @@ import NoteHeader from "../components/notes/NoteHeader";
 import NotePreview from "../components/notes/NotePreview";
 import NoteComments from "../components/notes/NoteComments";
 import Loader from "../components/common/Loader";
+import { useAnimationControls } from "framer-motion";
 
 export default function NoteDetailPage() {
   const { noteId } = useParams();

@@ -23,6 +23,19 @@ export default function UpvotersList({ type, id, onClose }) {
               key={u._id}
               className="flex items-center gap-2 font-inter"
             >
+              <div className="w-10 h-10 rounded-full bg-borderSoft overflow-hidden flex items-center justify-center">
+              {u?.avatar ? (
+                <img
+                  src={u.avatar}
+                  alt={u.username}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-inter text-sm text-textSecondary">
+                  {u?.username?.[0]?.toUpperCase()}
+                </span>
+              )}
+            </div>
               <span className="font-medium">@{u.username}</span>
             </div>
           ))}

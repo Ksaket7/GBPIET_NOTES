@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { timeAgo } from "../../utils/timeAgo";
 
 export default function NoteComments({ noteId }) {
   const { isAuthenticated } = useAuth();
@@ -45,7 +46,8 @@ export default function NoteComments({ noteId }) {
     <div className="space-y-6">
       <h2 className="font-poppins text-2xl text-textPrimary">Comments</h2>
 
-      <div className="space-y-3">
+      {/* Comments list */}
+      <div className="space-y-4">
         {comments.length === 0 && (
           <p className="font-inter text-textSecondary">No comments yet.</p>
         )}
@@ -53,17 +55,37 @@ export default function NoteComments({ noteId }) {
         {comments.map((c, idx) => (
           <div
             key={idx}
-            className="border border-borderSoft rounded-lg hover:bg-slate-50 p-4 space-y-1"
+            className="flex gap-3 border border-borderSoft rounded-lg p-4"
           >
-            <p className="font-inter text-sm font-medium text-textPrimary">
-              @{c.user?.username || "unknown"}
-            </p>
+            {/* Avatar */}
+            <div className="w-10 h-10 rounded-full bg-borderSoft overflow-hidden flex items-center justify-center">
+              {c.user?.avatar ? (
+                <img
+                  src={c.user.avatar}
+                  alt={c.user.username}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-inter text-sm text-textSecondary">
+                  {c.user?.username?.[0]?.toUpperCase()}
+                </span>
+              )}
+            </div>
 
-            <p className="font-inter text-textSecondary ">{c.message}</p>
+            {/* Content */}
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <p className="font-inter font-medium text-textPrimary">
+                  @{c.user?.username || "unknown"}
+                </p>
 
-            <p className="text-xs text-textSecondary">
-              {new Date(c.createdAt).toLocaleString()}
-            </p>
+                <span className="text-xs text-textSecondary">
+                  {timeAgo(c.createdAt)}
+                </span>
+              </div>
+
+              <p className="font-inter text-textSecondary">{c.message}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -72,18 +94,27 @@ export default function NoteComments({ noteId }) {
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Add a comment..."
-          className="w-full border border-borderSoft rounded p-3 font-inter"
+          placeholder={
+            isAuthenticated ? "Write a comment..." : "Login to add a comment"
+          }
+          disabled={!isAuthenticated || loading}
+          rows={3}
+          className="w-full border border-borderSoft rounded-lg p-3
+               font-inter focus:outline-none focus:ring-2
+               focus:ring-primary disabled:opacity-60"
         />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-primary text-white rounded
-                     hover:bg-primaryDark transition"
-        >
-          Post Comment
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={!isAuthenticated || loading}
+            className="px-4 py-2 bg-primary text-white rounded
+                 hover:bg-primaryDark transition
+                 disabled:opacity-50"
+          >
+            Post Comment
+          </button>
+        </div>
       </form>
     </div>
   );

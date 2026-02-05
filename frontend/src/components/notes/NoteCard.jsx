@@ -6,8 +6,6 @@ export default function NoteCard({ note }) {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  const canDelete =
-    isAuthenticated && note.uploadedBy?._id === user?._id;
 
   const handleOpen = () => {
     if (!isAuthenticated) {
@@ -42,8 +40,8 @@ export default function NoteCard({ note }) {
       </p>
 
       {/* Actions */}
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center  justify-between mt-3">
+        <div className=" flex items-center gap-3">
           {/* ✅ Upvote */}
           <UpvoteButton type="note" id={note._id} />
 
@@ -57,11 +55,6 @@ export default function NoteCard({ note }) {
           </button>
         </div>
 
-        {canDelete && (
-          <button className="text-sm text-red-500 hover:underline">
-            Delete
-          </button>
-        )}
       </div>
     </div>
   );
