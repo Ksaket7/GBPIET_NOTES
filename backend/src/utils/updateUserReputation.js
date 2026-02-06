@@ -18,6 +18,7 @@ import { Answer } from "../models/answer.model.js";
 
 export const recalculateUserReputation = async (userId) => {
   const user = await User.findById(userId);
+  // console.log("hello now here ", user._id);
   if (!user) {
     throw new Error("User not found for reputation recalculation");
   }

@@ -107,7 +107,7 @@ export default function NoteHeader({ note }) {
         title="Delete Note"
         message="Are you sure you want to delete this note? This action cannot be undone."
         confirmText="Delete"
-        onCancel={() => setShowConfirm(false)}
+        onCancel={() => (setShowConfirm(false), navigate("/notes"))}
         loading={deleting}
         onConfirm={handleDelete}
       />

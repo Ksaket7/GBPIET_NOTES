@@ -9,6 +9,8 @@ import {
   deleteFromSupabase,
 } from "../utils/supabaseStorage.js";
 import { Upvote } from "../models/upvote.model.js";
+import {recalculateUserReputation} from "../utils/updateUserReputation.js"
+
 const getAllNotes = asyncHandler(async (req, res) => {
   const {
     page = 1,
@@ -193,10 +195,21 @@ const deleteNote = asyncHandler(async (req, res) => {
   await Upvote.deleteMany({ note: noteId });
 
   // delete note
+  // delete note
   await Note.findByIdAndDelete(noteId);
 
-  // recalc original student's reputation
-  await recalculateUserReputation(note.originalStudent);
+  // try reputation recalculation, but DO NOT fail deletion
+  try {
+    if (note.originalStudent) {
+      // console.log("i can reach here",note.originalStudent);
+      await recalculateUserReputation(note.originalStudent);
+    }
+  } catch (err) {
+    console.error(
+      "Reputation recalculation failed after note deletion:",
+      err.message
+    );
+  }
 
   return res
     .status(200)
