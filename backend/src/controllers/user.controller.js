@@ -11,7 +11,6 @@ import mongoose from "mongoose";
 import { verifyRealEmail } from "../utils/emailValidator.js";
 import { Note } from "../models/note.model.js";
 
-
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -56,6 +55,9 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!adminExists && role === "admin") {
     // ✅ Allow admin ONLY if no admin exists yet
     finalRole = "admin";
+  }
+  if (finalRole !== "admin") {
+    finalRole = role;
   }
 
   // If admin already exists, ignore role input completely
@@ -151,8 +153,9 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .select("-password -refreshToken");
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
 
   if (!user) {
     throw new ApiError(404, "User not found");
@@ -174,7 +177,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     )
   );
 });
-
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullName, email, branch } = req.body;

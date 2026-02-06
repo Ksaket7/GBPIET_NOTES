@@ -21,22 +21,21 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   if (type === "question") authorId = content.askedBy;
   if (type === "answer") authorId = content.answeredBy;
 
-  const existingUpvote = await Upvote.findOne({
-    [type]: id,
-    upvotedBy: userId,
-  });
+  const existingUpvote = await Upvote.findOneAndDelete(
+    { [type]: id, upvotedBy: userId },
+    { new: false }
+  );
 
   if (existingUpvote) {
-    await existingUpvote.deleteOne();
     await Model.findByIdAndUpdate(id, {
       $pull: { upvotes: existingUpvote._id },
     });
 
-    if (authorId) await recalculateUserReputation(authorId);
+    await recalculateUserReputation(authorId);
 
-    return res.status(200).json(
-      new ApiResponse(200, null, "Upvote removed successfully")
-    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Upvote removed successfully"));
   }
 
   const newUpvote = await Upvote.create({
@@ -45,17 +44,15 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   });
 
   await Model.findByIdAndUpdate(id, {
-    $addToSet: { upvotes: newUpvote._id }, // prevents duplicates
+    $addToSet: { upvotes: newUpvote._id },
   });
 
-  if (authorId) await recalculateUserReputation(authorId);
+  await recalculateUserReputation(authorId);
 
   return res
     .status(201)
     .json(new ApiResponse(201, newUpvote, "Upvoted successfully"));
 });
-
-
 
 const getUpvoteCount = asyncHandler(async (req, res) => {
   const { type, id } = req.params;

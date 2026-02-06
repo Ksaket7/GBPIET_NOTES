@@ -110,11 +110,9 @@ const getNoteById = asyncHandler(async (req, res) => {
   }
 
   const note = await Note.findById(noteId)
-  .populate("uploadedBy", "fullName username avatar")
-  .populate("originalStudent", "fullName username email")
-  .populate("comments.user", "username avatar");
-
-
+    .populate("uploadedBy", "fullName username avatar")
+    .populate("originalStudent", "fullName username email")
+    .populate("comments.user", "username avatar");
 
   if (!note) {
     throw new ApiError(404, "Note not found");
@@ -181,18 +179,29 @@ const deleteNote = asyncHandler(async (req, res) => {
     // Delete file from Supabase
     await deleteFromSupabase(filePath);
   }
-  // upvote deletion related to this note
+  // delete all upvotes linked to this note
+  const upvotes = await Upvote.find({ note: noteId }).select("_id");
+
+  const upvoteIds = upvotes.map((u) => u._id);
+
+  // remove upvote references from note
+  await Note.findByIdAndUpdate(noteId, {
+    $pull: { upvotes: { $in: upvoteIds } },
+  });
+
+  // delete upvote documents
   await Upvote.deleteMany({ note: noteId });
 
-  // Delete note record from MongoDB
+  // delete note
   await Note.findByIdAndDelete(noteId);
+
+  // recalc original student's reputation
   await recalculateUserReputation(note.originalStudent);
 
   return res
     .status(200)
     .json(new ApiResponse(200, {}, "Note deleted successfully"));
 });
-
 
 const getNoteBySubjectCode = asyncHandler(async (req, res) => {
   const { subjectCode } = req.params;
