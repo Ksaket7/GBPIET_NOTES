@@ -9,6 +9,9 @@ export default function MyNotes() {
   useEffect(() => {
     API.get("/notes?mine=true")
       .then((res) => setNotes(res.data.data.notes))
+      .catch((err) => {
+        console.log("Failed to fetch my notes:", err.response?.data?.message);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -18,9 +21,7 @@ export default function MyNotes() {
 
   return (
     <div className="space-y-4">
-      <h2 className="font-poppins text-2xl text-textPrimary">
-        My Notes
-      </h2>
+      <h2 className="font-poppins text-2xl text-textPrimary">My Notes</h2>
 
       {notes.length === 0 ? (
         <p className="font-inter text-textSecondary">

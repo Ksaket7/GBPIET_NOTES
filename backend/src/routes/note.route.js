@@ -1,5 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWTOptional } from "../middlewares/verifyJWTOptional.js";
 import { verifyRole } from "../middlewares/role.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
@@ -11,9 +12,13 @@ import {
   getNoteById,
 } from "../controllers/note.controller.js";
 
+
 const router = express.Router();
 
-router.route("/").get(getAllNotes);
+
+
+
+router.route("/").get(verifyJWTOptional, getAllNotes);
 router.route("/subject/:subjectCode").get(getNoteBySubjectCode);
 router.route("/:noteId").get(getNoteById);
 

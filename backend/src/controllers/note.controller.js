@@ -9,7 +9,7 @@ import {
   deleteFromSupabase,
 } from "../utils/supabaseStorage.js";
 import { Upvote } from "../models/upvote.model.js";
-import {recalculateUserReputation} from "../utils/updateUserReputation.js"
+import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 
 const getAllNotes = asyncHandler(async (req, res) => {
   const {
@@ -20,8 +20,14 @@ const getAllNotes = asyncHandler(async (req, res) => {
     type,
     sortBy = "createdAt",
     sortType = "desc",
+    mine = false,
   } = req.query;
   const filter = {};
+
+   if (mine === "true") {
+    filter.originalStudent = req.user._id;
+  }
+
   if (query) {
     const regex = new RegExp(query, "i");
     filter.$or = [{ title: regex }, { description: regex }, { subject: regex }];
@@ -31,7 +37,7 @@ const getAllNotes = asyncHandler(async (req, res) => {
   const totalNotes = await Note.countDocuments(filter);
   const notes = await Note.find(filter)
     .populate("uploadedBy", "fullName username role avatar")
-    .populate("originalStudent", "fullName username avatar")
+    .populate("originalStudent", "fullName username role avatar")
     .sort({ [sortBy]: sortType === "desc" ? -1 : 1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));
