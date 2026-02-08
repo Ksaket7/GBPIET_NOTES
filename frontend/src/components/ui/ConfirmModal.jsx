@@ -1,3 +1,4 @@
+import LoadingButton from "./LoadingButton";
 export default function ConfirmModal({
   open,
   title = "Confirm Action",
@@ -13,20 +14,13 @@ export default function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Overlay */}
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onCancel}
-      />
+      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
 
       {/* Modal */}
       <div className="relative bg-surface w-full max-w-md rounded-xl p-6 shadow-lg border border-borderSoft">
-        <h3 className="font-poppins text-xl text-textPrimary">
-          {title}
-        </h3>
+        <h3 className="font-poppins text-xl text-textPrimary">{title}</h3>
 
-        <p className="mt-3 font-inter text-textSecondary">
-          {message}
-        </p>
+        <p className="mt-3 font-inter text-textSecondary">{message}</p>
 
         <div className="mt-6 flex justify-end gap-3">
           <button
@@ -38,14 +32,13 @@ export default function ConfirmModal({
             {cancelText}
           </button>
 
-          <button
+          <LoadingButton
+            loading={loading}
             onClick={onConfirm}
-            disabled={loading}
-            className="px-4 py-2 font-inter bg-red-500 text-white rounded
-                       hover:bg-red-600 transition disabled:opacity-50"
+            className="px-4 py-2 bg-red-500 text-white rounded"
           >
-            {loading ? "Deleting..." : confirmText}
-          </button>
+            Delete
+          </LoadingButton>
         </div>
       </div>
     </div>

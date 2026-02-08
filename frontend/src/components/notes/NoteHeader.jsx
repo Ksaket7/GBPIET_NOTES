@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import ConfirmModal from "../ui/ConfirmModal";
+import LoadingButton from "../ui/LoadingButton";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
@@ -58,7 +59,8 @@ export default function NoteHeader({ note }) {
         </span>
       </p>
 
-      <UpvoteButton type="note" id={note._id} />
+      
+        <UpvoteButton type="note" id={note._id} />
 
       <div className="flex justify-between items-center">
         <button
@@ -94,20 +96,21 @@ export default function NoteHeader({ note }) {
       </div>
 
       {isOwner && (
-        <button
+        <LoadingButton
+          loading={deleting}
           onClick={() => setShowConfirm(true)}
           className="px-4 py-2 border border-red-500 text-red-500 rounded
-               hover:bg-red-500 hover:text-white transition font-inter"
+             hover:bg-red-500 hover:text-white transition font-inter"
         >
           Delete Note
-        </button>
+        </LoadingButton>
       )}
       <ConfirmModal
         open={showConfirm}
         title="Delete Note"
         message="Are you sure you want to delete this note? This action cannot be undone."
         confirmText="Delete"
-        onCancel={() => (setShowConfirm(false), navigate("/notes"))}
+        onCancel={() => (setShowConfirm(false))}
         loading={deleting}
         onConfirm={handleDelete}
       />

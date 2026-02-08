@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
 import NoteCard from "../notes/NoteCard";
+import MyNotesSkeleton from "./MyNotesSkeleton";
 
 export default function MyNotes() {
   const [notes, setNotes] = useState([]);
@@ -9,19 +10,19 @@ export default function MyNotes() {
   useEffect(() => {
     API.get("/notes?mine=true")
       .then((res) => setNotes(res.data.data.notes))
-      .catch((err) => {
-        console.log("Failed to fetch my notes:", err.response?.data?.message);
-      })
+      .catch(() => setNotes([]))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
-    return <p className="font-inter text-textSecondary">Loading your notes…</p>;
+    return <MyNotesSkeleton />;
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="font-poppins text-2xl text-textPrimary">My Notes</h2>
+      <h2 className="font-poppins text-2xl text-textPrimary">
+        My Notes
+      </h2>
 
       {notes.length === 0 ? (
         <p className="font-inter text-textSecondary">

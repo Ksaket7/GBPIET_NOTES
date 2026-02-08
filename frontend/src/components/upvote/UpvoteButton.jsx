@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import LoadingButton from "../ui/LoadingButton";
 
 export default function UpvoteButton({ type, id }) {
   const { isAuthenticated } = useAuth();
@@ -51,15 +52,12 @@ export default function UpvoteButton({ type, id }) {
   };
 
   return (
-    <button
+    <LoadingButton
+      loading={loading}
       onClick={handleToggle}
-      disabled={loading}
-      className="flex items-center gap-1 text-sm font-inter
-                 px-2 py-1 border border-borderSoft rounded
-                 hover:bg-borderSoft transition disabled:opacity-50"
+      className="px-3 py-1 border rounded text-sm"
     >
-      <span>👍</span>
-      <span>{count}</span>
-    </button>
+      👍 {count}
+    </LoadingButton>
   );
 }

@@ -1,9 +1,10 @@
 import Loader from "../common/Loader";
 import NoteCard from "./NoteCard";
+import MyNotesSkeleton from "../dashboard/MyNotesSkeleton";
 
 export default function NotesList({ notes, loading }) {
   if (loading) {
-    return <Loader message="Loading notes…" />;
+    return <MyNotesSkeleton/>;
   }
 
   if (notes.length === 0) {

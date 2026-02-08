@@ -8,8 +8,15 @@ import SignupPage from "./pages/SignupPage";
 import NotesPage from "./pages/NotesPage";
 import NoteDetailPage from "./pages/NoteDetailPage";
 import NoteAIPage from "./pages/NoteAIPage";
+import Loader from "./components/common/Loader";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <Loader message="Checking your session…" />;
+  }
   return (
     <Routes>
       {/* Routes WITHOUT header & footer (optional) */}
