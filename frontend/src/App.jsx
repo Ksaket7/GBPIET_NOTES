@@ -10,6 +10,7 @@ import NoteDetailPage from "./pages/NoteDetailPage";
 import NoteAIPage from "./pages/NoteAIPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
+import UploadNote from "./pages/UploadNote";
 
 function App() {
   const { loading } = useAuth();
@@ -38,21 +39,25 @@ function App() {
           }
         />
         <Route path="/notes/:noteId" element={<NoteDetailPage />} />
-        <Route path="/notes/:noteId/ai" element={
-          <ProtectedRoute>
-            <NoteAIPage />
-          </ProtectedRoute>
-        } />
-
-        {/* Protected */}
-        {/*<Route
-          path="/upload"
+        <Route
+          path="/notes/:noteId/ai"
           element={
             <ProtectedRoute>
-              <UploadPage />
+              <NoteAIPage />
             </ProtectedRoute>
           }
         />
+
+        {/* Protected */}
+        <Route
+          path="/notes/upload"
+          element={
+            <ProtectedRoute>
+              <UploadNote />
+            </ProtectedRoute>
+          }
+        />
+        {/*
         <Route
           path="/questions"
           element={
