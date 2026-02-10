@@ -11,6 +11,8 @@ import NoteAIPage from "./pages/NoteAIPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
 import UploadNote from "./pages/UploadNote";
+import UploadQuestion from "./pages/UploadQuestion";
+import QuestionDetail from "./pages/QuestionDetail";
 
 function App() {
   const { loading } = useAuth();
@@ -38,7 +40,14 @@ function App() {
             // </ProtectedRoute>
           }
         />
-        <Route path="/notes/:noteId" element={<NoteDetailPage />} />
+        <Route
+          path="/notes/:noteId"
+          element={
+            <ProtectedRoute>
+              <NoteDetailPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/notes/:noteId/ai"
           element={
@@ -54,6 +63,22 @@ function App() {
           element={
             <ProtectedRoute>
               <UploadNote />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/questions/upload"
+          element={
+            <ProtectedRoute>
+              <UploadQuestion />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/questions/:questionId"
+          element={
+            <ProtectedRoute>
+              <QuestionDetail />
             </ProtectedRoute>
           }
         />
