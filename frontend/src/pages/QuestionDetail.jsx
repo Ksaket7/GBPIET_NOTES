@@ -98,6 +98,16 @@ export default function QuestionDetail() {
             </LoadingButton>
           )}
         </div>
+        <ConfirmModal
+          open={showConfirm}
+          title="Delete Question"
+          message="Are you sure you want to delete this question? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          loading={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setShowConfirm(false)}
+        />
       </div>
 
       {/* Answers Section */}

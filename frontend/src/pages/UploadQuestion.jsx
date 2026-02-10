@@ -33,7 +33,7 @@ export default function UploadQuestion() {
     e.preventDefault();
     setErrorMessage("");
 
-    if (!form.title || !form.description || !form.subjectCode) {
+    if (!form.title || !form.description) {
       setErrorMessage("Please fill all required fields.");
       return;
     }
@@ -43,9 +43,7 @@ export default function UploadQuestion() {
       const res = await API.post("/questions/ask", form);
       navigate(`/questions/${res.data.data._id}`);
     } catch (err) {
-      setErrorMessage(
-        err.response?.data?.message || "Failed to post question"
-      );
+      setErrorMessage(err.response?.data?.message || "Failed to post question");
     } finally {
       setLoading(false);
     }
@@ -92,27 +90,6 @@ export default function UploadQuestion() {
           />
 
           {/* Subject */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="subjectCode"
-              placeholder="Subject Code *"
-              value={form.subjectCode}
-              onChange={handleChange}
-              className="px-4 py-2 border border-borderSoft rounded-md
-                         focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-
-            <input
-              type="text"
-              name="subjectName"
-              placeholder="Subject Name (optional)"
-              value={form.subjectName}
-              onChange={handleChange}
-              className="px-4 py-2 border border-borderSoft rounded-md
-                         focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
 
           {/* Tags */}
           <input

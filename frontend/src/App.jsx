@@ -13,6 +13,7 @@ import { useAuth } from "./context/AuthContext";
 import UploadNote from "./pages/UploadNote";
 import UploadQuestion from "./pages/UploadQuestion";
 import QuestionDetail from "./pages/QuestionDetail";
+import QuestionsPage from "./pages/QuestionsPage";
 
 function App() {
   const { loading } = useAuth();
@@ -71,6 +72,14 @@ function App() {
           element={
             <ProtectedRoute>
               <UploadQuestion />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/questions"
+          element={
+            <ProtectedRoute>
+            <QuestionsPage />
             </ProtectedRoute>
           }
         />
