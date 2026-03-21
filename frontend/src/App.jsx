@@ -14,6 +14,7 @@ import QuestionDetail from "./pages/qna/QuestionDetail";
 import QuestionsPage from "./pages/qna/QuestionsPage";
 import UploadPage from "./pages/upload/UploadPage";
 import ContactUs from "./pages/common/ContactUs";
+import Settings from "./pages/user/Settings";
 
 function App() {
   const { loading } = useAuth();
@@ -90,6 +91,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ContactUs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           }
         />
