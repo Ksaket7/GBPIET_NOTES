@@ -2,18 +2,20 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/common/Layout";
 import AuthLayout from "./components/common/AuthLayout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
-import Home from "./pages/Home";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import NotesPage from "./pages/NotesPage";
-import NoteDetailPage from "./pages/NoteDetailPage";
-import NoteAIPage from "./pages/NoteAIPage";
+import Home from "./pages/home/Home";
+import LoginPage from "./pages/common/LoginPage";
+import SignupPage from "./pages/common/SignupPage";
+import NotesPage from "./pages/notes/NotesPage";
+import NoteDetailPage from "./pages/notes/NoteDetailPage";
+import NoteAIPage from "./pages/notes/NoteAIPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
-import UploadNote from "./pages/UploadNote";
-import UploadQuestion from "./pages/UploadQuestion";
-import QuestionDetail from "./pages/QuestionDetail";
-import QuestionsPage from "./pages/QuestionsPage";
+import UploadNote from "./pages/upload/UploadNote";
+import UploadQuestion from "./components/upload/UploadQuestion";
+import QuestionDetail from "./pages/qna/QuestionDetail";
+import QuestionsPage from "./pages/qna/QuestionsPage";
+import UploadPage from "./pages/upload/UploadPage";
+import ContactUs from "./pages/common/ContactUs";
 
 function App() {
   const { loading } = useAuth();
@@ -60,26 +62,19 @@ function App() {
 
         {/* Protected */}
         <Route
-          path="/notes/upload"
+          path="/upload"
           element={
             <ProtectedRoute>
-              <UploadNote />
+              <UploadPage />
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/questions/upload"
-          element={
-            <ProtectedRoute>
-              <UploadQuestion />
-            </ProtectedRoute>
-          }
-        />
+        
         <Route
           path="/questions"
           element={
             <ProtectedRoute>
-            <QuestionsPage />
+              <QuestionsPage />
             </ProtectedRoute>
           }
         />
@@ -91,15 +86,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/*
+        
         <Route
-          path="/questions"
+          path="/contact"
           element={
             <ProtectedRoute>
-              <QuestionsPage />
+              <ContactUs />
             </ProtectedRoute>
           }
-        /> */}
+        />
       </Route>
     </Routes>
   );

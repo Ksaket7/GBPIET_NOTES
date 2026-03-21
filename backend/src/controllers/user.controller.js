@@ -31,15 +31,21 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (
     [fullName, username, email, password, branch].some(
-      (field) => !field?.trim()
+      (field) => typeof field !== "string" || !field.trim()
     )
   ) {
     throw new ApiError(400, "All fields are required");
   }
 
-  const isReal = await verifyRealEmail(email);
+  let isReal = false;
+  try {
+    isReal = await verifyRealEmail(email);
+  } catch (err) {
+    console.error("Email verification failed:", err.message);
+  }
+
   if (!isReal) {
-    throw new ApiError(400, "Please enter a valid, real email address");
+    throw new ApiError(400, "Please enter a valid email");
   }
 
   const existedUser = await User.findOne({ $or: [{ email }, { username }] });
@@ -47,37 +53,17 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  // Check if an admin already exists
   const adminExists = await User.exists({ role: "admin" });
 
-  let finalRole = "student"; // default role
+  const allowedRoles = ["student", "cr", "faculty", "admin"];
+
+  let finalRole = "student";
 
   if (!adminExists && role === "admin") {
-    // ✅ Allow admin ONLY if no admin exists yet
     finalRole = "admin";
-  }
-  if (finalRole !== "admin") {
+  } else if (allowedRoles.includes(role)) {
     finalRole = role;
   }
-
-  // If admin already exists, ignore role input completely
-  // Any "role" sent in req.body will be overridden
-
-  // const avatarLocalPath = req.file?.path;
-  // if (!avatarLocalPath) {
-  //   throw new ApiError(400, "Avatar is required");
-  // }
-
-  const avatarUrl = "";
-  // await uploadOnSupabase(
-  //   avatarLocalPath,
-  //   "uploads",
-  //   "avatars"
-  // );
-
-  // if (!avatarUrl) {
-  //   throw new ApiError(400, "Error uploading avatar");
-  // }
 
   const user = await User.create({
     fullName,
@@ -85,8 +71,8 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
     branch,
-    avatar: avatarUrl,
-    role: finalRole, // ✅ controlled role
+    avatar: "",
+    role: finalRole,
   });
 
   const createdUser = await User.findById(user._id).select(
