@@ -64,10 +64,10 @@ export default function Header() {
         <div className="hidden md:flex items-center gap-3">
           {!isAuthenticated ? (
             <>
-              <Link className="px-4 py-2 text-primary border border-primary rounded-lg">
+              <Link className="px-4 py-2 text-primary border border-primary rounded-lg" to={"/login"}>
                 Login
               </Link>
-              <Link className="px-4 py-2 bg-primary text-white rounded-lg">
+              <Link className="px-4 py-2 bg-primary text-white rounded-lg" to={"signup"}>
                 Signup
               </Link>
             </>
