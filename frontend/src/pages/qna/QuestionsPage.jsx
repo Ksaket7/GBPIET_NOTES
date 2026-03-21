@@ -23,7 +23,7 @@ export default function QuestionsPage() {
   if (loading) return <Loader message="Loading questions…" />;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6 pt-16">
+    <div className="max-w-5xl mx-auto p-6 space-y-6 pt-20">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="font-poppins text-3xl text-textPrimary">

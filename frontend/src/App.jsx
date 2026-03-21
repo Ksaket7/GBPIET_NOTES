@@ -10,8 +10,6 @@ import NoteDetailPage from "./pages/notes/NoteDetailPage";
 import NoteAIPage from "./pages/notes/NoteAIPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
-import UploadNote from "./pages/upload/UploadNote";
-import UploadQuestion from "./components/upload/UploadQuestion";
 import QuestionDetail from "./pages/qna/QuestionDetail";
 import QuestionsPage from "./pages/qna/QuestionsPage";
 import UploadPage from "./pages/upload/UploadPage";

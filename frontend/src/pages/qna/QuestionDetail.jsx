@@ -47,7 +47,7 @@ export default function QuestionDetail() {
   const isOwner = user && question.askedBy?._id === user._id;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 pt-16">
+    <div className="max-w-4xl mx-auto p-6 space-y-6 pt-20">
       {/* Question Card */}
       <div className="bg-surface border border-borderSoft rounded-xl p-6 space-y-4">
         <h1 className="font-poppins text-3xl text-textPrimary">

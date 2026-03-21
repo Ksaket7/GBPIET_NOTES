@@ -8,9 +8,18 @@ export default function SignupPage() {
     username: "",
     email: "",
     password: "",
-    branch: "",
+    branch: "", // ✅ default
     role: "student", // ✅ default
   });
+
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
+  const roles = ["student", "cr", "faculty", "admin"];
 
   const handleChange = (e) => {
     setForm({
@@ -18,11 +27,6 @@ export default function SignupPage() {
       [e.target.name]: e.target.value,
     });
   };
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +41,6 @@ export default function SignupPage() {
       if (response.data?.success) {
         setSuccessMessage(response.data.message);
 
-        // 🔁 Redirect to login after short delay
         setTimeout(() => {
           navigate("/login");
         }, 1000);
@@ -55,6 +58,7 @@ export default function SignupPage() {
         <h1 className="font-poppins text-3xl text-textPrimary text-center mb-6">
           Create Account
         </h1>
+
         {errorMessage && (
           <div className="mb-4 text-sm text-red-600 text-center">
             {errorMessage}
@@ -74,8 +78,7 @@ export default function SignupPage() {
             placeholder="Full Name"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
           <input
@@ -84,8 +87,7 @@ export default function SignupPage() {
             placeholder="Username"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
           <input
@@ -94,8 +96,7 @@ export default function SignupPage() {
             placeholder="Email"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
           <input
@@ -104,34 +105,52 @@ export default function SignupPage() {
             placeholder="Password"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
-          <input
-            type="text"
-            name="branch"
-            placeholder="Branch (e.g. CSE, ECE)"
-            required
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <input
-            type="text"
-            name="role"
-            placeholder="Role (e.g.admin, cr, faculty,student)"
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                       focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+          {/* Branch Dropdown */}
+          <div>
+            <label className="text-sm text-textSecondary">Branch</label>
+            <select
+              name="branch"
+              value={form.branch}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="" disabled>
+                Select Branch
+              </option>
+              {branches.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Role Dropdown */}
+          <div>
+            <label className="text-sm text-textSecondary">Role</label>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className="w-full mt-1 px-4 py-2 border border-borderSoft rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {roles.map((r) => (
+                <option key={r} value={r}>
+                  {r.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <button
             type="submit"
-            className="w-full mt-2 bg-primary text-white py-2 rounded-md
-                       hover:bg-primaryDark transition"
+            disabled={loading}
+            className="w-full mt-2 bg-primary text-white py-2 rounded-md hover:bg-primaryDark transition disabled:opacity-50"
           >
-            Sign Up
+            {loading ? "Creating..." : "Sign Up"}
           </button>
         </form>
 

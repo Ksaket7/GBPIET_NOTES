@@ -22,7 +22,7 @@ export default function NoteAIPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-5 py-8 space-y-6 pt-16">
+    <div className="max-w-4xl mx-auto px-5 py-8 space-y-6 pt-20">
       {/* Back */}
       <BackToNote noteId={noteId} />
 

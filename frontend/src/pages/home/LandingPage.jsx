@@ -9,7 +9,7 @@ import CTA from "../../components/landing/CTA";
 
 export default function LandingPage() {
   return (
-    <div className="overflow-x-hidden pt-16">
+    <div className="overflow-x-hidden pt-20">
       <Hero />
       <Stats />
       <Features />

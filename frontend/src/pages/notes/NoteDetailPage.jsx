@@ -42,7 +42,7 @@ export default function NoteDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-10 space-y-8 pt-16">
+    <div className="max-w-5xl mx-auto px-5 py-10 space-y-8 pt-20">
       <NoteHeader note={note} />
       <NotePreview note={note} />
       <NoteComments noteId={note._id} />

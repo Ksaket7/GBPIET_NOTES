@@ -10,7 +10,7 @@ const UploadPage = () => {
   const [activeForm, setActiveForm] = useState(null);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10 pt-16">
+    <div className="min-h-screen bg-background px-4 py-10 pt-20">
       {/* Header */}
       <div className="max-w-5xl mx-auto text-center mb-10 px-2">
         <h1 className="text-3xl font-poppins text-textPrimary mb-4">
@@ -30,7 +30,7 @@ const UploadPage = () => {
             }
             className="w-full sm:w-auto flex-1 bg-primary text-white py-3 rounded-md hover:bg-primaryDark transition"
           >
-            Upload Notes
+            Upload Note
           </button>
         )}
 
@@ -40,7 +40,7 @@ const UploadPage = () => {
           }
           className="w-full sm:w-auto flex-1 bg-primary text-white py-3 rounded-md hover:bg-primaryDark transition"
         >
-          Upload Questions
+          Ask Question
         </button>
       </div>
 

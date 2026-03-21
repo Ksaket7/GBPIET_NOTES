@@ -7,7 +7,7 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-10 space-y-10 pt-16">
+    <div className="max-w-7xl mx-auto px-5 py-10 space-y-10 pt-20">
       {/* Header */}
       <div>
         <h1 className="font-poppins text-3xl text-textPrimary">

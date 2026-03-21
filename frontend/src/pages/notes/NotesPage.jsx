@@ -37,7 +37,7 @@ export default function NotesPage() {
   }, [searchParams]); // 👈 URL is the trigger
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-10 space-y-6 pt-16">
+    <div className="max-w-7xl mx-auto px-5 py-10 space-y-6 pt-20">
       <h1 className="font-poppins text-3xl text-textPrimary">Notes</h1>
 
       <NotesFilters filters={filters} setSearchParams={setSearchParams} />
