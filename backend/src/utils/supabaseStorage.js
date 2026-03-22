@@ -1,32 +1,30 @@
 import supabase from "./supabase.js";
-import fs from "fs";
 import mime from "mime-types";
 
 const uploadOnSupabase = async (
-  localFilePath,
-  bucketName = "uploads",
-  folder = "files"
+  fileBuffer,
+  fileName,
+  folder = "files",
+  bucketName = "uploads"
 ) => {
   try {
-    if (!localFilePath || !fs.existsSync(localFilePath)) {
-      console.error("File not found:", localFilePath);
+    if (!fileBuffer || !fileName) {
+      console.error("Invalid file data");
       return null;
     }
 
-    const fileName = localFilePath.split("\\").pop().split("/").pop();
-    const fileBuffer = fs.readFileSync(localFilePath); // ✅ full binary buffer
+    const uniqueFileName = `${Date.now()}-${fileName}`;
+    const filePath = `${folder}/${uniqueFileName}`;
+
     const contentType = mime.lookup(fileName) || "application/octet-stream";
 
-    // ✅ upload with overwrite allowed (avoid conflict corruption)
     const { data, error } = await supabase.storage
       .from(bucketName)
-      .upload(`${folder}/${fileName}`, fileBuffer, {
+      .upload(filePath, fileBuffer, {
         cacheControl: "3600",
         contentType,
-        upsert: true, // 👈 allow overwrite safely
+        upsert: false, // safer in production
       });
-
-    fs.unlinkSync(localFilePath);
 
     if (error) {
       console.error("Supabase upload error:", error.message);
@@ -35,31 +33,31 @@ const uploadOnSupabase = async (
 
     const { data: publicUrlData } = supabase.storage
       .from(bucketName)
-      .getPublicUrl(`${folder}/${fileName}`);
+      .getPublicUrl(filePath);
 
-    return `${publicUrlData.publicUrl}`;
+    return publicUrlData.publicUrl;
   } catch (error) {
     console.error("Upload failed:", error.message);
-    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
     return null;
   }
 };
-
-// utils/supabase.utils.js
 const deleteFromSupabase = async (filePath, bucketName = "uploads") => {
   try {
-    // Ensure path is valid
     if (!filePath) {
-      console.error("❌ No file path provided for deletion");
+      console.error("No file path provided for deletion");
       return null;
     }
 
-    // Remove any leading slashes to match Supabase storage keys
-    const cleanPath = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+    // Extract only path after bucket URL if full URL is passed
+    const urlParts = filePath.split(`${bucketName}/`);
+    const cleanPath = urlParts[1];
 
-    console.log("🗑️ Deleting from Supabase:", `${bucketName}/${cleanPath}`);
+    if (!cleanPath) {
+      console.error("Invalid file path format");
+      return null;
+    }
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from(bucketName)
       .remove([cleanPath]);
 
@@ -68,13 +66,11 @@ const deleteFromSupabase = async (filePath, bucketName = "uploads") => {
       return null;
     }
 
-    console.log("✅ File deleted successfully from Supabase");
     return true;
   } catch (error) {
     console.error("Deletion failed:", error.message);
     return null;
   }
 };
-
 
 export { uploadOnSupabase, deleteFromSupabase };

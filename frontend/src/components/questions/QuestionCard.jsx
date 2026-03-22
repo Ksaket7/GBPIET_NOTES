@@ -1,42 +1,46 @@
-export default function QuestionCard({ question, onClick }) {
+import { useNavigate } from "react-router-dom";
+import UpvoteButton from "../upvote/UpvoteButton";
+
+export default function QuestionCard({ question }) {
+  const navigate = useNavigate();
+
   return (
     <div
-      onClick={onClick}
-      className="cursor-pointer bg-surface border border-borderSoft rounded-xl p-5
-                 hover:shadow-md transition space-y-3"
+      onClick={() => navigate(`/questions/${question._id}`)}
+      className="cursor-pointer bg-surface border border-borderSoft rounded-lg p-5 space-y-3 hover:shadow-md transition"
     >
-      <h2 className="font-poppins text-xl text-textPrimary">
-        {question.title || "Untitled Question"}
-      </h2>
+      {/* Title */}
+      <h3 className="font-poppins text-lg font-semibold text-textPrimary">
+        {question.title}
+      </h3>
 
-      <p className="font-inter text-textSecondary line-clamp-2">
+      {/* Description */}
+      <p className="text-sm text-textSecondary line-clamp-2">
         {question.description}
       </p>
 
-      {/* Tags */}
-      {question.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {question.tags.map((tag) => (
-            <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Meta */}
-      <div className="flex justify-between text-sm text-textSecondary pt-2">
-        <span>
-          Asked by{" "}
-          <strong className="text-textPrimary">
-            {question.askedBy?.username}
-          </strong>
-        </span>
-        <div className="flex gap-1">
-          <span className="p-1 hover:bg-gray-100 rounded-md px-2" >{question.upvotes?.length || 0} 👍 </span>
+      <p className="text-xs text-textSecondary">
+        {question.subjectCode} • {question.tags?.join(", ")}
+      </p>
 
-          <span className="p-1 hover:bg-gray-100 rounded-md px-2" >{question.answers?.length || 0} answers</span>
-        </div>
+      <p className="text-xs text-textSecondary">
+        Asked by {question.askedBy?.fullName}
+      </p>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between mt-3">
+        <UpvoteButton type="question" id={question._id} />
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/questions/${question._id}`);
+          }}
+          className="px-4 py-1.5 text-sm bg-primary text-white rounded hover:bg-primaryDark"
+        >
+          View Answers
+        </button>
       </div>
     </div>
   );

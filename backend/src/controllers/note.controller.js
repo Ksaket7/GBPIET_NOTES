@@ -24,7 +24,7 @@ const getAllNotes = asyncHandler(async (req, res) => {
   } = req.query;
   const filter = {};
 
-   if (mine === "true") {
+  if (mine === "true") {
     filter.originalStudent = req.user._id;
   }
 
@@ -77,21 +77,34 @@ const uploadNote = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new ApiError(400, "File is required");
   }
-  const studentUser = await User.findOne({ username: originalStudentUsername });
-  if (!studentUser) {
-    throw new ApiError(404, "No user found with that username");
-  }
-  let originalStudentId = studentUser._id;
 
-  if (!originalStudentId || !isValidObjectId(originalStudentId)) {
-    throw new ApiError(400, "Valid original student ID is required");
+  // ✅ handle optional original student safely
+  let originalStudentId = null;
+
+  if (originalStudentUsername) {
+    const studentUser = await User.findOne({
+      username: originalStudentUsername,
+    });
+
+    if (!studentUser) {
+      throw new ApiError(404, "No user found with that username");
+    }
+
+    if (!isValidObjectId(studentUser._id)) {
+      throw new ApiError(400, "Invalid original student ID");
+    }
+
+    originalStudentId = studentUser._id;
   }
 
-  const localFilePath = req.file.path;
-  const fileUrl = await uploadOnSupabase(localFilePath, "uploads", "notes");
+  // ✅ NEW: use buffer instead of path
+  const fileBuffer = req.file.buffer;
+  const fileName = req.file.originalname;
+
+  const fileUrl = await uploadOnSupabase(fileBuffer, fileName, "notes");
 
   if (!fileUrl) {
-    throw new ApiError(500, "Error uploading file to supabase");
+    throw new ApiError(500, "Error uploading file to Supabase");
   }
 
   const note = await Note.create({
@@ -108,7 +121,7 @@ const uploadNote = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(201, note, "Note uploaded succesfully"));
+    .json(new ApiResponse(201, note, "Note uploaded successfully"));
 });
 
 const getNoteById = asyncHandler(async (req, res) => {
@@ -178,7 +191,12 @@ const deleteNote = asyncHandler(async (req, res) => {
   }
 
   // ✅ Extract relative file path correctly
-  let filePath = note.fileUrl.split("storage/v1/object/public/uploads")[1];
+  let filePath = null;
+
+  if (note.fileUrl) {
+    const parts = note.fileUrl.split("/uploads/");
+    filePath = parts[1];
+  }
 
   if (filePath) {
     // Remove leading slash if present

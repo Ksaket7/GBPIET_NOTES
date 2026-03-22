@@ -1,6 +1,6 @@
 import { useState } from "react";
 import UpvoteButton from "../upvote/UpvoteButton";
-import UpvotersList from "./UpvotersList";
+import UpvotersList from "../upvote/UpvotersList";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
