@@ -48,7 +48,7 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-5 py-3 flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center ">
-            <img src={logo} className="h-10 object-contain" />
+            <img src={logo} className="h-10 object-contain text-primary hover:text-primary" />
           </Link>
 
           {/* Desktop Links */}
