@@ -16,6 +16,7 @@ import UploadPage from "./pages/upload/UploadPage";
 import ContactUs from "./pages/common/ContactUs";
 import Settings from "./pages/user/Settings";
 import About from "./pages/common/About";
+import ScrollToTop from "./components/common/ScrollToTop";
 
 function App() {
   const { loading } = useAuth();
@@ -24,95 +25,98 @@ function App() {
     return <Loader message="Checking your session…" />;
   }
   return (
-    <Routes>
-      {/* Routes WITHOUT header & footer (optional) */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-      </Route>
-      {/* Routes WITH header & footer */}
-      {/* Layout */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
+    <>
+      <ScrollToTop/>
+      <Routes>
+        {/* Routes WITHOUT header & footer (optional) */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Route>
+        {/* Routes WITH header & footer */}
+        {/* Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
 
-        <Route
-          path="/notes"
-          element={
-            // <ProtectedRoute>
-            <NotesPage />
-            // </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notes/:noteId"
-          element={
-            <ProtectedRoute>
-              <NoteDetailPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notes/:noteId/ai"
-          element={
-            <ProtectedRoute>
-              <NoteAIPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/notes"
+            element={
+              // <ProtectedRoute>
+              <NotesPage />
+              // </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes/:noteId"
+            element={
+              <ProtectedRoute>
+                <NoteDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notes/:noteId/ai"
+            element={
+              <ProtectedRoute>
+                <NoteAIPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Protected */}
-        <Route
-          path="/upload"
-          element={
-            <ProtectedRoute>
-              <UploadPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/questions"
-          element={
-            <ProtectedRoute>
-              <QuestionsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/questions/:questionId"
-          element={
-            <ProtectedRoute>
-              <QuestionDetail />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/contact"
-          element={
-            <ProtectedRoute>
-              <ContactUs />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <ProtectedRoute>
-              <About />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
+          {/* Protected */}
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <UploadPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/questions"
+            element={
+              <ProtectedRoute>
+                <QuestionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/questions/:questionId"
+            element={
+              <ProtectedRoute>
+                <QuestionDetail />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/contact"
+            element={
+              <ProtectedRoute>
+                <ContactUs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <ProtectedRoute>
+                <About />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
