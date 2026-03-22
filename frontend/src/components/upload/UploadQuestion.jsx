@@ -50,7 +50,7 @@ export default function UploadQuestion() {
   };
 
   return (
-    <div className="w-full bg-surface border border-borderSoft rounded-xl p-6 md:p-8">
+    <div className="w-full max-w-3xl mx-auto bg-surface border border-borderSoft rounded-xl p-6 md:p-10">
       <h1 className="font-poppins text-2xl md:text-3xl text-textPrimary mb-4">
         Ask a Question
       </h1>
@@ -63,7 +63,7 @@ export default function UploadQuestion() {
         <div className="mb-4 text-sm text-red-600">{errorMessage}</div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 font-inter">
+      <form onSubmit={handleSubmit} className="space-y-6 font-inter">
         {/* Title */}
         <input
           type="text"
@@ -86,7 +86,30 @@ export default function UploadQuestion() {
                    focus:outline-none focus:ring-2 focus:ring-primary"
         />
 
-        {/* Tags */}
+        {/* Grid for optional fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="subjectCode"
+            placeholder="Subject Code"
+            value={form.subjectCode}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-borderSoft rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+
+          <input
+            type="text"
+            name="subjectName"
+            placeholder="Subject Name"
+            value={form.subjectName}
+            onChange={handleChange}
+            className="w-full px-4 py-3 border border-borderSoft rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+
+        {/* Tags full width */}
         <input
           type="text"
           name="tags"
@@ -97,15 +120,17 @@ export default function UploadQuestion() {
                    focus:outline-none focus:ring-2 focus:ring-primary"
         />
 
-        {/* Submit */}
-        <LoadingButton
-          loading={loading}
-          type="submit"
-          className="w-full mt-2 bg-primary text-white py-3 rounded-md
-                   hover:bg-primaryDark transition"
-        >
-          Post Question
-        </LoadingButton>
+        {/* Button (NOT full width) */}
+        <div className="flex justify-center md:justify-end">
+          <LoadingButton
+            loading={loading}
+            type="submit"
+            className="px-8 py-3 bg-primary text-white rounded-md
+                     hover:bg-primaryDark transition"
+          >
+            Post Question
+          </LoadingButton>
+        </div>
       </form>
     </div>
   );

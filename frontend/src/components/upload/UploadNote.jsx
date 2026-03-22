@@ -70,18 +70,15 @@ const UploadForm = () => {
         setFile(null);
       }
     } catch (error) {
-      setErrorMessage(
-        error.response?.data?.message || "Upload failed"
-      );
+      setErrorMessage(error.response?.data?.message || "Upload failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md bg-surface border border-borderSoft rounded-xl p-8">
-
-      <h1 className="font-poppins text-2xl text-textPrimary text-center mb-6">
+    <div className="w-full max-w-4xl mx-auto bg-surface border border-borderSoft rounded-xl p-6 md:p-10">
+      <h1 className="font-poppins text-2xl text-textPrimary text-center mb-8">
         Upload Notes
       </h1>
 
@@ -97,77 +94,87 @@ const UploadForm = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 font-inter">
+      <form onSubmit={handleSubmit} className="space-y-6 font-inter">
+        {/* GRID START */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            name="title"
+            placeholder="Title"
+            value={form.title}
+            onChange={handleChange}
+            required
+          />
 
-        <InputField
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={handleChange}
-          required
-        />
+          <InputField
+            name="subjectName"
+            placeholder="Subject Name"
+            value={form.subjectName}
+            onChange={handleChange}
+          />
 
-        <InputField
-          name="subjectName"
-          placeholder="Subject Name"
-          value={form.subjectName}
-          onChange={handleChange}
-        />
+          <InputField
+            name="subjectCode"
+            placeholder="Subject Code"
+            value={form.subjectCode}
+            onChange={handleChange}
+            required
+          />
 
-        <InputField
-          name="subjectCode"
-          placeholder="Subject Code"
-          value={form.subjectCode}
-          onChange={handleChange}
-          required
-        />
+          <InputField
+            name="originalStudentUsername"
+            placeholder="Original Student Username"
+            value={form.originalStudentUsername}
+            onChange={handleChange}
+          />
+        </div>
+        {/* GRID END */}
 
-        <InputField
-          name="originalStudentUsername"
-          placeholder="Original Student Username"
-          value={form.originalStudentUsername}
-          onChange={handleChange}
-        />
-
+        {/* Full width textarea */}
         <textarea
           name="description"
           placeholder="Description"
           value={form.description}
           onChange={handleChange}
           className="w-full px-4 py-2 border border-borderSoft rounded-md
-                     focus:outline-none focus:ring-2 focus:ring-primary"
+                   focus:outline-none focus:ring-2 focus:ring-primary"
         />
 
-        <InputField
-          name="tags"
-          placeholder="Tags (comma separated)"
-          value={form.tags}
-          onChange={handleChange}
-        />
+        {/* Tags + Type row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            name="tags"
+            placeholder="Tags (comma separated)"
+            value={form.tags}
+            onChange={handleChange}
+          />
 
-        <select
-          name="type"
-          value={form.type}
-          onChange={handleChange}
-          className="w-full px-4 py-2 border border-borderSoft rounded-md
+          <select
+            name="type"
+            value={form.type}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-borderSoft rounded-md
                      focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="notes">Notes</option>
-          <option value="pyqs">PYQs</option>
-          <option value="tuts">Tutorials</option>
-          <option value="assignments">Assignments</option>
-        </select>
+          >
+            <option value="notes">Notes</option>
+            <option value="pyqs">PYQs</option>
+            <option value="tuts">Tutorials</option>
+            <option value="assignments">Assignments</option>
+          </select>
+        </div>
 
+        {/* File Upload full width */}
         <FileUpload file={file} setFile={setFile} />
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full mt-2 bg-primary text-white py-2 rounded-md
-                     hover:bg-primaryDark transition"
-        >
-          {loading ? "Uploading..." : "Upload Notes"}
-        </button>
+        <div className="flex justify-center md:justify-end">
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-8 py-2 bg-primary text-white rounded-md
+               hover:bg-primaryDark transition disabled:opacity-50"
+          >
+            {loading ? "Uploading..." : "Upload Notes"}
+          </button>
+        </div>
       </form>
     </div>
   );
