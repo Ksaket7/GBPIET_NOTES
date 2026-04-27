@@ -1,19 +1,19 @@
 import { useState } from "react";
-import UpvoteButton from "../upvote/UpvoteButton";
-import UpvotersList from "../upvote/UpvotersList";
+import { ArrowLeft, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import ConfirmModal from "../ui/ConfirmModal";
 import LoadingButton from "../ui/LoadingButton";
+import UpvoteButton from "../upvote/UpvoteButton";
+import UpvotersList from "../upvote/UpvotersList";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
   const [deleting, setDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const isOwner = user?._id === note.uploadedBy?._id;
 
   const handleDelete = async () => {
@@ -30,55 +30,42 @@ export default function NoteHeader({ note }) {
   };
 
   return (
-    <div className="space-y-3 border-b border-borderSoft p-6 bg-slate-50">
+    <section className="glass-panel p-6">
       <button
+        type="button"
         onClick={() => navigate("/notes")}
-        className="flex items-center gap-2 text-sm font-inter
-             text-textSecondary hover:text-primary transition"
+        className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-700"
       >
-        ← Back to Notes
+        <ArrowLeft size={16} />
+        Back to Notes
       </button>
-      <div className="flex items-start justify-between">
-        <h1 className="font-poppins text-3xl text-textPrimary">{note.title}</h1>
 
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div>
+          <span className="pill">{note.subjectCode} - {note.type}</span>
+          <h1 className="mt-4 font-poppins text-3xl font-semibold text-slate-950">
+            {note.title}
+          </h1>
+          <p className="mt-3 text-sm text-slate-500">
+            Uploaded by <strong className="text-slate-950">{note.uploadedBy?.fullName}</strong>
+          </p>
+        </div>
         {note.verified && (
-          <span className="px-3 py-1 text-sm bg-primary text-white rounded">
-            Verified
-          </span>
+          <span className="pill bg-emerald-50 text-emerald-700">Verified</span>
         )}
       </div>
 
-      <p className="font-inter text-textSecondary">
-        {note.subjectCode} • {note.type}
-      </p>
-
-      <p className="font-inter text-sm text-textSecondary">
-        Uploaded by{" "}
-        <span className="font-medium text-textPrimary">
-          {note.uploadedBy?.fullName}
-        </span>
-      </p>
-
-      
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <UpvoteButton type="note" id={note._id} />
-
-      <div className="flex justify-between items-center">
         <button
+          type="button"
           onClick={() => setShowUpvoters(true)}
-          className="text-sm font-inter text-primary hover:underline"
+          className="app-button-secondary py-2"
         >
           View upvoters
         </button>
-
-        {showUpvoters && (
-          <UpvotersList
-            type="note"
-            id={note._id}
-            onClose={() => setShowUpvoters(false)}
-          />
-        )}
-
         <button
+          type="button"
           onClick={() => {
             if (!isAuthenticated) {
               navigate("/login");
@@ -88,32 +75,39 @@ export default function NoteHeader({ note }) {
               state: { noteType: note.type, noteTitle: note.title },
             });
           }}
-          className="px-4 py-2 bg-primary text-white rounded
-                     hover:bg-primaryDark transition font-inter"
+          className="app-button py-2"
         >
-          🤖 Ask AI
+          <Bot size={16} />
+          Ask AI
         </button>
+        {isOwner && (
+          <LoadingButton
+            loading={deleting}
+            onClick={() => setShowConfirm(true)}
+            className="app-button-secondary py-2 text-red-500"
+          >
+            Delete Note
+          </LoadingButton>
+        )}
       </div>
 
-      {isOwner && (
-        <LoadingButton
-          loading={deleting}
-          onClick={() => setShowConfirm(true)}
-          className="px-4 py-2 border border-red-500 text-red-500 rounded
-             hover:bg-red-500 hover:text-white transition font-inter"
-        >
-          Delete Note
-        </LoadingButton>
+      {showUpvoters && (
+        <UpvotersList
+          type="note"
+          id={note._id}
+          onClose={() => setShowUpvoters(false)}
+        />
       )}
+
       <ConfirmModal
         open={showConfirm}
         title="Delete Note"
         message="Are you sure you want to delete this note? This action cannot be undone."
         confirmText="Delete"
-        onCancel={() => (setShowConfirm(false))}
+        onCancel={() => setShowConfirm(false)}
         loading={deleting}
         onConfirm={handleDelete}
       />
-    </div>
+    </section>
   );
 }

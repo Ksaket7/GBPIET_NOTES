@@ -12,13 +12,13 @@ export default function QuestionsFilters({ filters, setSearchParams }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="glass-panel grid gap-3 p-4 md:grid-cols-[1fr_180px]">
       <input
         type="text"
         placeholder="Search questions…"
         value={filters.query}
         onChange={(e) => updateParam("query", e.target.value)}
-        className="border border-borderSoft px-3 py-2 rounded"
+        className="app-input"
       />
 
       <input
@@ -26,7 +26,7 @@ export default function QuestionsFilters({ filters, setSearchParams }) {
         placeholder="Subject Code"
         value={filters.subjectCode}
         onChange={(e) => updateParam("subjectCode", e.target.value)}
-        className="border border-borderSoft px-3 py-2 rounded"
+        className="app-input"
       />
     </div>
   );

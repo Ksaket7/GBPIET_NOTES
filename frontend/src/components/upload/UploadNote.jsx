@@ -77,24 +77,24 @@ const UploadForm = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-surface border border-borderSoft rounded-xl p-6 md:p-10">
-      <h1 className="font-poppins text-2xl text-textPrimary text-center mb-8">
+    <div className="glass-panel p-6 md:p-8">
+      <h1 className="font-poppins text-2xl font-semibold text-slate-950">
         Upload Notes
       </h1>
 
       {errorMessage && (
-        <div className="mb-4 text-sm text-red-600 text-center">
+        <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
           {errorMessage}
         </div>
       )}
 
       {successMessage && (
-        <div className="mb-4 text-sm text-green-600 text-center">
+        <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {successMessage}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 font-inter">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         {/* GRID START */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
@@ -135,8 +135,7 @@ const UploadForm = () => {
           placeholder="Description"
           value={form.description}
           onChange={handleChange}
-          className="w-full px-4 py-2 border border-borderSoft rounded-md
-                   focus:outline-none focus:ring-2 focus:ring-primary"
+          className="app-input min-h-28"
         />
 
         {/* Tags + Type row */}
@@ -152,8 +151,7 @@ const UploadForm = () => {
             name="type"
             value={form.type}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-borderSoft rounded-md
-                     focus:outline-none focus:ring-2 focus:ring-primary"
+            className="app-input"
           >
             <option value="notes">Notes</option>
             <option value="pyqs">PYQs</option>
@@ -169,8 +167,7 @@ const UploadForm = () => {
           <button
             type="submit"
             disabled={loading}
-            className="px-8 py-2 bg-primary text-white rounded-md
-               hover:bg-primaryDark transition disabled:opacity-50"
+            className="app-button"
           >
             {loading ? "Uploading..." : "Upload Notes"}
           </button>

@@ -5,7 +5,6 @@ import NoteHeader from "../../components/notes/NoteHeader";
 import NotePreview from "../../components/notes/NotePreview";
 import NoteComments from "../../components/notes/NoteComments";
 import Loader from "../../components/common/Loader";
-import { useAnimationControls } from "framer-motion";
 
 export default function NoteDetailPage() {
   const { noteId } = useParams();
@@ -35,17 +34,19 @@ export default function NoteDetailPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500 font-inter">
+      <div className="app-page flex items-center justify-center text-red-500">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-5 py-10 space-y-8 pt-20">
-      <NoteHeader note={note} />
-      <NotePreview note={note} />
-      <NoteComments noteId={note._id} />
-    </div>
+    <main className="app-page">
+      <div className="app-shell space-y-6">
+        <NoteHeader note={note} />
+        <NotePreview note={note} />
+        <NoteComments noteId={note._id} />
+      </div>
+    </main>
   );
 }

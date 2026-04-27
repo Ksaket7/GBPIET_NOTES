@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function BackToNote({ noteId }) {
@@ -5,10 +6,12 @@ export default function BackToNote({ noteId }) {
 
   return (
     <button
+      type="button"
       onClick={() => navigate(`/notes/${noteId}`)}
-      className="font-inter text-sm text-primary hover:underline"
+      className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-700"
     >
-      ← Back to Note
+      <ArrowLeft size={16} />
+      Back to Note
     </button>
   );
 }

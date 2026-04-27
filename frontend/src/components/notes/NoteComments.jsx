@@ -43,22 +43,22 @@ export default function NoteComments({ noteId }) {
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="font-poppins text-2xl text-textPrimary">Comments</h2>
+    <section className="glass-panel space-y-6 p-6">
+      <h2 className="font-poppins text-2xl font-semibold text-slate-950">Comments</h2>
 
       {/* Comments list */}
       <div className="space-y-4">
         {comments.length === 0 && (
-          <p className="font-inter text-textSecondary">No comments yet.</p>
+          <p className="text-sm text-slate-500">No comments yet.</p>
         )}
 
         {comments.map((c, idx) => (
           <div
             key={idx}
-            className="flex gap-3 border border-borderSoft rounded-lg p-4"
+            className="flex gap-3 rounded-3xl bg-white/65 p-4"
           >
             {/* Avatar */}
-            <div className="w-10 h-10 rounded-full bg-borderSoft overflow-hidden flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
               {c.user?.avatar ? (
                 <img
                   src={c.user.avatar}
@@ -66,7 +66,7 @@ export default function NoteComments({ noteId }) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="font-inter text-sm text-textSecondary">
+                <span className="text-sm font-semibold text-indigo-700">
                   {c.user?.username?.[0]?.toUpperCase()}
                 </span>
               )}
@@ -75,16 +75,16 @@ export default function NoteComments({ noteId }) {
             {/* Content */}
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <p className="font-inter font-medium text-textPrimary">
+                <p className="font-semibold text-slate-950">
                   @{c.user?.username || "unknown"}
                 </p>
 
-                <span className="text-xs text-textSecondary">
+                <span className="text-xs text-slate-400">
                   {timeAgo(c.createdAt)}
                 </span>
               </div>
 
-              <p className="font-inter text-textSecondary">{c.message}</p>
+              <p className="text-slate-600">{c.message}</p>
             </div>
           </div>
         ))}
@@ -99,23 +99,19 @@ export default function NoteComments({ noteId }) {
           }
           disabled={!isAuthenticated || loading}
           rows={3}
-          className="w-full border border-borderSoft rounded-lg p-3
-               font-inter focus:outline-none focus:ring-2
-               focus:ring-primary disabled:opacity-60"
+          className="app-input min-h-28 disabled:opacity-60"
         />
 
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={!isAuthenticated || loading}
-            className="px-4 py-2 bg-primary text-white rounded
-                 hover:bg-primaryDark transition
-                 disabled:opacity-50"
+            className="app-button disabled:opacity-50"
           >
             Post Comment
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }

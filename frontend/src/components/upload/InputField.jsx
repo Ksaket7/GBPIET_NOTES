@@ -14,8 +14,7 @@ const InputField = ({
       onChange={onChange}
       placeholder={placeholder}
       required={required}
-      className="w-full px-4 py-2 border border-borderSoft rounded-md
-                 focus:outline-none focus:ring-2 focus:ring-primary"
+      className="app-input"
     />
   );
 };

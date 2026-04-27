@@ -13,13 +13,13 @@ export default function NotesFilters({ filters, setSearchParams }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="glass-panel grid gap-3 p-4 md:grid-cols-[1fr_180px_180px]">
       <input
         type="text"
         placeholder="Search notes…"
         value={filters.query}
         onChange={(e) => updateParam("query", e.target.value)}
-        className="border border-borderSoft px-3 py-2 rounded"
+        className="app-input"
       />
 
       <input
@@ -27,13 +27,13 @@ export default function NotesFilters({ filters, setSearchParams }) {
         placeholder="Subject Code"
         value={filters.subjectCode}
         onChange={(e) => updateParam("subjectCode", e.target.value)}
-        className="border border-borderSoft px-3 py-2 rounded"
+        className="app-input"
       />
 
       <select
         value={filters.type}
         onChange={(e) => updateParam("type", e.target.value)}
-        className="border border-borderSoft px-3 py-2 rounded"
+        className="app-input"
       >
         <option value="">All Types</option>
         <option value="notes">Notes</option>

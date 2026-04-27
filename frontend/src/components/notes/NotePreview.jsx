@@ -1,5 +1,6 @@
-import { useAuth } from "../../context/AuthContext";
+import { FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function NotePreview({ note }) {
   const { isAuthenticated } = useAuth();
@@ -14,50 +15,41 @@ export default function NotePreview({ note }) {
   };
 
   return (
-    <div className="bg-surface border border-borderSoft rounded-xl p-6 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="font-poppins text-xl text-textPrimary">
-          📄 Note Preview
-        </h2>
-
-        <span className="text-xs px-2 py-1 rounded bg-borderSoft font-inter">
-          PDF
-        </span>
+    <section className="glass-panel p-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="rounded-2xl bg-indigo-100 p-3 text-indigo-600">
+            <FileText size={20} />
+          </span>
+          <h2 className="font-poppins text-xl font-semibold text-slate-950">
+            Note Preview
+          </h2>
+        </div>
+        <span className="pill">PDF</span>
       </div>
 
-      {/* Meta info */}
-      <div className="space-y-1 text-sm font-inter text-textSecondary">
-        <p>
-          <span className="font-medium text-textPrimary">Type:</span>{" "}
-          {note.type.toUpperCase()}
+      <div className="mt-5 grid gap-3 text-sm text-slate-500 md:grid-cols-2">
+        <p className="rounded-2xl bg-white/65 p-3">
+          <strong className="text-slate-950">Type:</strong> {note.type?.toUpperCase()}
         </p>
-        <p>
-          <span className="font-medium text-textPrimary">Subject Code:</span>{" "}
-          {note.subjectCode}
+        <p className="rounded-2xl bg-white/65 p-3">
+          <strong className="text-slate-950">Subject:</strong> {note.subjectCode}
         </p>
       </div>
 
-      {/* Description */}
-      <p className="font-inter text-textSecondary">
+      <p className="mt-5 text-slate-600">
         {note.description || "No description provided."}
       </p>
 
-      {/* Access notice */}
       {!isAuthenticated && (
-        <p className="text-sm font-inter text-red-500">
+        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
           Login required to view or download this note.
         </p>
       )}
 
-      {/* Action */}
-      <button
-        onClick={handleAccess}
-        className="mt-2 px-5 py-2 bg-primary text-white rounded
-                   hover:bg-primaryDark transition font-inter"
-      >
+      <button type="button" onClick={handleAccess} className="app-button mt-5">
         {isAuthenticated ? "Open / Download" : "Login to Access"}
       </button>
-    </div>
+    </section>
   );
 }

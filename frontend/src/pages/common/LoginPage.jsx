@@ -1,43 +1,31 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../../services/api";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
-  const [form, setForm] = useState({
-    email: "",
-    username: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [form, setForm] = useState({ email: "", username: "", password: "" });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value });
+  };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
     setLoading(true);
 
     try {
       const response = await API.post("/users/login", form);
-
-      // ✅ ApiResponse
       if (response.data?.success) {
         setSuccessMessage(response.data.message);
-
-        // 🔑 UPDATE AUTH CONTEXT
         login(response.data.data.user);
-
-        // 🔁 Redirect to home (dashboard)
         navigate("/");
       }
     } catch (error) {
@@ -48,80 +36,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-surface border border-borderSoft rounded-xl p-8">
-        <h1 className="font-poppins text-3xl text-textPrimary text-center mb-6">
-          Login
-        </h1>
-        {errorMessage && (
-          <p className="text-sm text-red-600 text-center mb-4">
-            {errorMessage}
-          </p>
-        )}
-        {successMessage && (
-          <div className="mb-4 text-sm text-green-600 text-center">
-            {successMessage}
-          </div>
-        )}
+    <main className="app-page md:pl-8">
+      <div className="mx-auto grid max-w-5xl gap-6 rounded-[32px] border border-white/70 bg-white/45 p-4 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl md:grid-cols-[1fr_420px] md:p-7">
+        <section className="hidden rounded-[28px] bg-gradient-to-br from-indigo-600 to-sky-500 p-8 text-white md:flex md:flex-col md:justify-end">
+          <p className="text-sm font-semibold text-white/75">GBPIET Notes</p>
+          <h1 className="mt-3 font-poppins text-4xl font-semibold">
+            Welcome back to your knowledge hub
+          </h1>
+        </section>
 
-        <form onSubmit={handleSubmit} className="space-y-4 font-inter">
-          <div>
-            <label className="block text-sm text-textSecondary mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-borderSoft rounded-md
-                 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div className="block text-center text-sm text-textSecondary mb-1">
-            OR
-          </div>
-          <div>
-            <label className="block text-sm text-textSecondary mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              name="username"
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-borderSoft rounded-md
-                 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-textSecondary mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              required
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-borderSoft rounded-md
-                 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full mt-4 bg-primary text-white py-2 rounded-md
-               hover:bg-primaryDark transition"
-          >
+        <section className="glass-panel p-6 md:p-8">
+          <h1 className="font-poppins text-3xl font-semibold text-slate-950">
             Login
-          </button>
-        </form>
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Continue to your dashboard.
+          </p>
 
-        <p className="text-sm text-textSecondary text-center mt-6">
-          Don’t have an account?{" "}
-          <Link to="/signup" className="text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
+          {errorMessage && (
+            <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+              {errorMessage}
+            </p>
+          )}
+          {successMessage && (
+            <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {successMessage}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <input type="email" name="email" placeholder="Email" onChange={handleChange} className="app-input" />
+            <div className="text-center text-xs font-semibold text-slate-400">OR</div>
+            <input type="text" name="username" placeholder="Username" onChange={handleChange} className="app-input" />
+            <input type="password" name="password" placeholder="Password" required onChange={handleChange} className="app-input" />
+            <button type="submit" disabled={loading} className="app-button w-full">
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Do not have an account?{" "}
+            <Link to="/signup" className="font-semibold text-indigo-700">
+              Sign up
+            </Link>
+          </p>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

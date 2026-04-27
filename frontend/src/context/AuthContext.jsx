@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import API from "../services/api";
 
@@ -35,7 +36,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await API.post("/users/logout");
-    } catch (e) {}
+    } catch {
+      // Logout should clear local auth state even if the API session is gone.
+    }
     setUser(null);
   };
 
@@ -47,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        setUser,
       }}
     >
       {children}

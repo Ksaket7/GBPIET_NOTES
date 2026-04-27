@@ -7,13 +7,6 @@ import LoadingButton from "../ui/LoadingButton";
 export default function UploadQuestion() {
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  // Auth guard
-  if (!user) {
-    navigate("/login");
-    return null;
-  }
-
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -21,16 +14,20 @@ export default function UploadQuestion() {
     subjectName: "",
     tags: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+  const handleChange = (event) => {
+    setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setErrorMessage("");
 
     if (!form.title || !form.description) {
@@ -50,52 +47,47 @@ export default function UploadQuestion() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-surface border border-borderSoft rounded-xl p-6 md:p-10">
-      <h1 className="font-poppins text-2xl md:text-3xl text-textPrimary mb-4">
+    <div className="glass-panel p-6 md:p-8">
+      <h1 className="font-poppins text-2xl font-semibold text-slate-950">
         Ask a Question
       </h1>
-
-      <p className="text-sm text-textSecondary mb-6 font-inter">
-        Ask a clear question to get better answers from your peers.
+      <p className="mt-2 text-sm text-slate-500">
+        Ask clearly so others can answer quickly.
       </p>
 
       {errorMessage && (
-        <div className="mb-4 text-sm text-red-600">{errorMessage}</div>
+        <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+          {errorMessage}
+        </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 font-inter">
-        {/* Title */}
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <input
           type="text"
           name="title"
           placeholder="Question title *"
           value={form.title}
           onChange={handleChange}
-          className="w-full px-4 py-3 border border-borderSoft rounded-md
-                   focus:outline-none focus:ring-2 focus:ring-primary"
+          className="app-input"
         />
 
-        {/* Description */}
         <textarea
           name="description"
           placeholder="Describe your question in detail *"
           value={form.description}
           onChange={handleChange}
           rows={5}
-          className="w-full px-4 py-3 border border-borderSoft rounded-md
-                   focus:outline-none focus:ring-2 focus:ring-primary"
+          className="app-input min-h-36"
         />
 
-        {/* Grid for optional fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <input
             type="text"
             name="subjectCode"
             placeholder="Subject Code"
             value={form.subjectCode}
             onChange={handleChange}
-            className="w-full px-4 py-3 border border-borderSoft rounded-md
-                     focus:outline-none focus:ring-2 focus:ring-primary"
+            className="app-input"
           />
 
           <input
@@ -104,30 +96,21 @@ export default function UploadQuestion() {
             placeholder="Subject Name"
             value={form.subjectName}
             onChange={handleChange}
-            className="w-full px-4 py-3 border border-borderSoft rounded-md
-                     focus:outline-none focus:ring-2 focus:ring-primary"
+            className="app-input"
           />
         </div>
 
-        {/* Tags full width */}
         <input
           type="text"
           name="tags"
           placeholder="Tags (comma separated)"
           value={form.tags}
           onChange={handleChange}
-          className="w-full px-4 py-3 border border-borderSoft rounded-md
-                   focus:outline-none focus:ring-2 focus:ring-primary"
+          className="app-input"
         />
 
-        {/* Button (NOT full width) */}
-        <div className="flex justify-center md:justify-end">
-          <LoadingButton
-            loading={loading}
-            type="submit"
-            className="px-8 py-3 bg-primary text-white rounded-md
-                     hover:bg-primaryDark transition"
-          >
+        <div className="flex justify-end">
+          <LoadingButton loading={loading} type="submit" className="app-button">
             Post Question
           </LoadingButton>
         </div>

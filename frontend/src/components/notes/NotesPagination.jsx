@@ -14,13 +14,12 @@ export default function NotesPagination({ pagination, onPageChange }) {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-8 font-inter">
+    <div className="mt-8 flex items-center justify-center gap-2">
       {/* Prev */}
       <button
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="px-3 py-1 border border-borderSoft rounded
-                   disabled:opacity-50 hover:bg-borderSoft transition"
+        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
       >
         Prev
       </button>
@@ -30,11 +29,11 @@ export default function NotesPagination({ pagination, onPageChange }) {
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`px-3 py-1 border rounded transition
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition
             ${
               page === currentPage
-                ? "bg-primary text-white border-primary"
-                : "border-borderSoft hover:bg-borderSoft"
+                ? "bg-slate-950 text-white"
+                : "bg-white/70 text-slate-600 hover:bg-white"
             }`}
         >
           {page}
@@ -45,8 +44,7 @@ export default function NotesPagination({ pagination, onPageChange }) {
       <button
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="px-3 py-1 border border-borderSoft rounded
-                   disabled:opacity-50 hover:bg-borderSoft transition"
+        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
       >
         Next
       </button>

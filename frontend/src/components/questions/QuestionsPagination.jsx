@@ -12,11 +12,11 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
   }
 
   return (
-    <div className="flex items-center justify-center gap-2 mt-8">
+    <div className="mt-8 flex items-center justify-center gap-2">
       <button
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
       >
         Prev
       </button>
@@ -25,10 +25,10 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`px-3 py-1 border rounded ${
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
             page === currentPage
-              ? "bg-primary text-white"
-              : ""
+              ? "bg-slate-950 text-white"
+              : "bg-white/70 text-slate-600 hover:bg-white"
           }`}
         >
           {page}
@@ -38,7 +38,7 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
       <button
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="px-3 py-1 border rounded disabled:opacity-50"
+        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
       >
         Next
       </button>

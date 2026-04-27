@@ -5,21 +5,18 @@ const PROMPTS_BY_TYPE = {
     "What are the important points?",
     "Give quick revision notes",
   ],
-
   pyqs: [
     "Explain how to approach these questions",
     "Which questions are most important?",
     "Give model answers or hints",
     "Identify repeated topics",
   ],
-
   assignments: [
     "Explain the problem statement",
     "Give hints to solve this assignment",
     "What concepts are required?",
     "Explain step-by-step solution approach",
   ],
-
   tuts: [
     "Explain each step clearly",
     "Why is this method used?",
@@ -41,27 +38,24 @@ export default function SuggestedPrompts({ noteType, setMessages }) {
       },
       {
         role: "ai",
-        content: "🤖 AI response will appear here once backend is connected.",
+        content: "AI response will appear here once backend is connected.",
         createdAt: new Date().toISOString(),
       },
     ]);
   };
 
   return (
-    <div className="space-y-2">
-      <p className="font-inter text-sm text-textSecondary">
-        Suggested questions
-      </p>
-
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-slate-500">Suggested questions</p>
       <div className="flex flex-wrap gap-2">
-        {prompts.map((p) => (
+        {prompts.map((prompt) => (
           <button
-            key={p}
-            onClick={() => handlePrompt(p)}
-            className="px-3 py-1 border border-borderSoft rounded
-                       font-inter text-sm hover:bg-borderSoft transition"
+            key={prompt}
+            type="button"
+            onClick={() => handlePrompt(prompt)}
+            className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white"
           >
-            {p}
+            {prompt}
           </button>
         ))}
       </div>

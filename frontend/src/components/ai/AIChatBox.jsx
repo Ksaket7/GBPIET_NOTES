@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function AIChatBox({ noteId, messages, setMessages }) {
+export default function AIChatBox({ messages, setMessages }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
-  // 🔽 Auto-scroll on new message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -23,14 +22,12 @@ export default function AIChatBox({ noteId, messages, setMessages }) {
     setInput("");
     setLoading(true);
 
-    // 🔮 MOCK AI RESPONSE (backend later)
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
           role: "ai",
-          content:
-            "🤖 This is a mock AI response. Backend will replace this.",
+          content: "This is a mock AI response. Backend will replace this.",
           createdAt: new Date().toISOString(),
         },
       ]);
@@ -38,47 +35,34 @@ export default function AIChatBox({ noteId, messages, setMessages }) {
     }, 800);
   };
 
-  const clearChat = () => {
-    setMessages([]);
-  };
-
   return (
-    <div className="border border-borderSoft rounded-lg p-4 space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="font-poppins text-lg text-textPrimary">
+    <section className="glass-panel space-y-4 p-5">
+      <div className="flex items-center justify-between">
+        <h3 className="font-poppins text-lg font-semibold text-slate-950">
           AI Conversation
         </h3>
-
-        <button
-          onClick={clearChat}
-          className="text-sm font-inter text-red-500 hover:underline"
-        >
+        <button onClick={() => setMessages([])} className="text-sm font-semibold text-red-500">
           Clear chat
         </button>
       </div>
 
-      {/* Messages */}
-      <div className="h-80 overflow-y-auto space-y-3">
+      <div className="h-80 space-y-3 overflow-y-auto rounded-3xl bg-white/45 p-4">
         {messages.length === 0 && (
-          <p className="text-textSecondary font-inter text-sm">
-            Ask something to get started.
-          </p>
+          <p className="text-sm text-slate-500">Ask something to get started.</p>
         )}
 
-        {messages.map((m, idx) => (
+        {messages.map((message, index) => (
           <div
-            key={idx}
-            className={`p-3 rounded max-w-[80%] font-inter text-sm ${
-              m.role === "user"
-                ? "bg-primary text-white ml-auto"
-                : "bg-borderSoft text-textPrimary"
+            key={index}
+            className={`max-w-[80%] rounded-3xl p-3 text-sm ${
+              message.role === "user"
+                ? "ml-auto bg-indigo-600 text-white"
+                : "bg-white text-slate-700"
             }`}
           >
-            <p>{m.content}</p>
-
+            <p>{message.content}</p>
             <p className="mt-1 text-xs opacity-70">
-              {new Date(m.createdAt).toLocaleTimeString([], {
+              {new Date(message.createdAt).toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -86,36 +70,23 @@ export default function AIChatBox({ noteId, messages, setMessages }) {
           </div>
         ))}
 
-        {loading && (
-          <p className="font-inter text-sm text-textSecondary">
-            AI is thinking...
-          </p>
-        )}
-
+        {loading && <p className="text-sm text-slate-500">AI is thinking...</p>}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="flex gap-2">
         <input
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(event) => setInput(event.target.value)}
           placeholder="Ask a question..."
           disabled={loading}
-          className="flex-1 border border-borderSoft rounded px-3 py-2
-                     font-inter focus:outline-none focus:ring-2 focus:ring-primary"
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          className="app-input"
+          onKeyDown={(event) => event.key === "Enter" && handleSend()}
         />
-
-        <button
-          onClick={handleSend}
-          disabled={loading}
-          className="px-4 py-2 bg-primary text-white rounded
-                     hover:bg-primaryDark transition disabled:opacity-50"
-        >
+        <button onClick={handleSend} disabled={loading} className="app-button">
           Send
         </button>
       </div>
-    </div>
+    </section>
   );
 }

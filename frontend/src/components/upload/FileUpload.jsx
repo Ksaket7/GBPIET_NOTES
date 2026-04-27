@@ -3,12 +3,10 @@ import { UploadCloud } from "lucide-react";
 const FileUpload = ({ file, setFile }) => {
   return (
     <label
-      className="w-full flex items-center justify-center gap-2 px-4 py-3 
-                 border border-borderSoft rounded-md cursor-pointer
-                 hover:bg-gray-50 transition"
+      className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-3xl border border-dashed border-indigo-200 bg-white/60 px-4 py-6 transition hover:bg-white"
     >
       <UploadCloud size={18} />
-      <span className="text-sm text-textSecondary">
+      <span className="text-sm text-slate-500">
         {file ? file.name : "Click to upload file"}
       </span>
 

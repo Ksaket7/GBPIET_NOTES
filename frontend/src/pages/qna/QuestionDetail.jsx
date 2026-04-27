@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import Loader from "../../components/common/Loader";
@@ -11,17 +11,15 @@ export default function QuestionDetail() {
   const { questionId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     API.get(`/questions/${questionId}`)
       .then((res) => setQuestion(res.data.data))
-      .catch(() => setError("Failed to load question"))
+      .catch(() => setQuestion(null))
       .finally(() => setLoading(false));
   }, [questionId]);
 
@@ -38,66 +36,77 @@ export default function QuestionDetail() {
     }
   };
 
-  if (loading) return <Loader message="Loading question…" />;
+  if (loading) return <Loader message="Loading question..." />;
 
   if (!question) {
-    return <p className="text-center text-textSecondary">Question not found</p>;
+    return (
+      <main className="app-page">
+        <div className="app-shell text-center text-slate-500">Question not found</div>
+      </main>
+    );
   }
 
   const isOwner = user && question.askedBy?._id === user._id;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 pt-20">
-      {/* Question Card */}
-      <div className="bg-surface border border-borderSoft rounded-xl p-6 space-y-4">
-        <h1 className="font-poppins text-3xl text-textPrimary">
-          {question.title || "Untitled Question"}
-        </h1>
+    <main className="app-page">
+      <div className="app-shell space-y-6">
+        <section className="glass-panel p-6">
+          <span className="pill">Question</span>
+          <h1 className="mt-4 font-poppins text-3xl font-semibold text-slate-950">
+            {question.title || "Untitled Question"}
+          </h1>
+          <p className="mt-4 text-slate-600">{question.description}</p>
 
-        <p className="font-inter text-textSecondary">{question.description}</p>
-
-        {/* Tags */}
-        {question.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {question.tags.map((tag) => (
-              <span key={tag} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Meta */}
-        <div className="flex justify-between items-center text-sm text-textSecondary">
-          <span>
-            Asked by{" "}
-            <strong className="text-textPrimary">
-              {question.askedBy?.username}
-            </strong>
-          </span>
-
-          <UpvoteButton type="question" id={question._id} />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-4">
-          <LoadingButton
-            onClick={() => navigate(`/questions/${questionId}/answer`)}
-            className="px-4 py-2 bg-primary text-white rounded"
-          >
-            Answer this question
-          </LoadingButton>
-
-          {isOwner && (
-            <LoadingButton
-              onClick={() => setShowConfirm(true)}
-              className="px-4 py-2 border border-red-500 text-red-500 rounded
-             hover:bg-red-500 hover:text-white transition"
-            >
-              Delete
-            </LoadingButton>
+          {question.tags?.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {question.tags.map((tag) => (
+                <span key={tag} className="pill">
+                  #{tag}
+                </span>
+              ))}
+            </div>
           )}
-        </div>
+
+          <div className="mt-6 flex flex-col gap-4 border-t border-white/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-slate-500">
+              Asked by <strong className="text-slate-950">{question.askedBy?.username}</strong>
+            </span>
+            <UpvoteButton type="question" id={question._id} />
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            <LoadingButton onClick={() => navigate(`/questions/${questionId}/answer`)} className="app-button">
+              Answer this question
+            </LoadingButton>
+            {isOwner && (
+              <LoadingButton onClick={() => setShowConfirm(true)} className="app-button-secondary text-red-500">
+                Delete
+              </LoadingButton>
+            )}
+          </div>
+        </section>
+
+        <section className="glass-panel p-6">
+          <h2 className="font-poppins text-2xl font-semibold text-slate-950">
+            Answers ({question.answers?.length || 0})
+          </h2>
+          <div className="mt-5 space-y-3">
+            {question.answers?.length === 0 ? (
+              <p className="text-sm text-slate-500">No answers yet. Be the first to answer.</p>
+            ) : (
+              question.answers.map((answer) => (
+                <div key={answer._id} className="rounded-3xl bg-white/65 p-4">
+                  <p className="text-slate-700">{answer.content}</p>
+                  <p className="mt-3 text-xs text-slate-500">
+                    Answered by <strong>{answer.answeredBy?.username}</strong>
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
         <ConfirmModal
           open={showConfirm}
           title="Delete Question"
@@ -109,37 +118,6 @@ export default function QuestionDetail() {
           onCancel={() => setShowConfirm(false)}
         />
       </div>
-
-      {/* Answers Section */}
-      <div className="space-y-4">
-        <h2 className="font-poppins text-2xl text-textPrimary">
-          Answers ({question.answers?.length || 0})
-        </h2>
-
-        {question.answers?.length === 0 ? (
-          <p className="text-textSecondary font-inter">
-            No answers yet. Be the first to answer!
-          </p>
-        ) : (
-          question.answers.map((answer) => (
-            <div
-              key={answer._id}
-              className="bg-surface border border-borderSoft rounded-xl p-4 space-y-2"
-            >
-              <p className="font-inter text-textPrimary">{answer.content}</p>
-
-              <div className="flex justify-between text-sm text-textSecondary">
-                <span>
-                  Answered by{" "}
-                  <strong className="text-textPrimary">
-                    {answer.answeredBy?.username}
-                  </strong>
-                </span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+    </main>
   );
 }
