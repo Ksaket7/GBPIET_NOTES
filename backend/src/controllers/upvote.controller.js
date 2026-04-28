@@ -20,6 +20,7 @@ const toggleUpvote = asyncHandler(async (req, res) => {
   if (type === "note") authorId = content.originalStudent;
   if (type === "question") authorId = content.askedBy;
   if (type === "answer") authorId = content.answeredBy;
+  if (type === "post") authorId = content.postedBy;
 
   const existingUpvote = await Upvote.findOneAndDelete(
     { [type]: id, upvotedBy: userId },

@@ -12,6 +12,7 @@ import {
   PlusCircle,
   Settings,
   UserPlus,
+  Users,
   X,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +23,7 @@ const links = [
   { name: "Home", path: "/", icon: Home },
   { name: "Notes", path: "/notes", icon: BookOpen },
   { name: "Q&A", path: "/questions", icon: HelpCircle },
+  { name: "Users", path: "/users", icon: Users },
   { name: "Upload", path: "/upload", icon: PlusCircle },
   { name: "Contact", path: "/contact", icon: Mail },
 ];

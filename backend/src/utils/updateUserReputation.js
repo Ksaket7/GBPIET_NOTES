@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import { Note } from "../models/note.model.js";
 import { Question } from "../models/question.model.js";
 import { Answer } from "../models/answer.model.js";
+import { Post } from "../models/post.model.js";
 // export const updateUserReputation = async (userId, addUpvotes = 1) => {
 //   const user = await User.findById(userId);
 //   if (!user) return;
@@ -23,7 +24,7 @@ export const recalculateUserReputation = async (userId) => {
     throw new Error("User not found for reputation recalculation");
   }
 
-  const [notes, questions, answers] = await Promise.all([
+  const [notes, questions, answers, posts] = await Promise.all([
     Note.aggregate([
       { $match: { originalStudent: user._id } },
       { $project: { c: { $size: "$upvotes" } } },
@@ -36,9 +37,13 @@ export const recalculateUserReputation = async (userId) => {
       { $match: { answeredBy: user._id } },
       { $project: { c: { $size: "$upvotes" } } },
     ]),
+    Post.aggregate([
+      { $match: { postedBy: user._id } },
+      { $project: { c: { $size: "$upvotes" } } },
+    ]),
   ]);
 
-  const totalUpvotes = [...notes, ...questions, ...answers].reduce(
+  const totalUpvotes = [...notes, ...questions, ...answers, ...posts].reduce(
     (s, x) => s + x.c,
     0
   );

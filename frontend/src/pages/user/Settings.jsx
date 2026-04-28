@@ -18,7 +18,7 @@ export default function Settings() {
   };
 
   const handleSave = async () => {
-    const res = await API.patch("/user/update-account", {
+    const res = await API.patch("/users/update-account", {
       fullName: form.fullName,
       email: form.email,
       branch: form.branch,
@@ -28,7 +28,7 @@ export default function Settings() {
   };
 
   const handlePassword = async () => {
-    await API.post("/user/change-password", {
+    await API.post("/users/change-password", {
       oldPassword: form.oldPassword,
       newPassword: form.newPassword,
     });

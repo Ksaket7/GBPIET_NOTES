@@ -3,6 +3,7 @@ import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/timeAgo";
+import { MessageCircle } from "lucide-react";
 
 export default function NoteComments({ noteId }) {
   const { isAuthenticated } = useAuth();
@@ -11,6 +12,7 @@ export default function NoteComments({ noteId }) {
   const [comments, setComments] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -90,28 +92,39 @@ export default function NoteComments({ noteId }) {
         ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={
-            isAuthenticated ? "Write a comment..." : "Login to add a comment"
-          }
-          disabled={!isAuthenticated || loading}
-          rows={3}
-          className="app-input min-h-28 disabled:opacity-60"
-        />
+      <button
+        type="button"
+        onClick={() => setFormOpen((value) => !value)}
+        className="app-button-secondary"
+      >
+        <MessageCircle size={16} />
+        {formOpen ? "Hide comment form" : "Add comment"}
+      </button>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
+      {formOpen && (
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder={
+              isAuthenticated ? "Write a comment..." : "Login to add a comment"
+            }
             disabled={!isAuthenticated || loading}
-            className="app-button disabled:opacity-50"
-          >
-            Post Comment
-          </button>
-        </div>
-      </form>
+            rows={3}
+            className="app-input min-h-28 disabled:opacity-60"
+          />
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={!isAuthenticated || loading}
+              className="app-button disabled:opacity-50"
+            >
+              Post Comment
+            </button>
+          </div>
+        </form>
+      )}
     </section>
   );
 }

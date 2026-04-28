@@ -14,6 +14,8 @@ export default function QuestionDetail() {
   const [question, setQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [answering, setAnswering] = useState(false);
+  const [answerText, setAnswerText] = useState("");
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
@@ -33,6 +35,38 @@ export default function QuestionDetail() {
     } finally {
       setDeleting(false);
       setShowConfirm(false);
+    }
+  };
+
+  const handleAnswer = async (event) => {
+    event.preventDefault();
+
+    if (!answerText.trim()) return;
+
+    try {
+      setAnswering(true);
+      const res = await API.post(`/answers/${questionId}`, {
+        content: answerText,
+      });
+      setQuestion((current) => ({
+        ...current,
+        answers: [
+          {
+            ...res.data.data,
+            answeredBy: {
+              _id: user?._id,
+              username: user?.username,
+              fullName: user?.fullName,
+            },
+          },
+          ...(current.answers || []),
+        ],
+      }));
+      setAnswerText("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to add answer");
+    } finally {
+      setAnswering(false);
     }
   };
 
@@ -76,9 +110,9 @@ export default function QuestionDetail() {
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <LoadingButton onClick={() => navigate(`/questions/${questionId}/answer`)} className="app-button">
+            <a href="#answer-form" className="app-button">
               Answer this question
-            </LoadingButton>
+            </a>
             {isOwner && (
               <LoadingButton onClick={() => setShowConfirm(true)} className="app-button-secondary text-red-500">
                 Delete
@@ -91,6 +125,24 @@ export default function QuestionDetail() {
           <h2 className="font-poppins text-2xl font-semibold text-slate-950">
             Answers ({question.answers?.length || 0})
           </h2>
+          <form id="answer-form" onSubmit={handleAnswer} className="mt-5 space-y-3">
+            <textarea
+              value={answerText}
+              onChange={(event) => setAnswerText(event.target.value)}
+              placeholder="Write your answer..."
+              className="app-input min-h-32"
+            />
+            <div className="flex justify-end">
+              <LoadingButton
+                loading={answering}
+                type="submit"
+                disabled={!answerText.trim()}
+                className="app-button"
+              >
+                Post Answer
+              </LoadingButton>
+            </div>
+          </form>
           <div className="mt-5 space-y-3">
             {question.answers?.length === 0 ? (
               <p className="text-sm text-slate-500">No answers yet. Be the first to answer.</p>

@@ -10,6 +10,10 @@ import {
 import mongoose from "mongoose";
 import { verifyRealEmail } from "../utils/emailValidator.js";
 import { Note } from "../models/note.model.js";
+import { Follow } from "../models/follow.model.js";
+import { Question } from "../models/question.model.js";
+import { Answer } from "../models/answer.model.js";
+import { Post } from "../models/post.model.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -93,6 +97,10 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ $or: [{ email }, { username }] }).select(
     "+password"
   );
+
+  if (!user) {
+    throw new ApiError(401, "Invalid credentials");
+  }
 
   const isPasswordCorrect = await user.isPasswordCorrect(password);
   if (!isPasswordCorrect) {
@@ -350,6 +358,107 @@ const updateUserRole = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedUser, "User role updated succesfully"));
 });
 
+const getUsersByRoles = async (roles, currentUserId) => {
+  const users = await User.find({ role: { $in: roles } })
+    .select("fullName username avatar role branch")
+    .sort({ fullName: 1 })
+    .lean();
+
+  const userIds = users.map((user) => user._id);
+
+  const follows = await Follow.find({
+    follower: currentUserId,
+    following: { $in: userIds },
+  }).select("following");
+
+  const followedIds = new Set(
+    follows.map((follow) => follow.following.toString())
+  );
+
+  return users.map((user) => ({
+    ...user,
+    isFollowing: followedIds.has(user._id.toString()),
+    isSelf: user._id.toString() === currentUserId.toString(),
+  }));
+};
+
+const getFacultyUsers = asyncHandler(async (req, res) => {
+  const users = await getUsersByRoles(["faculty"], req.user._id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, "Faculty users fetched successfully"));
+});
+
+const getStudentUsers = asyncHandler(async (req, res) => {
+  const users = await getUsersByRoles(["student", "cr", "admin"], req.user._id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, users, "Student users fetched successfully"));
+});
+
+const getUserActivity = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const days = Array.from({ length: 7 }).map((_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
+    return {
+      label: start.toLocaleDateString("en-US", { weekday: "short" }),
+      start,
+      end,
+      count: 0,
+    };
+  });
+
+  const startDate = days[0].start;
+
+  const [notes, questions, answers, posts] = await Promise.all([
+    Note.find({ originalStudent: userId, createdAt: { $gte: startDate } })
+      .select("createdAt")
+      .lean(),
+    Question.find({ askedBy: userId, createdAt: { $gte: startDate } })
+      .select("createdAt")
+      .lean(),
+    Answer.find({ answeredBy: userId, createdAt: { $gte: startDate } })
+      .select("createdAt")
+      .lean(),
+    Post.find({ postedBy: userId, createdAt: { $gte: startDate } })
+      .select("createdAt")
+      .lean(),
+  ]);
+
+  [...notes, ...questions, ...answers, ...posts].forEach((item) => {
+    const activityDate = new Date(item.createdAt);
+    const day = days.find(
+      ({ start, end }) => activityDate >= start && activityDate <= end
+    );
+    if (day) day.count += 1;
+  });
+
+  const maxCount = Math.max(...days.map((day) => day.count), 1);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        days: days.map(({ label, count }) => ({ label, count })),
+        maxCount,
+        total: days.reduce((sum, day) => sum + day.count, 0),
+      },
+      "User activity fetched successfully"
+    )
+  );
+});
+
 export {
   registerUser,
   loginUser,
@@ -360,4 +469,7 @@ export {
   changeCurrentPassword,
   getUserProfile,
   updateUserRole,
+  getFacultyUsers,
+  getStudentUsers,
+  getUserActivity,
 };

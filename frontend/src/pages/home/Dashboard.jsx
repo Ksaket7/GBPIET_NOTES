@@ -1,28 +1,33 @@
-import { createElement, useEffect, useMemo, useState } from "react";
+import { createElement, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
+  ChevronLeft,
   Clock3,
+  Edit3,
   FileQuestion,
-  GraduationCap,
-  Library,
+  HelpCircle,
+  MessageCircle,
   MessageSquareText,
+  MoreHorizontal,
+  NotebookTabs,
   Plus,
   Search,
   Sparkles,
+  Trash2,
   UploadCloud,
   UsersRound,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
+import UpvoteButton from "../../components/upvote/UpvoteButton";
+import { timeAgo } from "../../utils/timeAgo";
 
-const weekBars = [1.1, 2.6, 2.1, 4, 2.2, 2.5, 1.9];
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const isFacultyWorkspace = (role) =>
-  role === "faculty" || role === "cr" || role === "admin";
+const isFacultyWorkspace = (role) => role === "faculty";
 
 function Metric({ icon, label, value, accent = "bg-indigo-600" }) {
   return (
@@ -40,30 +45,45 @@ function Metric({ icon, label, value, accent = "bg-indigo-600" }) {
   );
 }
 
-function ActivityChart() {
+function ActivityChart({ activity, onSeeAll }) {
+  const days = activity?.days?.length
+    ? activity.days
+    : weekDays.map((label) => ({ label, count: 0 }));
+  const maxCount = activity?.maxCount || 1;
+
   return (
     <section className="glass-panel p-5">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="font-poppins text-xl font-semibold text-slate-950">
           My activity
         </h2>
-        <button className="text-xs font-semibold text-slate-500">See all</button>
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="text-xs font-semibold text-slate-500 hover:text-indigo-700"
+        >
+          See all
+        </button>
       </div>
       <div className="flex h-36 items-end gap-4">
-        {weekBars.map((bar, index) => (
-          <div key={weekDays[index]} className="flex flex-1 flex-col items-center gap-2">
+        {days.map((day, index) => (
+          <div key={`${day.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
             <div
               className={`w-full max-w-8 rounded-full ${
-                index === 3
+                day.count > 0
                   ? "bg-gradient-to-t from-indigo-600 to-violet-400"
                   : "bg-white/80"
               }`}
-              style={{ height: `${bar * 28}px` }}
+              style={{ height: `${Math.max(10, (day.count / maxCount) * 112)}px` }}
+              title={`${day.count} activities`}
             />
-            <span className="text-xs text-slate-400">{weekDays[index]}</span>
+            <span className="text-xs text-slate-400">{day.label}</span>
           </div>
         ))}
       </div>
+      <p className="mt-3 text-xs text-slate-500">
+        {activity?.total || 0} activities in the last 7 days
+      </p>
     </section>
   );
 }
@@ -95,14 +115,18 @@ function ActionCard({ icon, title, detail, onClick, active }) {
   );
 }
 
-function ListPanel({ title, items, emptyText, onOpen, meta }) {
+function ListPanel({ title, items, emptyText, onOpen, meta, onAction }) {
   return (
     <section className="glass-panel p-5">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-poppins text-lg font-semibold text-slate-950">
           {title}
         </h2>
-        <button className="rounded-full bg-white/70 p-2 text-slate-700">
+        <button
+          type="button"
+          onClick={onAction}
+          className="rounded-full bg-white/70 p-2 text-slate-700 hover:bg-white"
+        >
           <Plus size={17} />
         </button>
       </div>
@@ -135,7 +159,460 @@ function ListPanel({ title, items, emptyText, onOpen, meta }) {
   );
 }
 
-function StudentDashboard({ notes, questions, loading }) {
+function UserPill({ directoryUser, onToggleFollow }) {
+  return (
+    <div
+      className="flex w-[calc(100vw-3.5rem)] max-w-full shrink-0 items-center gap-3 rounded-2xl bg-white/65 px-3 py-2 sm:w-[360px] md:w-[420px] xl:w-[520px]"
+      title={`@${directoryUser.username}`}
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
+        {directoryUser.avatar ? (
+          <img
+            src={directoryUser.avatar}
+            alt={directoryUser.fullName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="text-sm font-semibold text-indigo-700">
+            {(directoryUser.fullName || directoryUser.username || "?")
+              .charAt(0)
+              .toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-slate-950">
+          {directoryUser.fullName || directoryUser.username}
+        </p>
+        <p className="truncate text-xs text-slate-500">
+          @{directoryUser.username} - {directoryUser.role}
+        </p>
+      </div>
+      <button
+        type="button"
+        disabled={directoryUser.isSelf}
+        onClick={() => onToggleFollow(directoryUser)}
+        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+          directoryUser.isFollowing
+            ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
+            : "bg-slate-950 text-white hover:bg-indigo-700"
+        }`}
+      >
+        {directoryUser.isSelf
+          ? "You"
+          : directoryUser.isFollowing
+            ? "Unfollow"
+            : "Follow"}
+      </button>
+    </div>
+  );
+}
+
+function UserStrip({ title, users, emptyText, onSeeAll, onToggleFollow }) {
+  const rowRef = useRef(null);
+  const scrollUsers = (direction) => {
+    rowRef.current?.scrollBy({
+      left: direction * 320,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <section className="glass-panel p-5">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h2 className="font-poppins text-lg font-semibold text-slate-950">
+          {title}
+        </h2>
+        <button
+          type="button"
+          onClick={onSeeAll}
+          className="text-xs font-semibold text-slate-500 hover:text-indigo-700"
+        >
+          See all
+        </button>
+      </div>
+
+      {users.length === 0 ? (
+        <p className="text-sm text-slate-500">{emptyText}</p>
+      ) : (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => scrollUsers(-1)}
+            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-lg shadow-slate-500/20 hover:bg-white"
+            aria-label={`Scroll ${title} left`}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollUsers(1)}
+            className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-lg shadow-slate-500/20 hover:bg-white"
+            aria-label={`Scroll ${title} right`}
+          >
+            <ChevronRight size={18} />
+          </button>
+          <div ref={rowRef} className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-1">
+            {users.slice(0, 8).map((directoryUser) => (
+              <div key={directoryUser._id} className="snap-start">
+                <UserPill
+                  directoryUser={directoryUser}
+                  onToggleFollow={onToggleFollow}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ExpandableText({ text, className = "" }) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldClamp = text && text.length > 180;
+
+  if (!text) return null;
+
+  return (
+    <div className={className}>
+      <p className={`text-sm text-slate-600 ${expanded ? "" : "line-clamp-3"}`}>
+        {text}
+      </p>
+      {shouldClamp && (
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="mt-1 text-xs font-semibold text-indigo-700"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FeedPreview({ item }) {
+  if (item.feedType === "note") {
+    return (
+      <div className="mt-4 overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-indigo-100 via-white to-sky-100 p-5">
+        <div className="flex items-center gap-3">
+          <span className="rounded-2xl bg-indigo-600 p-3 text-white">
+            <NotebookTabs size={22} />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase text-indigo-700">
+              {item.subjectCode || "Notes"}
+            </p>
+            <h3 className="line-clamp-2 font-poppins text-xl font-semibold text-slate-950">
+              {item.title || "Untitled note"}
+            </h3>
+          </div>
+        </div>
+        <ExpandableText
+          text={item.description || "No description provided for this note."}
+          className="mt-4"
+        />
+      </div>
+    );
+  }
+
+  if (item.feedType === "question") {
+    return (
+      <div className="mt-4 rounded-3xl border border-white/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-5">
+        <div className="flex items-center gap-3">
+          <span className="rounded-2xl bg-amber-500 p-3 text-white">
+            <HelpCircle size={22} />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase text-amber-700">
+              Question
+            </p>
+            <h3 className="line-clamp-2 font-poppins text-xl font-semibold text-slate-950">
+              {item.title || "Untitled question"}
+            </h3>
+          </div>
+        </div>
+        <ExpandableText text={item.description} className="mt-4" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {item.imageUrl && (
+        <img
+          src={item.imageUrl}
+          alt=""
+          className="mt-4 max-h-[520px] w-full rounded-3xl object-cover"
+        />
+      )}
+      <ExpandableText text={item.text} className="mt-4" />
+    </>
+  );
+}
+
+function LatestFeed({ items, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
+  return (
+    <section className="glass-panel p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-poppins text-xl font-semibold text-slate-950">
+          Latest updates
+        </h2>
+        <span className="pill">Newest first</span>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-sm text-slate-500">No latest updates yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {items.slice(0, 6).map((item) => (
+            <FeedCard
+              key={`${item.feedType}-${item._id}`}
+              item={item}
+              currentUser={currentUser}
+              onOpen={onOpen}
+              onPostUpdated={onPostUpdated}
+              onPostDeleted={onPostDeleted}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(item.text || "");
+  const [saving, setSaving] = useState(false);
+  const owner = item.postedBy || item.uploadedBy || item.askedBy;
+  const isOwner = item.feedType === "post" && owner?._id === currentUser?._id;
+
+  const handleDelete = async () => {
+    if (!window.confirm("Delete this post?")) return;
+    await API.delete(`/posts/${item._id}`);
+    onPostDeleted(item._id);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append("text", editText);
+      const res = await API.patch(`/posts/${item._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      onPostUpdated(res.data.data);
+      setEditing(false);
+      setMenuOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <article className="soft-card mx-auto flex w-full max-w-3xl flex-col overflow-visible p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
+            {owner?.avatar ? (
+              <img src={owner.avatar} alt={owner.fullName} className="h-full w-full object-cover" />
+            ) : (
+              <span className="font-semibold text-indigo-700">
+                {(owner?.fullName || owner?.username || "?").charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-950">
+              {owner?.fullName || "GBPIET"}
+            </p>
+            <p className="truncate text-xs text-slate-500">
+              @{owner?.username || "unknown"} - {timeAgo(item.createdAt)}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative flex items-center gap-2">
+          <span className="pill capitalize">{item.feedType}</span>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="rounded-full bg-white/80 p-2 text-slate-600 hover:bg-white"
+              aria-label="Post options"
+            >
+              <MoreHorizontal size={18} />
+            </button>
+          )}
+          {menuOpen && (
+            <div className="absolute right-0 top-10 z-20 w-36 rounded-2xl border border-white/70 bg-white/95 p-2 shadow-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(true);
+                  setMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+              >
+                <Edit3 size={14} />
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-500 hover:bg-red-50"
+              >
+                <Trash2 size={14} />
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {editing ? (
+        <div className="mt-4 space-y-3">
+          <textarea
+            value={editText}
+            onChange={(event) => setEditText(event.target.value)}
+            className="app-input min-h-28"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="app-button-secondary py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || (!editText.trim() && !item.imageUrl)}
+              className="app-button py-2"
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <FeedPreview item={item} />
+      )}
+
+      <div className="mt-4 flex items-center gap-3 border-t border-white/70 pt-3">
+        {item.feedType === "post" ? (
+          <>
+            <UpvoteButton type="post" id={item._id} />
+            <PostCommentBox post={item} />
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onOpen(item)}
+              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+            >
+              <MessageCircle size={14} />
+              {item.feedType === "question" ? "Answers" : "Comments"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpen(item)}
+              className="rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+            >
+              Open
+            </button>
+          </>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function PostCommentBox({ post }) {
+  const [comments, setComments] = useState(post.comments || []);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!message.trim()) return;
+
+    try {
+      setLoading(true);
+      const res = await API.post(`/posts/${post._id}/comment`, { message });
+      setComments(res.data?.data || []);
+      setMessage("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+      >
+        <MessageCircle size={14} />
+        {comments.length}
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-11 z-20 w-[min(320px,80vw)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl">
+          <div className="max-h-44 space-y-2 overflow-y-auto">
+            {comments.length === 0 ? (
+              <p className="text-xs text-slate-500">No comments yet.</p>
+            ) : (
+              comments.map((comment, index) => (
+                <div key={comment._id || index} className="rounded-2xl bg-slate-50 p-2">
+                  <p className="text-xs font-semibold text-slate-950">
+                    @{comment.user?.username || "user"}
+                  </p>
+                  <p className="text-xs text-slate-600">{comment.message}</p>
+                </div>
+              ))
+            )}
+          </div>
+          <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
+            <input
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              placeholder="Write a comment..."
+              className="app-input py-2 text-xs"
+            />
+            <button
+              type="submit"
+              disabled={loading || !message.trim()}
+              className="rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+            >
+              {loading ? "..." : "Send"}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StudentDashboard({
+  notes,
+  questions,
+  latestItems,
+  activity,
+  loading,
+  facultyUsers,
+  studentUsers,
+  onToggleFollow,
+  onPostUpdated,
+  onPostDeleted,
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -157,36 +634,47 @@ function StudentDashboard({ notes, questions, loading }) {
             </header>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
-              <ActivityChart />
+              <ActivityChart activity={activity} onSeeAll={() => navigate("/notes")} />
               <section className="space-y-3">
                 <ActionCard icon={Search} title="Browse notes" detail="Find subject material" active onClick={() => navigate("/notes")} />
                 <ActionCard icon={MessageSquareText} title="Ask question" detail="Post a doubt" onClick={() => navigate("/upload")} />
               </section>
             </div>
 
-            <section className="glass-panel p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-poppins text-xl font-semibold text-slate-950">
-                  Popular courses
-                </h2>
-                <span className="pill">All subjects</span>
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                {notes.slice(0, 3).map((note) => (
-                  <button
-                    key={note._id}
-                    onClick={() => navigate(`/notes/${note._id}`)}
-                    className="soft-card min-h-32 p-4 text-left"
-                  >
-                    <span className="pill">{note.subjectCode || "Notes"}</span>
-                    <p className="mt-7 line-clamp-2 text-sm font-semibold text-slate-950">
-                      {note.title}
-                    </p>
-                    <p className="mt-2 text-xs text-slate-500">{note.type}</p>
-                  </button>
-                ))}
-              </div>
-            </section>
+            <div className="grid gap-6 xl:grid-cols-2">
+              <UserStrip
+                title="Students, CR and Admin"
+                users={studentUsers}
+                emptyText="No student users found yet."
+                onSeeAll={() => navigate("/users?type=students")}
+                onToggleFollow={onToggleFollow}
+              />
+              <UserStrip
+                title="Faculty"
+                users={facultyUsers}
+                emptyText="No faculty users found yet."
+                onSeeAll={() => navigate("/users?type=faculty")}
+                onToggleFollow={onToggleFollow}
+              />
+            </div>
+
+            <LatestFeed
+              items={latestItems}
+              currentUser={user}
+              onOpen={(item) =>
+                navigate(
+                  item.feedType === "question"
+                    ? `/questions/${item._id}`
+                    : `/notes/${item._id}`
+                )
+              }
+              onPostUpdated={(post) =>
+                onPostUpdated(post)
+              }
+              onPostDeleted={(postId) =>
+                onPostDeleted(postId)
+              }
+            />
           </div>
 
           <aside className="space-y-6">
@@ -203,6 +691,7 @@ function StudentDashboard({ notes, questions, loading }) {
               emptyText="No notes available yet."
               onOpen={(note) => navigate(`/notes/${note._id}`)}
               meta={(note) => `${note.subjectCode || "Subject"} - ${note.type || "Material"}`}
+              onAction={() => navigate("/notes")}
             />
           </aside>
         </div>
@@ -211,7 +700,17 @@ function StudentDashboard({ notes, questions, loading }) {
   );
 }
 
-function FacultyDashboard({ notes, questions, loading }) {
+function FacultyDashboard({
+  notes,
+  questions,
+  latestItems,
+  activity,
+  loading,
+  facultyUsers,
+  onToggleFollow,
+  onPostUpdated,
+  onPostDeleted,
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const pendingQuestions = questions.filter((q) => (q.answers || []).length === 0).length;
@@ -235,12 +734,20 @@ function FacultyDashboard({ notes, questions, loading }) {
             </header>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_270px]">
-              <ActivityChart />
+              <ActivityChart activity={activity} onSeeAll={() => navigate("/questions")} />
               <section className="space-y-3">
                 <ActionCard icon={UploadCloud} title="Upload material" detail="Share class resources" active onClick={() => navigate("/upload")} />
                 <ActionCard icon={MessageSquareText} title="Answer doubts" detail="Open question queue" onClick={() => navigate("/questions")} />
               </section>
             </div>
+
+            <UserStrip
+              title="Faculty list"
+              users={facultyUsers}
+              emptyText="No faculty users found yet."
+              onSeeAll={() => navigate("/users?type=faculty")}
+              onToggleFollow={onToggleFollow}
+            />
 
             <ListPanel
               title="Student questions"
@@ -248,6 +755,25 @@ function FacultyDashboard({ notes, questions, loading }) {
               emptyText="No student questions yet."
               onOpen={(question) => navigate(`/questions/${question._id}`)}
               meta={(question) => `Asked by ${question.askedBy?.fullName || "student"}`}
+              onAction={() => navigate("/questions")}
+            />
+
+            <LatestFeed
+              items={latestItems}
+              currentUser={user}
+              onOpen={(item) =>
+                navigate(
+                  item.feedType === "question"
+                    ? `/questions/${item._id}`
+                    : `/notes/${item._id}`
+                )
+              }
+              onPostUpdated={(post) =>
+                onPostUpdated(post)
+              }
+              onPostDeleted={(postId) =>
+                onPostDeleted(postId)
+              }
             />
           </div>
 
@@ -263,6 +789,7 @@ function FacultyDashboard({ notes, questions, loading }) {
               emptyText="No materials uploaded yet."
               onOpen={(note) => navigate(`/notes/${note._id}`)}
               meta={(note) => `${note.subjectCode || "Subject"} - ${note.uploadedBy?.fullName || "faculty"}`}
+              onAction={() => navigate("/upload")}
             />
           </aside>
         </div>
@@ -275,25 +802,66 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [notes, setNotes] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [facultyUsers, setFacultyUsers] = useState([]);
+  const [studentUsers, setStudentUsers] = useState([]);
+  const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const updateFollowState = (targetUserId, isFollowing) => {
+    const updateUsers = (users) =>
+      users.map((directoryUser) =>
+        directoryUser._id === targetUserId
+          ? { ...directoryUser, isFollowing }
+          : directoryUser
+      );
+
+    setFacultyUsers(updateUsers);
+    setStudentUsers(updateUsers);
+  };
+
+  const handleToggleFollow = async (directoryUser) => {
+    if (directoryUser.isSelf) return;
+
+    const nextFollowing = !directoryUser.isFollowing;
+    updateFollowState(directoryUser._id, nextFollowing);
+
+    try {
+      await API.post(`/follows/toggle/${directoryUser._id}`);
+    } catch {
+      updateFollowState(directoryUser._id, directoryUser.isFollowing);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
 
     const loadDashboardData = async () => {
       try {
-        const [notesRes, questionsRes] = await Promise.all([
+        const [notesRes, questionsRes, postsRes, facultyRes, studentsRes, activityRes] = await Promise.all([
           API.get("/notes?limit=6&sortBy=createdAt&sortType=desc"),
           API.get("/questions?limit=6&sortBy=createdAt&sortType=desc"),
+          API.get("/posts?limit=6"),
+          API.get("/users/faculty"),
+          API.get("/users/students"),
+          API.get("/users/activity"),
         ]);
 
         if (!mounted) return;
         setNotes(notesRes.data?.data?.notes || []);
         setQuestions(questionsRes.data?.data?.questions || []);
+        setPosts(postsRes.data?.data?.posts || []);
+        setFacultyUsers(facultyRes.data?.data || []);
+        setStudentUsers(studentsRes.data?.data || []);
+        setActivity(activityRes.data?.data || null);
       } catch {
         if (!mounted) return;
         setNotes([]);
         setQuestions([]);
+        setPosts([]);
+        setFacultyUsers([]);
+        setStudentUsers([]);
+        setActivity(null);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -307,10 +875,56 @@ export default function Dashboard() {
   }, []);
 
   const facultyView = useMemo(() => isFacultyWorkspace(user?.role), [user?.role]);
+  const latestItems = useMemo(
+    () =>
+      [
+        ...posts.map((post) => ({ ...post, feedType: "post" })),
+        ...notes.map((note) => ({ ...note, feedType: "note" })),
+        ...questions.map((question) => ({ ...question, feedType: "question" })),
+      ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [notes, posts, questions]
+  );
+
+  const handlePostUpdated = (updatedPost) => {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) =>
+        post._id === updatedPost._id ? updatedPost : post
+      )
+    );
+  };
+
+  const handlePostDeleted = (postId) => {
+    setPosts((currentPosts) => currentPosts.filter((post) => post._id !== postId));
+  };
 
   if (facultyView) {
-    return <FacultyDashboard notes={notes} questions={questions} loading={loading} />;
+    return (
+      <FacultyDashboard
+        notes={notes}
+        questions={questions}
+        latestItems={latestItems}
+        activity={activity}
+        loading={loading}
+        facultyUsers={facultyUsers}
+        onToggleFollow={handleToggleFollow}
+        onPostUpdated={handlePostUpdated}
+        onPostDeleted={handlePostDeleted}
+      />
+    );
   }
 
-  return <StudentDashboard notes={notes} questions={questions} loading={loading} />;
+  return (
+    <StudentDashboard
+      notes={notes}
+      questions={questions}
+      latestItems={latestItems}
+      activity={activity}
+      loading={loading}
+      facultyUsers={facultyUsers}
+      studentUsers={studentUsers}
+      onToggleFollow={handleToggleFollow}
+      onPostUpdated={handlePostUpdated}
+      onPostDeleted={handlePostDeleted}
+    />
+  );
 }

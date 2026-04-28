@@ -8,16 +8,24 @@ import { Upvote } from "../models/upvote.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 // ask a question
 const askQuestion = asyncHandler(async (req, res) => {
-  const { title, description, tags } = req.body;
+  const { title, description, subjectName, subjectCode, tags } = req.body;
 
   if (!description?.trim()) {
     throw new ApiError(400, "Question description is required");
   }
 
+  const normalizedTags = Array.isArray(tags)
+    ? tags
+    : tags
+      ? tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+      : [];
+
   const question = await Question.create({
     title,
     description,
-    tags,
+    subjectName,
+    subjectCode,
+    tags: normalizedTags,
     askedBy: req.user._id,
   });
 
@@ -33,6 +41,7 @@ const getAllQuestions = asyncHandler(async (req, res) => {
     limit = 10,
     query,
     tag,
+    subjectCode,
     sortBy = "createdAt",
     sortType = "desc",
   } = req.query;
@@ -46,6 +55,10 @@ const getAllQuestions = asyncHandler(async (req, res) => {
 
   if (tag) {
     filter.tags = { $in: [tag] };
+  }
+
+  if (subjectCode) {
+    filter.subjectCode = new RegExp(subjectCode, "i");
   }
 
   const totalQuestions = await Question.countDocuments(filter);
@@ -76,7 +89,7 @@ const getAllQuestions = asyncHandler(async (req, res) => {
 // get question by id with answers
 const getQuestionById = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
-  if (!isValidObjectId) {
+  if (!isValidObjectId(questionId)) {
     throw new ApiError(400, "Invalid question id");
   }
 

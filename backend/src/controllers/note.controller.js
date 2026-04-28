@@ -25,6 +25,9 @@ const getAllNotes = asyncHandler(async (req, res) => {
   const filter = {};
 
   if (mine === "true") {
+    if (!req.user?._id) {
+      throw new ApiError(401, "Login required to view your notes");
+    }
     filter.originalStudent = req.user._id;
   }
 
@@ -79,7 +82,7 @@ const uploadNote = asyncHandler(async (req, res) => {
   }
 
   // ✅ handle optional original student safely
-  let originalStudentId = null;
+  let originalStudentId = req.user._id;
 
   if (originalStudentUsername) {
     const studentUser = await User.findOne({

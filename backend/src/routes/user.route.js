@@ -9,6 +9,9 @@ import {
   updateUserAvatar,
   changeCurrentPassword,
   updateUserRole,
+  getFacultyUsers,
+  getStudentUsers,
+  getUserActivity,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyRole } from "../middlewares/role.middleware.js";
@@ -23,6 +26,9 @@ router.route("/login").post(loginUser);
 
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
+router.route("/activity").get(verifyJWT, getUserActivity);
+router.route("/faculty").get(verifyJWT, getFacultyUsers);
+router.route("/students").get(verifyJWT, getStudentUsers);
 router.route("/profile/:username").get(verifyJWT, getUserProfile);
 router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);

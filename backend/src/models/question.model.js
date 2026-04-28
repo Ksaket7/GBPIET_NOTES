@@ -11,6 +11,15 @@ const questionSchema = new Schema(
       required: true,
       trim: true,
     },
+    subjectName: {
+      type: String,
+      trim: true,
+    },
+    subjectCode: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     tags: [
       {
         type: String,

@@ -15,6 +15,7 @@ import QuestionsPage from "./pages/qna/QuestionsPage";
 import UploadPage from "./pages/upload/UploadPage";
 import ContactUs from "./pages/common/ContactUs";
 import Settings from "./pages/user/Settings";
+import UsersPage from "./pages/user/UsersPage";
 import About from "./pages/common/About";
 import ScrollToTop from "./components/common/ScrollToTop";
 
@@ -111,6 +112,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <UsersPage />
               </ProtectedRoute>
             }
           />
