@@ -352,21 +352,21 @@ function FeedPreview({ item }) {
   );
 }
 
-function LatestFeed({ items, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
+function LatestFeed({ items, currentUser, onSeeAll, onOpen, onPostUpdated, onPostDeleted }) {
   return (
     <section className="glass-panel p-5">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-poppins text-xl font-semibold text-slate-950">
           Latest updates
         </h2>
-        <span className="pill">Newest first</span>
+        <span className="pill">Latest posts</span>
       </div>
 
       {items.length === 0 ? (
         <p className="text-sm text-slate-500">No latest updates yet.</p>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {items.slice(0, 6).map((item) => (
+          {items.slice(0, 10).map((item) => (
             <FeedCard
               key={`${item.feedType}-${item._id}`}
               item={item}
@@ -376,6 +376,16 @@ function LatestFeed({ items, currentUser, onOpen, onPostUpdated, onPostDeleted }
               onPostDeleted={onPostDeleted}
             />
           ))}
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={onSeeAll}
+              className="app-button-secondary"
+            >
+              See all posts
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       )}
     </section>
@@ -661,6 +671,7 @@ function StudentDashboard({
             <LatestFeed
               items={latestItems}
               currentUser={user}
+              onSeeAll={() => navigate("/posts")}
               onOpen={(item) =>
                 navigate(
                   item.feedType === "question"
@@ -761,6 +772,7 @@ function FacultyDashboard({
             <LatestFeed
               items={latestItems}
               currentUser={user}
+              onSeeAll={() => navigate("/posts")}
               onOpen={(item) =>
                 navigate(
                   item.feedType === "question"
@@ -877,12 +889,10 @@ export default function Dashboard() {
   const facultyView = useMemo(() => isFacultyWorkspace(user?.role), [user?.role]);
   const latestItems = useMemo(
     () =>
-      [
-        ...posts.map((post) => ({ ...post, feedType: "post" })),
-        ...notes.map((note) => ({ ...note, feedType: "note" })),
-        ...questions.map((question) => ({ ...question, feedType: "question" })),
-      ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    [notes, posts, questions]
+      posts
+        .map((post) => ({ ...post, feedType: "post" }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    [posts]
   );
 
   const handlePostUpdated = (updatedPost) => {

@@ -10,6 +10,7 @@ import {
   Mail,
   Menu,
   PlusCircle,
+  Newspaper,
   Settings,
   UserPlus,
   Users,
@@ -22,6 +23,7 @@ import ProfileDropdown from "../user/PrfileDropdown";
 const links = [
   { name: "Home", path: "/", icon: Home },
   { name: "Notes", path: "/notes", icon: BookOpen },
+  { name: "Posts", path: "/posts", icon: Newspaper },
   { name: "Q&A", path: "/questions", icon: HelpCircle },
   { name: "Users", path: "/users", icon: Users },
   { name: "Upload", path: "/upload", icon: PlusCircle },
