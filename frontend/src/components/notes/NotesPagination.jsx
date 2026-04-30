@@ -14,7 +14,7 @@ export default function NotesPagination({ pagination, onPageChange }) {
   }
 
   return (
-    <div className="mt-8 flex items-center justify-center gap-2">
+    <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
       {/* Prev */}
       <button
         disabled={currentPage === 1}

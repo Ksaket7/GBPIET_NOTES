@@ -1,10 +1,9 @@
-import { createElement, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
-  ChevronLeft,
   Clock3,
   Edit3,
   FileQuestion,
@@ -31,14 +30,14 @@ const isFacultyWorkspace = (role) => role === "faculty";
 
 function Metric({ icon, label, value, accent = "bg-indigo-600" }) {
   return (
-    <div className="soft-card p-4">
+    <div className="soft-card p-3 sm:p-4">
       <div className="flex items-center gap-3">
         <span className={`rounded-2xl p-2 text-white ${accent}`}>
           {createElement(icon, { size: 17 })}
         </span>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs text-slate-500">{label}</p>
-          <p className="font-semibold text-slate-950">{value}</p>
+          <p className="truncate font-semibold text-slate-950">{value}</p>
         </div>
       </div>
     </div>
@@ -52,8 +51,8 @@ function ActivityChart({ activity, onSeeAll }) {
   const maxCount = activity?.maxCount || 1;
 
   return (
-    <section className="glass-panel p-5">
-      <div className="mb-5 flex items-center justify-between">
+    <section className="glass-panel responsive-panel">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-poppins text-xl font-semibold text-slate-950">
           My activity
         </h2>
@@ -65,7 +64,7 @@ function ActivityChart({ activity, onSeeAll }) {
           See all
         </button>
       </div>
-      <div className="flex h-36 items-end gap-4">
+      <div className="flex h-36 items-end gap-2 sm:gap-4">
         {days.map((day, index) => (
           <div key={`${day.label}-${index}`} className="flex flex-1 flex-col items-center gap-2">
             <div
@@ -93,32 +92,32 @@ function ActionCard({ icon, title, detail, onClick, active }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center justify-between rounded-3xl p-4 text-left transition ${
+      className={`flex w-full items-center justify-between gap-3 rounded-2xl p-3 text-left transition sm:rounded-3xl sm:p-4 ${
         active
           ? "bg-indigo-600 text-white shadow-xl shadow-indigo-500/25"
           : "bg-white/65 text-slate-900 hover:bg-white"
       }`}
     >
-      <span className="flex items-center gap-3">
+      <span className="flex min-w-0 items-center gap-3">
         <span className={`rounded-2xl p-2 ${active ? "bg-white/15" : "bg-slate-100 text-indigo-600"}`}>
           {createElement(icon, { size: 18 })}
         </span>
-        <span>
-          <span className="block text-sm font-semibold">{title}</span>
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-semibold">{title}</span>
           <span className={`mt-1 block text-xs ${active ? "text-white/75" : "text-slate-500"}`}>
             {detail}
           </span>
         </span>
       </span>
-      <ChevronRight size={17} />
+      <ChevronRight size={17} className="shrink-0" />
     </button>
   );
 }
 
 function ListPanel({ title, items, emptyText, onOpen, meta, onAction }) {
   return (
-    <section className="glass-panel p-5">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="glass-panel responsive-panel">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-poppins text-lg font-semibold text-slate-950">
           {title}
         </h2>
@@ -159,115 +158,6 @@ function ListPanel({ title, items, emptyText, onOpen, meta, onAction }) {
   );
 }
 
-function UserPill({ directoryUser, onToggleFollow }) {
-  return (
-    <div
-      className="flex w-[calc(100vw-3.5rem)] max-w-full shrink-0 items-center gap-3 rounded-2xl bg-white/65 px-3 py-2 sm:w-[360px] md:w-[420px] xl:w-[520px]"
-      title={`@${directoryUser.username}`}
-    >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
-        {directoryUser.avatar ? (
-          <img
-            src={directoryUser.avatar}
-            alt={directoryUser.fullName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="text-sm font-semibold text-indigo-700">
-            {(directoryUser.fullName || directoryUser.username || "?")
-              .charAt(0)
-              .toUpperCase()}
-          </span>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-slate-950">
-          {directoryUser.fullName || directoryUser.username}
-        </p>
-        <p className="truncate text-xs text-slate-500">
-          @{directoryUser.username} - {directoryUser.role}
-        </p>
-      </div>
-      <button
-        type="button"
-        disabled={directoryUser.isSelf}
-        onClick={() => onToggleFollow(directoryUser)}
-        className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-          directoryUser.isFollowing
-            ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
-            : "bg-slate-950 text-white hover:bg-indigo-700"
-        }`}
-      >
-        {directoryUser.isSelf
-          ? "You"
-          : directoryUser.isFollowing
-            ? "Unfollow"
-            : "Follow"}
-      </button>
-    </div>
-  );
-}
-
-function UserStrip({ title, users, emptyText, onSeeAll, onToggleFollow }) {
-  const rowRef = useRef(null);
-  const scrollUsers = (direction) => {
-    rowRef.current?.scrollBy({
-      left: direction * 320,
-      behavior: "smooth",
-    });
-  };
-
-  return (
-    <section className="glass-panel p-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="font-poppins text-lg font-semibold text-slate-950">
-          {title}
-        </h2>
-        <button
-          type="button"
-          onClick={onSeeAll}
-          className="text-xs font-semibold text-slate-500 hover:text-indigo-700"
-        >
-          See all
-        </button>
-      </div>
-
-      {users.length === 0 ? (
-        <p className="text-sm text-slate-500">{emptyText}</p>
-      ) : (
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => scrollUsers(-1)}
-            className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-lg shadow-slate-500/20 hover:bg-white"
-            aria-label={`Scroll ${title} left`}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollUsers(1)}
-            className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-700 shadow-lg shadow-slate-500/20 hover:bg-white"
-            aria-label={`Scroll ${title} right`}
-          >
-            <ChevronRight size={18} />
-          </button>
-          <div ref={rowRef} className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-1 pb-1">
-            {users.slice(0, 8).map((directoryUser) => (
-              <div key={directoryUser._id} className="snap-start">
-                <UserPill
-                  directoryUser={directoryUser}
-                  onToggleFollow={onToggleFollow}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
 function ExpandableText({ text, className = "" }) {
   const [expanded, setExpanded] = useState(false);
   const shouldClamp = text && text.length > 180;
@@ -295,16 +185,16 @@ function ExpandableText({ text, className = "" }) {
 function FeedPreview({ item }) {
   if (item.feedType === "note") {
     return (
-      <div className="mt-4 overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-indigo-100 via-white to-sky-100 p-5">
+      <div className="mt-4 overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-indigo-100 via-white to-sky-100 p-4 sm:rounded-3xl sm:p-5">
         <div className="flex items-center gap-3">
           <span className="rounded-2xl bg-indigo-600 p-3 text-white">
             <NotebookTabs size={22} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase text-indigo-700">
               {item.subjectCode || "Notes"}
             </p>
-            <h3 className="line-clamp-2 font-poppins text-xl font-semibold text-slate-950">
+            <h3 className="line-clamp-2 break-words font-poppins text-lg font-semibold text-slate-950 sm:text-xl">
               {item.title || "Untitled note"}
             </h3>
           </div>
@@ -319,16 +209,16 @@ function FeedPreview({ item }) {
 
   if (item.feedType === "question") {
     return (
-      <div className="mt-4 rounded-3xl border border-white/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-5">
+      <div className="mt-4 rounded-2xl border border-white/70 bg-gradient-to-br from-amber-50 via-white to-rose-50 p-4 sm:rounded-3xl sm:p-5">
         <div className="flex items-center gap-3">
           <span className="rounded-2xl bg-amber-500 p-3 text-white">
             <HelpCircle size={22} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase text-amber-700">
               Question
             </p>
-            <h3 className="line-clamp-2 font-poppins text-xl font-semibold text-slate-950">
+            <h3 className="line-clamp-2 break-words font-poppins text-lg font-semibold text-slate-950 sm:text-xl">
               {item.title || "Untitled question"}
             </h3>
           </div>
@@ -344,7 +234,7 @@ function FeedPreview({ item }) {
         <img
           src={item.imageUrl}
           alt=""
-          className="mt-4 max-h-[520px] w-full rounded-3xl object-cover"
+          className="mt-4 max-h-[360px] w-full rounded-2xl object-cover sm:max-h-[520px] sm:rounded-3xl"
         />
       )}
       <ExpandableText text={item.text} className="mt-4" />
@@ -354,8 +244,8 @@ function FeedPreview({ item }) {
 
 function LatestFeed({ items, currentUser, onSeeAll, onOpen, onPostUpdated, onPostDeleted }) {
   return (
-    <section className="glass-panel p-5">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="glass-panel responsive-panel">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-poppins text-xl font-semibold text-slate-950">
           Latest updates
         </h2>
@@ -423,8 +313,8 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
   };
 
   return (
-    <article className="soft-card mx-auto flex w-full max-w-3xl flex-col overflow-visible p-4">
-      <div className="flex items-start justify-between gap-3">
+    <article className="soft-card mx-auto flex w-full max-w-3xl flex-col overflow-visible p-3 sm:p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
             {owner?.avatar ? (
@@ -445,7 +335,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
           </div>
         </div>
 
-        <div className="relative flex items-center gap-2">
+        <div className="relative flex flex-wrap items-center justify-end gap-2">
           <span className="pill capitalize">{item.feedType}</span>
           {isOwner && (
             <button
@@ -490,7 +380,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
             onChange={(event) => setEditText(event.target.value)}
             className="app-input min-h-28"
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={() => setEditing(false)}
@@ -512,7 +402,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
         <FeedPreview item={item} />
       )}
 
-      <div className="mt-4 flex items-center gap-3 border-t border-white/70 pt-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/70 pt-3">
         {item.feedType === "post" ? (
           <>
             <UpvoteButton type="post" id={item._id} />
@@ -575,7 +465,7 @@ function PostCommentBox({ post }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-11 z-20 w-[min(320px,80vw)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl">
+        <div className="absolute left-0 top-11 z-20 w-[min(320px,82vw)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl sm:w-80">
           <div className="max-h-44 space-y-2 overflow-y-auto">
             {comments.length === 0 ? (
               <p className="text-xs text-slate-500">No comments yet.</p>
@@ -590,7 +480,7 @@ function PostCommentBox({ post }) {
               ))
             )}
           </div>
-          <form onSubmit={handleSubmit} className="mt-2 flex gap-2">
+          <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -617,9 +507,6 @@ function StudentDashboard({
   latestItems,
   activity,
   loading,
-  facultyUsers,
-  studentUsers,
-  onToggleFollow,
   onPostUpdated,
   onPostDeleted,
 }) {
@@ -629,67 +516,31 @@ function StudentDashboard({
   return (
     <main className="app-page">
       <div className="app-shell">
-        <div className="grid gap-6 xl:grid-cols-[1fr_330px]">
-          <div className="space-y-6">
-            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px] 2xl:grid-cols-[minmax(0,1fr)_330px]">
+          <div className="min-w-0 space-y-5 sm:space-y-6 xl:col-start-1 xl:row-start-1">
+            <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Welcome back</p>
                 <h1 className="page-title">{user?.fullName || user?.username}</h1>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 xl:max-w-lg">
                 <Metric icon={BookOpen} label="Notes" value={loading ? "..." : notes.length} />
                 <Metric icon={FileQuestion} label="Doubts" value={loading ? "..." : questions.length} accent="bg-sky-500" />
                 <Metric icon={Sparkles} label="Credits" value={user?.credits || 0} accent="bg-amber-500" />
               </div>
             </header>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] 2xl:grid-cols-[minmax(0,1fr)_260px]">
               <ActivityChart activity={activity} onSeeAll={() => navigate("/notes")} />
               <section className="space-y-3">
                 <ActionCard icon={Search} title="Browse notes" detail="Find subject material" active onClick={() => navigate("/notes")} />
-                <ActionCard icon={MessageSquareText} title="Ask question" detail="Post a doubt" onClick={() => navigate("/upload")} />
+                <ActionCard icon={MessageSquareText} title="Ask question" detail="Post a doubt" onClick={() => navigate("/questions")} />
               </section>
             </div>
-
-            <div className="grid gap-6 xl:grid-cols-2">
-              <UserStrip
-                title="Students, CR and Admin"
-                users={studentUsers}
-                emptyText="No student users found yet."
-                onSeeAll={() => navigate("/users?type=students")}
-                onToggleFollow={onToggleFollow}
-              />
-              <UserStrip
-                title="Faculty"
-                users={facultyUsers}
-                emptyText="No faculty users found yet."
-                onSeeAll={() => navigate("/users?type=faculty")}
-                onToggleFollow={onToggleFollow}
-              />
-            </div>
-
-            <LatestFeed
-              items={latestItems}
-              currentUser={user}
-              onSeeAll={() => navigate("/posts")}
-              onOpen={(item) =>
-                navigate(
-                  item.feedType === "question"
-                    ? `/questions/${item._id}`
-                    : `/notes/${item._id}`
-                )
-              }
-              onPostUpdated={(post) =>
-                onPostUpdated(post)
-              }
-              onPostDeleted={(postId) =>
-                onPostDeleted(postId)
-              }
-            />
           </div>
 
-          <aside className="space-y-6">
-            <section className="rounded-3xl bg-gradient-to-br from-indigo-600 to-sky-500 p-5 text-white shadow-xl shadow-indigo-500/25">
+          <aside className="min-w-0 space-y-5 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:space-y-6">
+            <section className="rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 p-5 text-white shadow-xl shadow-indigo-500/25 sm:rounded-3xl">
               <p className="text-sm font-semibold">Study focus</p>
               <h2 className="mt-3 font-poppins text-2xl">Build your week</h2>
               <button onClick={() => navigate("/notes")} className="mt-5 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold">
@@ -705,6 +556,27 @@ function StudentDashboard({
               onAction={() => navigate("/notes")}
             />
           </aside>
+
+          <div className="min-w-0 xl:col-start-1 xl:row-start-2">
+            <LatestFeed
+              items={latestItems}
+              currentUser={user}
+              onSeeAll={() => navigate("/posts")}
+              onOpen={(item) =>
+                navigate(
+                  item.feedType === "question"
+                    ? "/questions"
+                    : `/notes/${item._id}`
+                )
+              }
+              onPostUpdated={(post) =>
+                onPostUpdated(post)
+              }
+              onPostDeleted={(postId) =>
+                onPostDeleted(postId)
+              }
+            />
+          </div>
         </div>
       </div>
     </main>
@@ -717,8 +589,6 @@ function FacultyDashboard({
   latestItems,
   activity,
   loading,
-  facultyUsers,
-  onToggleFollow,
   onPostUpdated,
   onPostDeleted,
 }) {
@@ -729,14 +599,14 @@ function FacultyDashboard({
   return (
     <main className="app-page">
       <div className="app-shell">
-        <div className="grid gap-6 xl:grid-cols-[1fr_350px]">
-          <div className="space-y-6">
-            <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_310px] 2xl:grid-cols-[minmax(0,1fr)_350px]">
+          <div className="min-w-0 space-y-5 sm:space-y-6 xl:col-start-1 xl:row-start-1">
+            <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm text-slate-500">Faculty workspace</p>
                 <h1 className="page-title">{user?.fullName || user?.username}</h1>
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:max-w-2xl">
                 <Metric icon={UploadCloud} label="Uploads" value={loading ? "..." : notes.length} />
                 <Metric icon={FileQuestion} label="Queue" value={loading ? "..." : questions.length} accent="bg-sky-500" />
                 <Metric icon={CheckCircle2} label="Pending" value={loading ? "..." : pendingQuestions} accent="bg-rose-500" />
@@ -744,31 +614,41 @@ function FacultyDashboard({
               </div>
             </header>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_270px]">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] 2xl:grid-cols-[minmax(0,1fr)_270px]">
               <ActivityChart activity={activity} onSeeAll={() => navigate("/questions")} />
               <section className="space-y-3">
-                <ActionCard icon={UploadCloud} title="Upload material" detail="Share class resources" active onClick={() => navigate("/upload")} />
+                <ActionCard icon={UploadCloud} title="Upload material" detail="Share class resources" active onClick={() => navigate("/notes")} />
                 <ActionCard icon={MessageSquareText} title="Answer doubts" detail="Open question queue" onClick={() => navigate("/questions")} />
               </section>
             </div>
-
-            <UserStrip
-              title="Faculty list"
-              users={facultyUsers}
-              emptyText="No faculty users found yet."
-              onSeeAll={() => navigate("/users?type=faculty")}
-              onToggleFollow={onToggleFollow}
-            />
 
             <ListPanel
               title="Student questions"
               items={questions}
               emptyText="No student questions yet."
-              onOpen={(question) => navigate(`/questions/${question._id}`)}
+              onOpen={() => navigate("/questions")}
               meta={(question) => `Asked by ${question.askedBy?.fullName || "student"}`}
               onAction={() => navigate("/questions")}
             />
+          </div>
 
+          <aside className="min-w-0 space-y-5 xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:space-y-6">
+            <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-indigo-700 p-5 text-white shadow-xl shadow-slate-500/25 sm:rounded-3xl">
+              <Clock3 size={20} />
+              <h2 className="mt-4 font-poppins text-2xl">Today’s academic work</h2>
+              <p className="mt-2 text-sm text-white/70">Review new doubts and keep material fresh.</p>
+            </section>
+            <ListPanel
+              title="Recent materials"
+              items={notes}
+              emptyText="No materials uploaded yet."
+              onOpen={(note) => navigate(`/notes/${note._id}`)}
+              meta={(note) => `${note.subjectCode || "Subject"} - ${note.uploadedBy?.fullName || "faculty"}`}
+              onAction={() => navigate("/notes")}
+            />
+          </aside>
+
+          <div className="min-w-0 xl:col-start-1 xl:row-start-2">
             <LatestFeed
               items={latestItems}
               currentUser={user}
@@ -776,7 +656,7 @@ function FacultyDashboard({
               onOpen={(item) =>
                 navigate(
                   item.feedType === "question"
-                    ? `/questions/${item._id}`
+                    ? "/questions"
                     : `/notes/${item._id}`
                 )
               }
@@ -788,22 +668,6 @@ function FacultyDashboard({
               }
             />
           </div>
-
-          <aside className="space-y-6">
-            <section className="rounded-3xl bg-gradient-to-br from-slate-950 to-indigo-700 p-5 text-white shadow-xl shadow-slate-500/25">
-              <Clock3 size={20} />
-              <h2 className="mt-4 font-poppins text-2xl">Today’s academic work</h2>
-              <p className="mt-2 text-sm text-white/70">Review new doubts and keep material fresh.</p>
-            </section>
-            <ListPanel
-              title="Recent materials"
-              items={notes}
-              emptyText="No materials uploaded yet."
-              onOpen={(note) => navigate(`/notes/${note._id}`)}
-              meta={(note) => `${note.subjectCode || "Subject"} - ${note.uploadedBy?.fullName || "faculty"}`}
-              onAction={() => navigate("/upload")}
-            />
-          </aside>
         </div>
       </div>
     </main>
@@ -815,47 +679,18 @@ export default function Dashboard() {
   const [notes, setNotes] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [posts, setPosts] = useState([]);
-  const [facultyUsers, setFacultyUsers] = useState([]);
-  const [studentUsers, setStudentUsers] = useState([]);
   const [activity, setActivity] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const updateFollowState = (targetUserId, isFollowing) => {
-    const updateUsers = (users) =>
-      users.map((directoryUser) =>
-        directoryUser._id === targetUserId
-          ? { ...directoryUser, isFollowing }
-          : directoryUser
-      );
-
-    setFacultyUsers(updateUsers);
-    setStudentUsers(updateUsers);
-  };
-
-  const handleToggleFollow = async (directoryUser) => {
-    if (directoryUser.isSelf) return;
-
-    const nextFollowing = !directoryUser.isFollowing;
-    updateFollowState(directoryUser._id, nextFollowing);
-
-    try {
-      await API.post(`/follows/toggle/${directoryUser._id}`);
-    } catch {
-      updateFollowState(directoryUser._id, directoryUser.isFollowing);
-    }
-  };
 
   useEffect(() => {
     let mounted = true;
 
     const loadDashboardData = async () => {
       try {
-        const [notesRes, questionsRes, postsRes, facultyRes, studentsRes, activityRes] = await Promise.all([
+        const [notesRes, questionsRes, postsRes, activityRes] = await Promise.all([
           API.get("/notes?limit=6&sortBy=createdAt&sortType=desc"),
           API.get("/questions?limit=6&sortBy=createdAt&sortType=desc"),
           API.get("/posts?limit=6"),
-          API.get("/users/faculty"),
-          API.get("/users/students"),
           API.get("/users/activity"),
         ]);
 
@@ -863,16 +698,12 @@ export default function Dashboard() {
         setNotes(notesRes.data?.data?.notes || []);
         setQuestions(questionsRes.data?.data?.questions || []);
         setPosts(postsRes.data?.data?.posts || []);
-        setFacultyUsers(facultyRes.data?.data || []);
-        setStudentUsers(studentsRes.data?.data || []);
         setActivity(activityRes.data?.data || null);
       } catch {
         if (!mounted) return;
         setNotes([]);
         setQuestions([]);
         setPosts([]);
-        setFacultyUsers([]);
-        setStudentUsers([]);
         setActivity(null);
       } finally {
         if (mounted) setLoading(false);
@@ -915,8 +746,6 @@ export default function Dashboard() {
         latestItems={latestItems}
         activity={activity}
         loading={loading}
-        facultyUsers={facultyUsers}
-        onToggleFollow={handleToggleFollow}
         onPostUpdated={handlePostUpdated}
         onPostDeleted={handlePostDeleted}
       />
@@ -930,9 +759,6 @@ export default function Dashboard() {
       latestItems={latestItems}
       activity={activity}
       loading={loading}
-      facultyUsers={facultyUsers}
-      studentUsers={studentUsers}
-      onToggleFollow={handleToggleFollow}
       onPostUpdated={handlePostUpdated}
       onPostDeleted={handlePostDeleted}
     />

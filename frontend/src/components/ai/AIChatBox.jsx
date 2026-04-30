@@ -36,8 +36,8 @@ export default function AIChatBox({ messages, setMessages }) {
   };
 
   return (
-    <section className="glass-panel space-y-4 p-5">
-      <div className="flex items-center justify-between">
+    <section className="glass-panel responsive-panel space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-poppins text-lg font-semibold text-slate-950">
           AI Conversation
         </h3>
@@ -46,7 +46,7 @@ export default function AIChatBox({ messages, setMessages }) {
         </button>
       </div>
 
-      <div className="h-80 space-y-3 overflow-y-auto rounded-3xl bg-white/45 p-4">
+      <div className="h-[min(22rem,55vh)] space-y-3 overflow-y-auto rounded-2xl bg-white/45 p-3 sm:rounded-3xl sm:p-4">
         {messages.length === 0 && (
           <p className="text-sm text-slate-500">Ask something to get started.</p>
         )}
@@ -54,7 +54,7 @@ export default function AIChatBox({ messages, setMessages }) {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`max-w-[80%] rounded-3xl p-3 text-sm ${
+            className={`max-w-[92%] break-words rounded-2xl p-3 text-sm sm:max-w-[80%] sm:rounded-3xl ${
               message.role === "user"
                 ? "ml-auto bg-indigo-600 text-white"
                 : "bg-white text-slate-700"
@@ -74,7 +74,7 @@ export default function AIChatBox({ messages, setMessages }) {
         <div ref={bottomRef} />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           value={input}
           onChange={(event) => setInput(event.target.value)}

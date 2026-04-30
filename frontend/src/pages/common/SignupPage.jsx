@@ -43,11 +43,11 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="app-page md:pl-8">
-      <div className="mx-auto grid max-w-6xl gap-6 rounded-[32px] border border-white/70 bg-white/45 p-4 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl md:grid-cols-[1fr_520px] md:p-7">
+    <main className="app-page md:pl-8 lg:pl-8">
+      <div className="mx-auto grid w-full max-w-6xl gap-6 rounded-[24px] border border-white/70 bg-white/45 p-3 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl sm:rounded-[32px] sm:p-5 md:grid-cols-[minmax(0,1fr)_minmax(320px,520px)] md:p-7">
         <section className="hidden rounded-[28px] bg-gradient-to-br from-slate-950 to-indigo-700 p-8 text-white md:flex md:flex-col md:justify-end">
           <p className="text-sm font-semibold text-white/75">Join GBPIET Notes</p>
-          <h1 className="mt-3 font-poppins text-4xl font-semibold">
+          <h1 className="mt-3 font-poppins text-3xl font-semibold lg:text-4xl">
             Build a cleaner academic workspace together
           </h1>
         </section>

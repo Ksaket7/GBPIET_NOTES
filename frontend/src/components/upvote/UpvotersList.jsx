@@ -13,37 +13,39 @@ export default function UpvotersList({ type, id, onClose }) {
   }, [type, id]);
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-      <div className="bg-surface rounded-lg p-6 w-full max-w-sm space-y-4">
-        <h3 className="font-poppins text-lg">Upvoted by</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-sm space-y-4 rounded-3xl border border-white/70 bg-white/95 p-5 shadow-2xl backdrop-blur-xl">
+        <h3 className="font-poppins text-lg font-semibold text-slate-950">Liked by</h3>
 
         <div className="space-y-2 max-h-60 overflow-y-auto">
-          {users.map((u) => (
+          {users.length === 0 ? (
+            <p className="text-sm text-slate-500">No likes yet.</p>
+          ) : users.map((u) => (
             <div
               key={u._id}
-              className="flex items-center gap-2 font-inter"
+              className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2"
             >
-              <div className="w-10 h-10 rounded-full bg-borderSoft overflow-hidden flex items-center justify-center">
+              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
               {u?.avatar ? (
                 <img
                   src={u.avatar}
                   alt={u.username}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="font-inter text-sm text-textSecondary">
+                <span className="text-sm font-semibold text-indigo-700">
                   {u?.username?.[0]?.toUpperCase()}
                 </span>
               )}
             </div>
-              <span className="font-medium">@{u.username}</span>
+              <span className="font-semibold text-slate-800">@{u.username}</span>
             </div>
           ))}
         </div>
 
         <button
           onClick={onClose}
-          className="w-full py-2 border border-borderSoft rounded hover:bg-borderSoft"
+          className="app-button-secondary w-full"
         >
           Close
         </button>

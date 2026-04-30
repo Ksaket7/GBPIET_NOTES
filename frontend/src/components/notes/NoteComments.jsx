@@ -45,7 +45,7 @@ export default function NoteComments({ noteId }) {
   };
 
   return (
-    <section className="glass-panel space-y-6 p-6">
+    <section className="glass-panel responsive-panel space-y-6">
       <h2 className="font-poppins text-2xl font-semibold text-slate-950">Comments</h2>
 
       {/* Comments list */}
@@ -57,10 +57,10 @@ export default function NoteComments({ noteId }) {
         {comments.map((c, idx) => (
           <div
             key={idx}
-            className="flex gap-3 rounded-3xl bg-white/65 p-4"
+            className="flex gap-3 rounded-2xl bg-white/65 p-3 sm:rounded-3xl sm:p-4"
           >
             {/* Avatar */}
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
               {c.user?.avatar ? (
                 <img
                   src={c.user.avatar}
@@ -75,9 +75,9 @@ export default function NoteComments({ noteId }) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="font-semibold text-slate-950">
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="break-words font-semibold text-slate-950">
                   @{c.user?.username || "unknown"}
                 </p>
 
@@ -86,7 +86,7 @@ export default function NoteComments({ noteId }) {
                 </span>
               </div>
 
-              <p className="text-slate-600">{c.message}</p>
+              <p className="break-words text-slate-600">{c.message}</p>
             </div>
           </div>
         ))}

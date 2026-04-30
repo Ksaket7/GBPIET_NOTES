@@ -4,14 +4,11 @@ import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import LoadingButton from "../ui/LoadingButton";
 
-export default function UploadQuestion() {
+export default function UploadQuestion({ onCreated }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    title: "",
     description: "",
-    subjectCode: "",
-    subjectName: "",
     tags: "",
   });
   const [loading, setLoading] = useState(false);
@@ -30,7 +27,7 @@ export default function UploadQuestion() {
     event.preventDefault();
     setErrorMessage("");
 
-    if (!form.title || !form.description) {
+    if (!form.description.trim() || !form.tags.trim()) {
       setErrorMessage("Please fill all required fields.");
       return;
     }
@@ -38,7 +35,8 @@ export default function UploadQuestion() {
     try {
       setLoading(true);
       const res = await API.post("/questions/ask", form);
-      navigate(`/questions/${res.data.data._id}`);
+      onCreated?.(res.data.data);
+      navigate("/questions");
     } catch (err) {
       setErrorMessage(err.response?.data?.message || "Failed to post question");
     } finally {
@@ -47,12 +45,12 @@ export default function UploadQuestion() {
   };
 
   return (
-    <div className="glass-panel p-6 md:p-8">
+    <div className="glass-panel responsive-panel">
       <h1 className="font-poppins text-2xl font-semibold text-slate-950">
         Ask a Question
       </h1>
       <p className="mt-2 text-sm text-slate-500">
-        Ask clearly so others can answer quickly.
+        Ask clearly and add at least one tag so others can answer quickly.
       </p>
 
       {errorMessage && (
@@ -62,55 +60,28 @@ export default function UploadQuestion() {
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-        <input
-          type="text"
-          name="title"
-          placeholder="Question title *"
-          value={form.title}
-          onChange={handleChange}
-          className="app-input"
-        />
-
         <textarea
           name="description"
-          placeholder="Describe your question in detail *"
+          placeholder="Write your question *"
           value={form.description}
           onChange={handleChange}
           rows={5}
           className="app-input min-h-36"
+          required
         />
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <input
-            type="text"
-            name="subjectCode"
-            placeholder="Subject Code"
-            value={form.subjectCode}
-            onChange={handleChange}
-            className="app-input"
-          />
-
-          <input
-            type="text"
-            name="subjectName"
-            placeholder="Subject Name"
-            value={form.subjectName}
-            onChange={handleChange}
-            className="app-input"
-          />
-        </div>
 
         <input
           type="text"
           name="tags"
-          placeholder="Tags (comma separated)"
+          placeholder="Question tags, comma separated *"
           value={form.tags}
           onChange={handleChange}
           className="app-input"
+          required
         />
 
-        <div className="flex justify-end">
-          <LoadingButton loading={loading} type="submit" className="app-button">
+        <div className="flex justify-stretch sm:justify-end">
+          <LoadingButton loading={loading} type="submit" className="app-button w-full sm:w-auto">
             Post Question
           </LoadingButton>
         </div>

@@ -3,7 +3,7 @@ import API from "../../services/api";
 import InputField from "./InputField";
 import FileUpload from "./FileUpload";
 
-const UploadForm = () => {
+const UploadForm = ({ onUploaded }) => {
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -68,6 +68,7 @@ const UploadForm = () => {
           originalStudentUsername: "",
         });
         setFile(null);
+        onUploaded?.();
       }
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "Upload failed");
@@ -77,7 +78,7 @@ const UploadForm = () => {
   };
 
   return (
-    <div className="glass-panel p-6 md:p-8">
+    <div className="glass-panel responsive-panel">
       <h1 className="font-poppins text-2xl font-semibold text-slate-950">
         Upload Notes
       </h1>
@@ -96,7 +97,7 @@ const UploadForm = () => {
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         {/* GRID START */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="title"
             placeholder="Title"
@@ -139,7 +140,7 @@ const UploadForm = () => {
         />
 
         {/* Tags + Type row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="tags"
             placeholder="Tags (comma separated)"
@@ -163,11 +164,11 @@ const UploadForm = () => {
         {/* File Upload full width */}
         <FileUpload file={file} setFile={setFile} />
 
-        <div className="flex justify-center md:justify-end">
+        <div className="flex justify-stretch sm:justify-end">
           <button
             type="submit"
             disabled={loading}
-            className="app-button"
+            className="app-button w-full sm:w-auto"
           >
             {loading ? "Uploading..." : "Upload Notes"}
           </button>

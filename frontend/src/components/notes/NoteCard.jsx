@@ -22,7 +22,7 @@ export default function NoteCard({ note }) {
       onClick={() => navigate(`/notes/${note._id}`)}
       className="soft-card cursor-pointer p-5"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
             {owner?.avatar ? (
@@ -55,7 +55,7 @@ export default function NoteCard({ note }) {
         <span className="inline-flex rounded-2xl bg-indigo-100 p-3 text-indigo-600">
           <FileText size={20} />
         </span>
-        <h3 className="font-poppins text-lg font-semibold text-slate-950">
+        <h3 className="break-words font-poppins text-lg font-semibold text-slate-950">
           {note.title}
         </h3>
         <p className="text-sm text-slate-500">
@@ -66,7 +66,7 @@ export default function NoteCard({ note }) {
         </p>
       </div>
 
-      <div className="mt-5 flex items-center justify-between gap-3">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <UpvoteButton type="note" id={note._id} />
         <button
           type="button"

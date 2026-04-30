@@ -30,12 +30,12 @@ export default function PostComposer({ onPostCreated }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="glass-panel p-6">
-      <div className="flex items-start gap-3">
+    <form onSubmit={handleSubmit} className="glass-panel responsive-panel">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
           <FileText size={18} />
         </div>
-        <div className="flex-1 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <textarea
             value={text}
             onChange={(event) => setText(event.target.value)}
@@ -43,9 +43,9 @@ export default function PostComposer({ onPostCreated }) {
             className="app-input min-h-28"
           />
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="app-button-secondary cursor-pointer py-2">
+            <label className="app-button-secondary max-w-full cursor-pointer py-2">
               <Image size={16} />
-              {image ? image.name : "Add image"}
+              <span className="truncate">{image ? image.name : "Add image"}</span>
               <input
                 type="file"
                 accept="image/*"

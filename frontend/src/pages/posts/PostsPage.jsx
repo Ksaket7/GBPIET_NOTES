@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { Image, MessageCircle, Send } from "lucide-react";
+import { Image, MessageCircle, Plus, X } from "lucide-react";
 import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import { timeAgo } from "../../utils/timeAgo";
+import PostComposer from "../../components/posts/PostComposer";
+import { useAuth } from "../../context/AuthContext";
+import FormModal from "../../components/ui/FormModal";
 
 function ExpandableText({ text }) {
   const [expanded, setExpanded] = useState(false);
@@ -59,7 +62,7 @@ function PostCommentBox({ post }) {
           </div>
         ))}
       </div>
-      <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
+      <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input
           value={message}
           onChange={(event) => setMessage(event.target.value)}
@@ -82,7 +85,7 @@ function PostCard({ post }) {
   const owner = post.postedBy;
 
   return (
-    <article className="soft-card mx-auto w-full max-w-3xl overflow-hidden p-4">
+    <article className="soft-card mx-auto w-full max-w-3xl overflow-hidden p-3 sm:p-4">
       <div className="flex items-center gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
           {owner?.avatar ? (
@@ -111,17 +114,17 @@ function PostCard({ post }) {
         <img
           src={post.imageUrl}
           alt=""
-          className="mt-4 max-h-[520px] w-full rounded-3xl object-cover"
+          className="mt-4 max-h-[360px] w-full rounded-2xl object-cover sm:max-h-[520px] sm:rounded-3xl"
         />
       ) : (
-        <div className="mt-4 flex min-h-40 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-100 via-white to-sky-100 text-indigo-700">
+        <div className="mt-4 flex min-h-32 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-100 via-white to-sky-100 text-indigo-700 sm:min-h-40 sm:rounded-3xl">
           <Image size={28} />
         </div>
       )}
 
       <ExpandableText text={post.text} />
 
-      <div className="mt-4 flex items-center gap-3 border-t border-white/70 pt-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/70 pt-3">
         <UpvoteButton type="post" id={post._id} />
         <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700">
           <MessageCircle size={14} />
@@ -135,9 +138,11 @@ function PostCard({ post }) {
 }
 
 export default function PostsPage() {
+  const { isAuthenticated } = useAuth();
   const [posts, setPosts] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPostForm, setShowPostForm] = useState(false);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -156,13 +161,36 @@ export default function PostsPage() {
   return (
     <main className="app-page">
       <div className="app-shell space-y-6">
-        <header>
-          <span className="pill">Posts</span>
-          <h1 className="page-title mt-3">All posts</h1>
-          <p className="page-subtitle">
-            Updates shared by students, CRs, admins, and faculty.
-          </p>
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <span className="pill">Posts</span>
+            <h1 className="page-title mt-3">All posts</h1>
+            <p className="page-subtitle">
+              Updates shared by students, CRs, admins, and faculty.
+            </p>
+          </div>
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={() => setShowPostForm((value) => !value)}
+              className="app-button w-full md:w-auto"
+            >
+              {showPostForm ? <X size={16} /> : <Plus size={16} />}
+              {showPostForm ? "Close form" : "Create post"}
+            </button>
+          )}
         </header>
+
+        {isAuthenticated && showPostForm && (
+          <FormModal title="Create post" onClose={() => setShowPostForm(false)}>
+            <PostComposer
+              onPostCreated={(post) => {
+                setPosts((currentPosts) => [post, ...currentPosts]);
+                setShowPostForm(false);
+              }}
+            />
+          </FormModal>
+        )}
 
         {loading ? (
           <div className="glass-panel p-6 text-sm text-slate-500">

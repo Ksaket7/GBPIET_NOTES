@@ -4,7 +4,7 @@ import API from "../../services/api";
 
 function DirectoryUserCard({ directoryUser, onToggleFollow }) {
   return (
-    <div className="soft-card flex items-center gap-4 p-4">
+    <div className="soft-card flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center">
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-indigo-100">
         {directoryUser.avatar ? (
           <img
@@ -35,7 +35,7 @@ function DirectoryUserCard({ directoryUser, onToggleFollow }) {
         type="button"
         disabled={directoryUser.isSelf}
         onClick={() => onToggleFollow(directoryUser)}
-        className={`rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+        className={`w-full rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${
           directoryUser.isFollowing
             ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
             : "bg-slate-950 text-white hover:bg-indigo-700"
@@ -159,7 +159,7 @@ export default function UsersPage() {
             No users found.
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
             {visibleUsers.map((directoryUser) => (
               <DirectoryUserCard
                 key={directoryUser._id}

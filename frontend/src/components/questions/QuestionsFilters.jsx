@@ -12,7 +12,7 @@ export default function QuestionsFilters({ filters, setSearchParams }) {
   };
 
   return (
-    <div className="glass-panel grid gap-3 p-4 md:grid-cols-[1fr_180px]">
+    <div className="glass-panel grid gap-3 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_180px]">
       <input
         type="text"
         placeholder="Search questions…"

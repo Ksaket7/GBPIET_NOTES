@@ -30,7 +30,7 @@ export default function NoteHeader({ note }) {
   };
 
   return (
-    <section className="glass-panel p-6">
+    <section className="glass-panel responsive-panel">
       <button
         type="button"
         onClick={() => navigate("/notes")}
@@ -41,9 +41,9 @@ export default function NoteHeader({ note }) {
       </button>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <span className="pill">{note.subjectCode} - {note.type}</span>
-          <h1 className="mt-4 font-poppins text-3xl font-semibold text-slate-950">
+        <div className="min-w-0">
+          <span className="pill break-words">{note.subjectCode} - {note.type}</span>
+          <h1 className="mt-4 break-words font-poppins text-2xl font-semibold text-slate-950 sm:text-3xl">
             {note.title}
           </h1>
           <p className="mt-3 text-sm text-slate-500">

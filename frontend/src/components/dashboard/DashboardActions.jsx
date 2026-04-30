@@ -6,7 +6,7 @@ export default function DashboardActions() {
   return (
     <div className="flex flex-wrap gap-4">
       <button
-        onClick={() => navigate("/upload")}
+        onClick={() => navigate("/notes")}
         className="px-6 py-3 bg-primary text-white rounded
                    hover:bg-primaryDark transition font-inter"
       >

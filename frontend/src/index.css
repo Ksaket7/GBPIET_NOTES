@@ -11,6 +11,7 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
+    overflow-x: hidden;
     background:
       radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.9), transparent 28%),
       linear-gradient(135deg, #c9dceb 0%, #e8eefb 48%, #f2eaf7 100%);
@@ -28,43 +29,47 @@
 
 @layer components {
   .app-page {
-    @apply min-h-screen px-4 pb-10 pt-24 md:pl-72 md:pr-8 md:pt-8;
+    @apply min-h-screen px-3 pb-8 pt-24 sm:px-5 sm:pb-10 lg:pl-72 lg:pr-8 lg:pt-8;
   }
 
   .app-shell {
-    @apply mx-auto max-w-7xl rounded-[28px] border border-white/70 bg-white/45 p-4 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl md:p-7;
+    @apply mx-auto w-full max-w-7xl rounded-[22px] border border-white/70 bg-white/45 p-3 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl sm:rounded-[28px] sm:p-5 md:p-7;
   }
 
   .glass-panel {
-    @apply rounded-3xl border border-white/70 bg-white/65 shadow-lg shadow-slate-400/10 backdrop-blur-xl;
+    @apply min-w-0 rounded-2xl border border-white/70 bg-white/65 shadow-lg shadow-slate-400/10 backdrop-blur-xl sm:rounded-3xl;
   }
 
   .soft-card {
-    @apply rounded-2xl border border-white/70 bg-white/75 shadow-md shadow-slate-400/10 transition hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-lg;
+    @apply min-w-0 rounded-2xl border border-white/70 bg-white/75 shadow-md shadow-slate-400/10 transition hover:-translate-y-0.5 hover:bg-white/90 hover:shadow-lg;
   }
 
   .app-input {
-    @apply w-full rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-200/50;
+    @apply w-full min-w-0 rounded-2xl border border-white/70 bg-white/70 px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-200/50 sm:px-4 sm:py-3;
   }
 
   .app-button {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-500/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-500/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3;
   }
 
   .app-button-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/70 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:bg-white;
+    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:bg-white sm:px-5 sm:py-3;
   }
 
   .pill {
-    @apply inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600;
+    @apply inline-flex max-w-full items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600;
   }
 
   .page-title {
-    @apply font-poppins text-3xl font-semibold text-slate-950;
+    @apply break-words font-poppins text-2xl font-semibold text-slate-950 sm:text-3xl;
   }
 
   .page-subtitle {
     @apply mt-2 max-w-2xl text-sm text-slate-500;
+  }
+
+  .responsive-panel {
+    @apply p-4 sm:p-5 md:p-6;
   }
 
   .no-scrollbar {

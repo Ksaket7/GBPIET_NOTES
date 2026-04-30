@@ -12,7 +12,7 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
   }
 
   return (
-    <div className="mt-8 flex items-center justify-center gap-2">
+    <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
       <button
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}

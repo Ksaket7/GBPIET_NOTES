@@ -37,18 +37,18 @@ export default function Settings() {
 
   return (
     <main className="app-page">
-      <div className="app-shell grid gap-6 lg:grid-cols-[260px_1fr]">
+      <div className="app-shell grid gap-6 xl:grid-cols-[260px_1fr]">
         <aside className="glass-panel p-4">
           <h1 className="font-poppins text-2xl font-semibold text-slate-950">
             Settings
           </h1>
-          <div className="mt-5 space-y-2">
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-1 xl:block xl:space-y-2 xl:overflow-visible xl:pb-0">
             {["general", "account", "profile"].map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold capitalize ${
+                className={`shrink-0 rounded-2xl px-4 py-3 text-left text-sm font-semibold capitalize xl:w-full ${
                   activeTab === tab
                     ? "bg-slate-950 text-white"
                     : "bg-white/60 text-slate-600 hover:bg-white"

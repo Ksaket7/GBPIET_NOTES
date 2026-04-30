@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  BarChart3,
   BookOpen,
   HelpCircle,
   Home,
@@ -9,7 +8,6 @@ import {
   LogOut,
   Mail,
   Menu,
-  PlusCircle,
   Newspaper,
   Settings,
   UserPlus,
@@ -26,7 +24,6 @@ const links = [
   { name: "Posts", path: "/posts", icon: Newspaper },
   { name: "Q&A", path: "/questions", icon: HelpCircle },
   { name: "Users", path: "/users", icon: Users },
-  { name: "Upload", path: "/upload", icon: PlusCircle },
   { name: "Contact", path: "/contact", icon: Mail },
 ];
 
@@ -131,11 +128,11 @@ export default function Header() {
 
   return (
     <>
-      <aside className="fixed bottom-6 left-6 top-6 z-50 hidden w-60 flex-col rounded-[30px] border border-white/70 bg-white/45 p-5 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl md:flex">
+      <aside className="fixed bottom-6 left-6 top-6 z-50 hidden w-60 flex-col rounded-[30px] border border-white/70 bg-white/45 p-5 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl lg:flex">
         {nav}
       </aside>
 
-      <header className="fixed left-4 right-4 top-4 z-50 rounded-[24px] border border-white/70 bg-white/55 px-4 py-3 shadow-xl shadow-slate-500/10 backdrop-blur-2xl md:hidden">
+      <header className="fixed left-3 right-3 top-3 z-50 rounded-[22px] border border-white/70 bg-white/55 px-3 py-3 shadow-xl shadow-slate-500/10 backdrop-blur-2xl sm:left-4 sm:right-4 sm:top-4 sm:px-4 lg:hidden">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img src={logo} alt="GBPIET Notes" className="h-9 w-9 rounded-2xl object-cover" />
@@ -156,12 +153,12 @@ export default function Header() {
 
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/20 p-4 pt-20 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/20 p-3 pt-20 backdrop-blur-sm sm:p-4 lg:hidden"
           onClick={closeMenu}
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="flex min-h-[70vh] flex-col rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-2xl backdrop-blur-2xl"
+            className="flex max-h-[calc(100vh-6rem)] min-h-[70vh] flex-col overflow-y-auto rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-2xl backdrop-blur-2xl sm:rounded-[28px] sm:p-5"
           >
             {nav}
           </div>

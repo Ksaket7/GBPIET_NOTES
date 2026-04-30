@@ -13,11 +13,11 @@ export default function About() {
   return (
     <main className="app-page">
       <div className="app-shell space-y-8">
-        <section className="rounded-[28px] bg-gradient-to-br from-slate-950 to-indigo-700 p-8 text-white">
+        <section className="rounded-[24px] bg-gradient-to-br from-slate-950 to-indigo-700 p-5 text-white sm:rounded-[28px] sm:p-8">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
             About
           </span>
-          <h1 className="mt-5 font-poppins text-4xl font-semibold">
+          <h1 className="mt-5 break-words font-poppins text-3xl font-semibold sm:text-4xl">
             GBPIET Notes
           </h1>
           <p className="mt-4 max-w-2xl text-sm text-white/75">
@@ -25,7 +25,7 @@ export default function About() {
           </p>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-3">
           {[
             ["100+", "Notes"],
             ["50+", "Users"],
@@ -40,7 +40,7 @@ export default function About() {
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {features.map(({ icon, title, text }) => (
-            <div key={title} className="soft-card p-6">
+            <div key={title} className="soft-card p-4 sm:p-6">
               {createElement(icon, { className: "text-indigo-600" })}
               <h3 className="mt-4 font-semibold text-slate-950">{title}</h3>
               <p className="mt-2 text-sm text-slate-500">{text}</p>
@@ -48,7 +48,7 @@ export default function About() {
           ))}
         </section>
 
-        <section className="glass-panel p-7">
+        <section className="glass-panel responsive-panel">
           <h2 className="font-poppins text-2xl font-semibold text-slate-950">
             Our vision
           </h2>

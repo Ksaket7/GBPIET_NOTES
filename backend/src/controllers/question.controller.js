@@ -20,8 +20,12 @@ const askQuestion = asyncHandler(async (req, res) => {
       ? tags.split(",").map((tag) => tag.trim()).filter(Boolean)
       : [];
 
+  if (normalizedTags.length === 0) {
+    throw new ApiError(400, "At least one question tag is required");
+  }
+
   const question = await Question.create({
-    title,
+    title: title || "",
     description,
     subjectName,
     subjectCode,
@@ -65,6 +69,11 @@ const getAllQuestions = asyncHandler(async (req, res) => {
 
   const questions = await Question.find(filter)
     .populate("askedBy", "username fullName avatar")
+    .populate({
+      path: "answers",
+      populate: { path: "answeredBy", select: "username fullName avatar" },
+      options: { sort: { createdAt: -1 } },
+    })
     .sort({ [sortBy]: sortType === "desc" ? -1 : 1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));

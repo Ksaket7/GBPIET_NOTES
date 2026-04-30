@@ -15,13 +15,13 @@ export default function NotePreview({ note }) {
   };
 
   return (
-    <section className="glass-panel p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <section className="glass-panel responsive-panel">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="rounded-2xl bg-indigo-100 p-3 text-indigo-600">
             <FileText size={20} />
           </span>
-          <h2 className="font-poppins text-xl font-semibold text-slate-950">
+          <h2 className="break-words font-poppins text-xl font-semibold text-slate-950">
             Note Preview
           </h2>
         </div>
@@ -37,7 +37,7 @@ export default function NotePreview({ note }) {
         </p>
       </div>
 
-      <p className="mt-5 text-slate-600">
+      <p className="mt-5 break-words text-slate-600">
         {note.description || "No description provided."}
       </p>
 

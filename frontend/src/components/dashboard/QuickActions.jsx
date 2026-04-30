@@ -5,7 +5,7 @@ export default function QuickActions() {
   const actions = [
     { label: "Browse Notes", to: "/notes" },
     { label: "Ask a Question", to: "/questions" },
-    { label: "Upload Notes", to: "/upload" },
+    { label: "Create Post", to: "/posts" },
   ];
 
   return (

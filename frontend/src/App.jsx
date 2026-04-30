@@ -11,9 +11,7 @@ import NoteDetailPage from "./pages/notes/NoteDetailPage";
 import NoteAIPage from "./pages/notes/NoteAIPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
-import QuestionDetail from "./pages/qna/QuestionDetail";
 import QuestionsPage from "./pages/qna/QuestionsPage";
-import UploadPage from "./pages/upload/UploadPage";
 import ContactUs from "./pages/common/ContactUs";
 import Settings from "./pages/user/Settings";
 import UsersPage from "./pages/user/UsersPage";
@@ -73,16 +71,6 @@ function App() {
             }
           />
 
-          {/* Protected */}
-          <Route
-            path="/upload"
-            element={
-              <ProtectedRoute>
-                <UploadPage />
-              </ProtectedRoute>
-            }
-          />
-
           <Route
             path="/questions"
             element={
@@ -91,15 +79,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/questions/:questionId"
-            element={
-              <ProtectedRoute>
-                <QuestionDetail />
-              </ProtectedRoute>
-            }
-          />
-
           <Route
             path="/contact"
             element={
