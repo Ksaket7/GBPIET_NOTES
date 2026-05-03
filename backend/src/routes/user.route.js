@@ -2,6 +2,8 @@ import express from "express";
 import {
   registerUser,
   loginUser,
+  googleAuth,
+  completeProfile,
   logoutUser,
   getUserProfile,
   getCurrentUser,
@@ -23,6 +25,8 @@ router.route("/register").post(
   registerUser
 );
 router.route("/login").post(loginUser);
+router.route("/google").post(googleAuth);
+router.route("/complete-profile").patch(verifyJWT, completeProfile);
 
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);

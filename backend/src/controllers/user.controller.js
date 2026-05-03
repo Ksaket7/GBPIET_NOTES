@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import axios from "axios";
+import crypto from "crypto";
 import {
   uploadOnSupabase,
   deleteFromSupabase,
@@ -30,15 +32,57 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
-const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, username, email, password, role, branch } = req.body;
+const authCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+};
 
-  if (
-    [fullName, username, email, password, branch].some(
-      (field) => typeof field !== "string" || !field.trim()
-    )
-  ) {
-    throw new ApiError(400, "All fields are required");
+const sendAuthResponse = async (res, userId, message = "Login successful") => {
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    userId
+  );
+  const loggedInUser = await User.findById(userId).select(
+    "-password -refreshToken"
+  );
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, authCookieOptions)
+    .cookie("refreshToken", refreshToken, authCookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggedInUser, accessToken, refreshToken },
+        message
+      )
+    );
+};
+
+const createUniqueUsername = async (email) => {
+  const baseUsername =
+    email
+      .split("@")[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "")
+      .slice(0, 24) || `user${Date.now()}`;
+
+  let username = baseUsername;
+  let suffix = 1;
+
+  while (await User.exists({ username })) {
+    username = `${baseUsername}${suffix}`;
+    suffix += 1;
+  }
+
+  return username;
+};
+
+const registerUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if ([email, password].some((field) => typeof field !== "string" || !field.trim())) {
+    throw new ApiError(400, "Email and password are required");
   }
 
   let isReal = false;
@@ -52,40 +96,26 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Please enter a valid email");
   }
 
-  const existedUser = await User.findOne({ $or: [{ email }, { username }] });
+  const normalizedEmail = email.toLowerCase();
+  const existedUser = await User.findOne({ email: normalizedEmail });
   if (existedUser) {
     throw new ApiError(409, "User already exists");
   }
 
-  const adminExists = await User.exists({ role: "admin" });
-
-  const allowedRoles = ["student", "cr", "faculty", "admin"];
-
-  let finalRole = "student";
-
-  if (!adminExists && role === "admin") {
-    finalRole = "admin";
-  } else if (allowedRoles.includes(role)) {
-    finalRole = role;
-  }
+  const username = await createUniqueUsername(normalizedEmail);
 
   const user = await User.create({
-    fullName,
-    username: username.toLowerCase(),
-    email,
+    fullName: username,
+    username,
+    email: normalizedEmail,
     password,
-    branch,
+    branch: "Unassigned",
     avatar: "",
-    role: finalRole,
+    role: "student",
+    profileCompleted: false,
   });
 
-  const createdUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, createdUser, "User registered successfully"));
+  return sendAuthResponse(res, user._id, "User registered successfully");
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -106,43 +136,122 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials");
   }
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
-    user._id
-  );
-  const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  };
+
+  return sendAuthResponse(res, user._id, "Login successful");
+});
+
+const googleAuth = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    throw new ApiError(500, "Google authentication is not configured");
+  }
+
+  if (!credential) {
+    throw new ApiError(400, "Google credential is required");
+  }
+
+  const { data } = await axios.get("https://oauth2.googleapis.com/tokeninfo", {
+    params: { id_token: credential },
+  });
+
+  if (data.aud !== process.env.GOOGLE_CLIENT_ID) {
+    throw new ApiError(401, "Invalid Google credential");
+  }
+
+  if (data.email_verified !== "true" && data.email_verified !== true) {
+    throw new ApiError(401, "Google email is not verified");
+  }
+
+  const email = data.email?.toLowerCase();
+  if (!email) {
+    throw new ApiError(400, "Google account email is required");
+  }
+
+  let user = await User.findOne({
+    $or: [{ email }, { googleId: data.sub }],
+  });
+
+  if (user) {
+    if (!user.googleId) user.googleId = data.sub;
+    if (!user.avatar && data.picture) user.avatar = data.picture;
+    await user.save({ validateBeforeSave: false });
+  } else {
+    const username = await createUniqueUsername(email);
+    user = await User.create({
+      googleId: data.sub,
+      fullName: data.name || username,
+      username,
+      email,
+      password: crypto.randomBytes(32).toString("hex"),
+      branch: "Unassigned",
+      avatar: data.picture || "",
+      role: "student",
+      profileCompleted: false,
+    });
+  }
+
+  return sendAuthResponse(res, user._id, "Google login successful");
+});
+
+const completeProfile = asyncHandler(async (req, res) => {
+  const { fullName, username, branch, role } = req.body;
+
+  if (
+    [fullName, username, branch, role].some(
+      (field) => typeof field !== "string" || !field.trim()
+    )
+  ) {
+    throw new ApiError(400, "All profile fields are required");
+  }
+
+  const normalizedUsername = username.toLowerCase().trim();
+  const usernameTaken = await User.exists({
+    username: normalizedUsername,
+    _id: { $ne: req.user._id },
+  });
+
+  if (usernameTaken) {
+    throw new ApiError(409, "Username already exists");
+  }
+
+  const allowedRoles = ["student", "cr", "faculty", "admin"];
+  if (!allowedRoles.includes(role)) {
+    throw new ApiError(400, "Invalid user type");
+  }
+
+  const adminExists = await User.exists({
+    role: "admin",
+    _id: { $ne: req.user._id },
+  });
+  const finalRole = role === "admin" && adminExists ? "student" : role;
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        fullName: fullName.trim(),
+        username: normalizedUsername,
+        branch: branch.trim(),
+        role: finalRole,
+        profileCompleted: true,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        { user: loggedInUser, accessToken, refreshToken },
-        "Login successfull"
-      )
-    );
+    .json(new ApiResponse(200, user, "Profile completed successfully"));
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
-  const options = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  };
 
   return res
     .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
+    .clearCookie("accessToken", authCookieOptions)
+    .clearCookie("refreshToken", authCookieOptions)
     .json(new ApiResponse(200, {}, "Logged out successfully"));
 });
 
@@ -462,6 +571,8 @@ const getUserActivity = asyncHandler(async (req, res) => {
 export {
   registerUser,
   loginUser,
+  googleAuth,
+  completeProfile,
   logoutUser,
   getCurrentUser,
   updateAccountDetails,

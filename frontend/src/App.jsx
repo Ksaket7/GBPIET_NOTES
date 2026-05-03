@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import Home from "./pages/home/Home";
 import LoginPage from "./pages/common/LoginPage";
 import SignupPage from "./pages/common/SignupPage";
+import CompleteProfilePage from "./pages/common/CompleteProfilePage";
 import NotesPage from "./pages/notes/NotesPage";
 import PostsPage from "./pages/posts/PostsPage";
 import NoteDetailPage from "./pages/notes/NoteDetailPage";
@@ -32,6 +33,14 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route
+            path="/complete-profile"
+            element={
+              <ProtectedRoute>
+                <CompleteProfilePage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
         {/* Routes WITH header & footer */}
         {/* Layout */}

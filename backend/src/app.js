@@ -5,6 +5,11 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 const app = express();
 
 // middlewares
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
+
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN,

@@ -1,23 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { BookOpen, Sparkles } from "lucide-react";
 import API from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import GoogleAuthButton from "../../components/common/GoogleAuthButton";
 
 export default function SignupPage() {
   const [form, setForm] = useState({
-    fullName: "",
-    username: "",
     email: "",
     password: "",
-    branch: "",
-    role: "student",
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
-
-  const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
-  const roles = ["student", "cr", "faculty", "admin"];
+  const { login } = useAuth();
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -32,8 +30,10 @@ export default function SignupPage() {
     try {
       const response = await API.post("/users/register", form);
       if (response.data?.success) {
+        const user = response.data.data.user;
         setSuccessMessage(response.data.message);
-        setTimeout(() => navigate("/login"), 1000);
+        login(user);
+        navigate("/complete-profile");
       }
     } catch (error) {
       setErrorMessage(error.response?.data?.message || "Signup failed");
@@ -42,65 +42,124 @@ export default function SignupPage() {
     }
   };
 
+  const handleGoogleCredential = async (credential) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setGoogleLoading(true);
+
+    try {
+      const response = await API.post("/users/google", { credential });
+      if (response.data?.success) {
+        const user = response.data.data.user;
+        login(user);
+        navigate(user.profileCompleted === false ? "/complete-profile" : "/");
+      }
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || "Google signup failed");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
-    <main className="app-page md:pl-8 lg:pl-8">
-      <div className="mx-auto grid w-full max-w-6xl gap-6 rounded-[24px] border border-white/70 bg-white/45 p-3 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl sm:rounded-[32px] sm:p-5 md:grid-cols-[minmax(0,1fr)_minmax(320px,520px)] md:p-7">
-        <section className="hidden rounded-[28px] bg-gradient-to-br from-slate-950 to-indigo-700 p-8 text-white md:flex md:flex-col md:justify-end">
-          <p className="text-sm font-semibold text-white/75">Join GBPIET Notes</p>
-          <h1 className="mt-3 font-poppins text-3xl font-semibold lg:text-4xl">
-            Build a cleaner academic workspace together
-          </h1>
+    <main className="flex min-h-screen items-center justify-center px-4 py-8">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-2xl shadow-slate-500/25 md:min-h-[620px] md:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <section className="flex items-center justify-center bg-white px-5 py-10 sm:px-8 md:px-12">
+          <div className="w-full max-w-sm">
+            <h1 className="text-center font-poppins text-3xl font-semibold text-slate-950">
+              Create Account
+            </h1>
+            <p className="mt-3 text-center text-sm text-slate-500">
+              Create your account, then complete your academic profile.
+            </p>
+
+            {errorMessage && (
+              <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                {errorMessage}
+              </div>
+            )}
+            {successMessage && (
+              <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {successMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                required
+                onChange={handleChange}
+                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+                onChange={handleChange}
+                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+              />
+
+              <button
+                type="submit"
+                disabled={loading || googleLoading}
+                className="w-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-indigo-600 disabled:opacity-60"
+              >
+                {loading ? "Creating..." : "Sign Up"}
+              </button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3 text-xs font-semibold text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />
+              OR
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <GoogleAuthButton
+              disabled={loading || googleLoading}
+              onCredential={handleGoogleCredential}
+              label="Sign up with Google"
+              googleText="signup_with"
+              onMissingConfig={() =>
+                setErrorMessage("Google signup needs VITE_GOOGLE_CLIENT_ID in frontend env.")
+              }
+            />
+
+            <p className="mt-6 text-center text-sm text-slate-500">
+              Already have an account?{" "}
+              <Link to="/login" className="font-semibold text-indigo-700">
+                Login
+              </Link>
+            </p>
+          </div>
         </section>
 
-        <section className="glass-panel p-6 md:p-8">
-          <h1 className="font-poppins text-3xl font-semibold text-slate-950">
-            Create Account
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Choose your role and branch to personalize the dashboard.
-          </p>
-
-          {errorMessage && (
-            <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
-              {errorMessage}
+        <section className="relative hidden overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 p-8 text-white md:flex md:items-center md:justify-center">
+          <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-white" />
+          <div className="absolute -bottom-14 -left-14 h-32 w-32 rounded-full bg-white/20" />
+          <div className="absolute left-8 top-20 h-3 w-3 rounded-full bg-white/50" />
+          <div className="absolute right-20 bottom-24 h-4 w-4 rounded-full bg-yellow-300/80" />
+          <div className="relative z-10 max-w-md text-center">
+            <div className="mx-auto flex h-48 w-64 items-end justify-center">
+              <div className="relative">
+                <div className="absolute -left-14 bottom-8 h-16 w-52 -rotate-6 rounded-xl bg-cyan-200 shadow-2xl" />
+                <div className="absolute -left-10 bottom-14 h-16 w-52 -rotate-3 rounded-xl bg-orange-300 shadow-2xl" />
+                <div className="absolute -left-6 bottom-20 h-16 w-52 rounded-xl bg-yellow-200 shadow-2xl" />
+                <div className="relative flex h-28 w-28 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+                  <BookOpen size={54} className="text-white" />
+                  <Sparkles size={24} className="absolute -right-2 -top-2 text-yellow-200" />
+                </div>
+              </div>
             </div>
-          )}
-          {successMessage && (
-            <div className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              {successMessage}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
-            <input type="text" name="fullName" placeholder="Full Name" required onChange={handleChange} className="app-input" />
-            <input type="text" name="username" placeholder="Username" required onChange={handleChange} className="app-input" />
-            <input type="email" name="email" placeholder="Email" required onChange={handleChange} className="app-input md:col-span-2" />
-            <input type="password" name="password" placeholder="Password" required onChange={handleChange} className="app-input md:col-span-2" />
-
-            <select name="branch" value={form.branch} onChange={handleChange} className="app-input">
-              <option value="" disabled>Select Branch</option>
-              {branches.map((branch) => (
-                <option key={branch} value={branch}>{branch}</option>
-              ))}
-            </select>
-
-            <select name="role" value={form.role} onChange={handleChange} className="app-input">
-              {roles.map((role) => (
-                <option key={role} value={role}>{role.toUpperCase()}</option>
-              ))}
-            </select>
-
-            <button type="submit" disabled={loading} className="app-button md:col-span-2">
-              {loading ? "Creating..." : "Sign Up"}
-            </button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-indigo-700">
-              Login
-            </Link>
-          </p>
+            <h2 className="mt-8 font-poppins text-4xl font-semibold">
+              Join the hub
+            </h2>
+            <p className="mt-4 text-sm leading-6 text-white/80">
+              Start with your account, then tell us your academic profile in the next step.
+            </p>
+          </div>
         </section>
       </div>
     </main>

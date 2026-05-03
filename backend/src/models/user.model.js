@@ -19,6 +19,12 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
     fullName: {
       type: String,
       required: true,
@@ -57,6 +63,10 @@ const userSchema = new Schema(
     },
     refreshToken: {
       type: String,
+    },
+    profileCompleted: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }
