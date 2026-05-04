@@ -568,6 +568,237 @@ const getUserActivity = asyncHandler(async (req, res) => {
   );
 });
 
+const getLandingData = asyncHandler(async (req, res) => {
+  const [
+    totalNotes,
+    totalQuestions,
+    totalUsers,
+    topContributors,
+    topNotes,
+    latestNotes,
+    latestQuestions,
+    latestPosts,
+  ] = await Promise.all([
+    Note.countDocuments(),
+    Question.countDocuments(),
+    User.countDocuments({ profileCompleted: true }),
+    User.aggregate([
+      { $match: { profileCompleted: true } },
+      {
+        $lookup: {
+          from: "notes",
+          localField: "_id",
+          foreignField: "originalStudent",
+          as: "notesUploads",
+        },
+      },
+      {
+        $lookup: {
+          from: "questions",
+          localField: "_id",
+          foreignField: "askedBy",
+          as: "questionsAsked",
+        },
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_id",
+          foreignField: "postedBy",
+          as: "postsCreated",
+        },
+      },
+      {
+        $addFields: {
+          uploadsCount: {
+            $add: [
+              { $size: "$notesUploads" },
+              { $size: "$questionsAsked" },
+              { $size: "$postsCreated" },
+            ],
+          },
+          likesReceived: "$upvotes",
+          points: "$credits",
+        },
+      },
+      {
+        $sort: {
+          points: -1,
+          likesReceived: -1,
+          uploadsCount: -1,
+          createdAt: 1,
+        },
+      },
+      { $limit: 8 },
+      {
+        $project: {
+          fullName: 1,
+          username: 1,
+          avatar: 1,
+          role: 1,
+          branch: 1,
+          uploadsCount: 1,
+          likesReceived: 1,
+          points: 1,
+        },
+      },
+    ]),
+    Note.aggregate([
+      {
+        $addFields: {
+          likesCount: { $size: { $ifNull: ["$upvotes", []] } },
+        },
+      },
+      { $sort: { likesCount: -1, createdAt: -1 } },
+      { $limit: 6 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "uploadedBy",
+          foreignField: "_id",
+          as: "uploadedBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$uploadedBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          subjectName: 1,
+          subjectCode: 1,
+          type: 1,
+          createdAt: 1,
+          likesCount: 1,
+          uploadedBy: {
+            username: "$uploadedBy.username",
+            fullName: "$uploadedBy.fullName",
+            avatar: "$uploadedBy.avatar",
+          },
+        },
+      },
+    ]),
+    Note.find()
+      .populate("uploadedBy", "username fullName avatar")
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean(),
+    Question.find()
+      .populate("askedBy", "username fullName avatar")
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean(),
+    Post.find()
+      .populate("postedBy", "username fullName avatar")
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .lean(),
+  ]);
+
+  const activity = [
+    ...latestNotes.map((note) => ({
+      _id: note._id,
+      type: "note",
+      title: note.title,
+      actor: note.uploadedBy,
+      message: `${note.uploadedBy?.username || "Someone"} uploaded ${note.title}`,
+      createdAt: note.createdAt,
+    })),
+    ...latestQuestions.map((question) => ({
+      _id: question._id,
+      type: "question",
+      title: question.description,
+      actor: question.askedBy,
+      message: `${question.askedBy?.username || "Someone"} asked a question`,
+      createdAt: question.createdAt,
+    })),
+    ...latestPosts.map((post) => ({
+      _id: post._id,
+      type: "post",
+      title: post.text,
+      actor: post.postedBy,
+      message: `${post.postedBy?.username || "Someone"} shared an update`,
+      createdAt: post.createdAt,
+    })),
+  ]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        stats: {
+          notes: totalNotes,
+          students: totalUsers,
+          questions: totalQuestions,
+        },
+        topContributors,
+        topStudyMaterial: topNotes,
+        activity,
+      },
+      "Landing data fetched successfully"
+    )
+  );
+});
+
+const getTopContributors = asyncHandler(async (req, res) => {
+  const contributors = await User.aggregate([
+    { $match: { profileCompleted: true } },
+    {
+      $lookup: {
+        from: "notes",
+        localField: "_id",
+        foreignField: "originalStudent",
+        as: "notesUploads",
+      },
+    },
+    {
+      $addFields: {
+        uploads: { $size: "$notesUploads" },
+        likes: "$upvotes",
+        creditsValue: "$credits",
+      },
+    },
+    {
+      $sort: {
+        creditsValue: -1,
+        likes: -1,
+        uploads: -1,
+        createdAt: 1,
+      },
+    },
+    { $limit: 8 },
+    {
+      $project: {
+        _id: 0,
+        id: "$_id",
+        name: "$fullName",
+        branch: 1,
+        year: {
+          $cond: [{ $ifNull: ["$year", false] }, "$year", "$role"],
+        },
+        avatar: 1,
+        uploads: 1,
+        likes: 1,
+        credits: "$creditsValue",
+      },
+    },
+  ]);
+
+  const data = contributors.map((contributor, index) => ({
+    ...contributor,
+    isTop: index === 0,
+  }));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "Top contributors fetched successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -583,4 +814,6 @@ export {
   getFacultyUsers,
   getStudentUsers,
   getUserActivity,
+  getLandingData,
+  getTopContributors,
 };

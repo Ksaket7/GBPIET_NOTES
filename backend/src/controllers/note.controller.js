@@ -264,6 +264,57 @@ const getNoteBySubjectCode = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, notes, "Notes fetched successfully"));
 });
 
+const getTopNotes = asyncHandler(async (req, res) => {
+  const notes = await Note.aggregate([
+    {
+      $addFields: {
+        likes: { $size: { $ifNull: ["$upvotes", []] } },
+      },
+    },
+    { $sort: { likes: -1, createdAt: -1 } },
+    { $limit: 6 },
+    {
+      $lookup: {
+        from: "users",
+        localField: "uploadedBy",
+        foreignField: "_id",
+        as: "uploadedBy",
+      },
+    },
+    {
+      $unwind: {
+        path: "$uploadedBy",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        id: "$_id",
+        title: 1,
+        subjectCode: 1,
+        semester: { $literal: null },
+        description: {
+          $cond: [
+            { $ifNull: ["$description", false] },
+            "$description",
+            { $ifNull: ["$subjectName", "$type"] },
+          ],
+        },
+        uploadedBy: {
+          name: "$uploadedBy.fullName",
+          avatar: "$uploadedBy.avatar",
+        },
+        likes: 1,
+      },
+    },
+  ]);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, notes, "Top notes fetched successfully"));
+});
+
 export {
   getAllNotes,
   uploadNote,
@@ -271,4 +322,5 @@ export {
   addComment,
   deleteNote,
   getNoteBySubjectCode,
+  getTopNotes,
 };

@@ -14,6 +14,8 @@ import {
   getFacultyUsers,
   getStudentUsers,
   getUserActivity,
+  getLandingData,
+  getTopContributors,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyRole } from "../middlewares/role.middleware.js";
@@ -26,6 +28,8 @@ router.route("/register").post(
 );
 router.route("/login").post(loginUser);
 router.route("/google").post(googleAuth);
+router.route("/landing").get(getLandingData);
+router.route("/top-contributors").get(getTopContributors);
 router.route("/complete-profile").patch(verifyJWT, completeProfile);
 
 router.route("/logout").post(verifyJWT, logoutUser);

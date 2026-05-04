@@ -10,6 +10,7 @@ import {
   getNoteBySubjectCode,
   addComment,
   getNoteById,
+  getTopNotes,
 } from "../controllers/note.controller.js";
 
 
@@ -19,6 +20,7 @@ const router = express.Router();
 
 
 router.route("/").get(verifyJWTOptional, getAllNotes);
+router.route("/top").get(getTopNotes);
 router.route("/subject/:subjectCode").get(getNoteBySubjectCode);
 router.route("/:noteId").get(getNoteById);
 

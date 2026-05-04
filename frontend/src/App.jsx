@@ -50,9 +50,9 @@ function App() {
           <Route
             path="/notes"
             element={
-              // <ProtectedRoute>
-              <NotesPage />
-              // </ProtectedRoute>
+              <ProtectedRoute>
+                <NotesPage />
+              </ProtectedRoute>
             }
           />
           <Route
