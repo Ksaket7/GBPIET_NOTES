@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 
 export default function Settings() {
   const { user, setUser } = useAuth();
-  const [activeTab, setActiveTab] = useState("general");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = ["general", "account", "profile"].includes(searchParams.get("tab"))
+    ? searchParams.get("tab")
+    : "general";
   const [form, setForm] = useState(() => ({
     fullName: user?.fullName || "",
     email: user?.email || "",
@@ -47,7 +51,7 @@ export default function Settings() {
               <button
                 key={tab}
                 type="button"
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setSearchParams(tab === "general" ? {} : { tab })}
                 className={`shrink-0 rounded-2xl px-4 py-3 text-left text-sm font-semibold capitalize xl:w-full ${
                   activeTab === tab
                     ? "bg-slate-950 text-white"

@@ -16,6 +16,7 @@ import {
   getUserActivity,
   getLandingData,
   getTopContributors,
+  getLeaderboardDashboard,
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyRole } from "../middlewares/role.middleware.js";
@@ -35,6 +36,7 @@ router.route("/complete-profile").patch(verifyJWT, completeProfile);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/activity").get(verifyJWT, getUserActivity);
+router.route("/leaderboard-dashboard").get(verifyJWT, getLeaderboardDashboard);
 router.route("/faculty").get(verifyJWT, getFacultyUsers);
 router.route("/students").get(verifyJWT, getStudentUsers);
 router.route("/profile/:username").get(verifyJWT, getUserProfile);

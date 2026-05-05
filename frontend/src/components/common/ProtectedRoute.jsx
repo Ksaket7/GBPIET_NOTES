@@ -17,11 +17,13 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.profileCompleted === false && location.pathname !== "/complete-profile") {
+  const needsProfileCompletion = user?.profileCompleted === false || !user?.year;
+
+  if (needsProfileCompletion && location.pathname !== "/complete-profile") {
     return <Navigate to="/complete-profile" replace />;
   }
 
-  if (user?.profileCompleted !== false && location.pathname === "/complete-profile") {
+  if (!needsProfileCompletion && location.pathname === "/complete-profile") {
     return <Navigate to="/" replace />;
   }
 

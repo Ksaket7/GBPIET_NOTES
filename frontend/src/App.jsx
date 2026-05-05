@@ -16,6 +16,7 @@ import QuestionsPage from "./pages/qna/QuestionsPage";
 import ContactUs from "./pages/common/ContactUs";
 import Settings from "./pages/user/Settings";
 import UsersPage from "./pages/user/UsersPage";
+import LeaderboardPage from "./pages/user/LeaderboardPage";
 import About from "./pages/common/About";
 import ScrollToTop from "./components/common/ScrollToTop";
 
@@ -117,6 +118,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <LeaderboardPage />
               </ProtectedRoute>
             }
           />

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FileText, LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, UserCircle } from "lucide-react";
 
 const ProfileDropdown = ({ user, logout }) => {
   const [open, setOpen] = useState(false);
@@ -22,13 +22,17 @@ const ProfileDropdown = ({ user, logout }) => {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold text-white shadow-lg shadow-slate-500/20"
+        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-sm font-semibold text-white shadow-lg shadow-slate-500/20"
       >
-        {user?.username?.charAt(0).toUpperCase()}
+        {user?.avatar ? (
+          <img src={user.avatar} alt={user?.username || "User"} className="h-full w-full object-cover" />
+        ) : (
+          user?.username?.charAt(0).toUpperCase()
+        )}
       </button>
 
       {open && (
-        <div className="absolute left-0 top-12 z-[60] w-56 rounded-3xl border border-white/70 bg-white/90 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl md:left-auto md:right-0">
+        <div className="absolute right-0 top-12 z-[80] w-56 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl">
           <div className="border-b border-slate-100 px-3 py-3">
             <p className="truncate text-sm font-semibold text-slate-950">
               {user?.username}
@@ -38,12 +42,12 @@ const ProfileDropdown = ({ user, logout }) => {
 
           <div className="mt-2 space-y-1">
             <Link
-              to="/notes"
+              to="/settings?tab=profile"
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
             >
-              <FileText size={16} />
-              My uploads
+              <UserCircle size={16} />
+              Profile
             </Link>
             <Link
               to="/settings"

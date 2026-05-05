@@ -21,10 +21,30 @@ const emptyLandingData = {
 };
 
 const featureCards = [
-  [FilePlus2, "Upload & Earn", "Share your hard work. Every upload earns you credits that unlock premium study guides and AI features.", "bg-violet-100 text-violet-600"],
-  [UserPlus, "Follow Contributors", "Get notified when top students from your branch upload new materials. Build your academic network.", "bg-indigo-100 text-indigo-600"],
-  [Heart, "Like & Save", "Create personal collections of the best study material. Access your saved notes offline anywhere.", "bg-rose-100 text-rose-500"],
-  [MessageSquare, "Ask Questions", "Stuck on a problem? Post it to the community forum and get answers from students who've been there.", "bg-orange-100 text-orange-700"],
+  [
+    FilePlus2,
+    "Upload & Earn",
+    "Share your hard work. Every upload earns you credits that unlock premium study guides and AI features.",
+    "bg-violet-100 text-violet-600",
+  ],
+  [
+    UserPlus,
+    "Follow Contributors",
+    "Get notified when top students from your branch upload new materials. Build your academic network.",
+    "bg-indigo-100 text-indigo-600",
+  ],
+  [
+    Heart,
+    "Like & Save",
+    "Create personal collections of the best study material. Access your saved notes offline anywhere.",
+    "bg-rose-100 text-rose-500",
+  ],
+  [
+    MessageSquare,
+    "Ask Questions",
+    "Stuck on a problem? Post it to the community forum and get answers from students who've been there.",
+    "bg-orange-100 text-orange-700",
+  ],
 ];
 
 const activityIcons = {
@@ -43,7 +63,7 @@ const formatNumber = (value = 0) => {
 };
 
 const initialsFor = (user) => {
-  const source = user?.name || user?.fullName || user?.username || "User";
+  const source = user?.username || user?.name || user?.fullName || "User";
   return source
     .split(" ")
     .map((part) => part[0])
@@ -102,7 +122,9 @@ function Avatar({ user, size = "h-14 w-14" }) {
   }
 
   return (
-    <div className={`${size} flex shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-bold text-slate-600`}>
+    <div
+      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-bold text-slate-600`}
+    >
       {initialsFor(user)}
     </div>
   );
@@ -142,7 +164,9 @@ export default function LandingPage() {
         if (!active) return;
 
         if (statsRes.status === "fulfilled") {
-          setStatsData(statsRes.value.data?.data?.stats || emptyLandingData.stats);
+          setStatsData(
+            statsRes.value.data?.data?.stats || emptyLandingData.stats,
+          );
         }
 
         if (contributorsRes.status === "fulfilled") {
@@ -155,7 +179,8 @@ export default function LandingPage() {
 
         if (activityRes.status === "fulfilled") {
           setActivityData({
-            activeUsersOnline: activityRes.value.data?.data?.activeUsersOnline || 0,
+            activeUsersOnline:
+              activityRes.value.data?.data?.activeUsersOnline || 0,
             activity: activityRes.value.data?.data?.activity || [],
           });
         }
@@ -201,7 +226,8 @@ export default function LandingPage() {
             <span className="block text-indigo-600">One Smart Community.</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600">
-            Upload notes, discover top study material, follow contributors, ask questions, and get AI help.
+            Upload notes, discover top study material, follow contributors, ask
+            questions, and get AI help.
           </p>
 
           <div className="mt-8">
@@ -222,7 +248,9 @@ export default function LandingPage() {
                   <p className="text-lg font-bold text-slate-950">
                     {loading ? "..." : formatNumber(value)}
                   </p>
-                  <p className="mt-1 text-xs font-semibold text-slate-500">{label}</p>
+                  <p className="mt-1 text-xs font-semibold text-slate-500">
+                    {label}
+                  </p>
                 </div>
               );
             })}
@@ -233,8 +261,12 @@ export default function LandingPage() {
       <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="font-poppins text-2xl font-semibold leading-none">Academic Titans</h2>
-            <p className="mt-2 text-sm text-slate-500">Meet the top contributors fueling our community knowledge.</p>
+            <h2 className="font-poppins text-2xl font-semibold leading-none">
+              Academic Titans
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Meet the top contributors fueling our community knowledge.
+            </p>
           </div>
           <Link
             to="/login"
@@ -248,34 +280,61 @@ export default function LandingPage() {
         {loading ? (
           <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-3">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-48 animate-pulse rounded-2xl bg-white shadow-sm" />
+              <div
+                key={item}
+                className="h-48 animate-pulse rounded-2xl bg-white shadow-sm"
+              />
             ))}
           </div>
         ) : topContributors.length ? (
           <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-3">
             {topContributor && (
               <article className="relative flex min-h-48 min-w-0 flex-col rounded-2xl border-2 border-indigo-100 bg-white px-5 py-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl sm:col-span-1 sm:items-center sm:justify-center lg:col-span-1 lg:px-9 xl:col-span-1">
-                <div className="">Top Contributor</div>
-                <div className="flex w-full min-w-0 flex-col items-center gap-4 pt-0 text-center sm:pt-7 lg:flex-row lg:gap-6 lg:pt-0 lg:text-left xl:gap-8">
-                  <Avatar user={topContributor} size="h-20 w-20 lg:h-24 lg:w-24" />
-                  <div className="min-w-0 max-w-full">
-                    <h3 className="max-w-full truncate font-poppins text-lg font-semibold lg:text-xl xl:text-2xl">
+                {/* Top Badge */}
+                <div className="absolute right-4 top-4 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+                  TOP CONTRIBUTOR
+                </div>
+
+                <div className="flex w-full min-w-0 flex-col items-center gap-5 text-center lg:flex-row lg:items-center lg:gap-6 lg:text-left">
+                  {/* Avatar */}
+                  <Avatar
+                    user={topContributor}
+                    size="h-20 w-20 lg:h-24 lg:w-24"
+                  />
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    {/* Name */}
+                    <h3 className="truncate font-poppins text-xl font-semibold text-slate-800 lg:text-2xl">
                       {topContributor.name}
                     </h3>
-                    <p className="mt-1 truncate text-sm font-medium text-slate-500">
-                      {topContributor.branch || "GBPIET"} | {roleLabel(topContributor.year)}
+
+                    {/* Branch + Year */}
+                    <p className="mt-1 text-sm font-medium text-slate-500">
+                      {topContributor.branch || "GBPIET"} |{" "}
+                      {roleLabel(topContributor.year)}
                     </p>
-                    <div className="mt-5  w-full max-w-xs flex gap-3 text-sm">
-                      <div className="min-w-0">
-                        <p className="text-lg font-bold text-indigo-600">{formatNumber(topContributor.uploads)}</p>
+
+                    {/* Stats */}
+                    <div className="mt-5 flex justify-center gap-8 text-sm lg:justify-start">
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-indigo-600">
+                          {formatNumber(topContributor.uploads)}
+                        </p>
                         <p className="text-slate-500">Uploads</p>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-lg font-bold text-indigo-600">{formatNumber(topContributor.likes)}</p>
+
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-indigo-600">
+                          {formatNumber(topContributor.likes)}
+                        </p>
                         <p className="text-slate-500">Likes</p>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-lg font-bold text-indigo-600">{formatNumber(topContributor.credits)}</p>
+
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-indigo-600">
+                          {formatNumber(topContributor.credits)}
+                        </p>
                         <p className="text-slate-500">Credits</p>
                       </div>
                     </div>
@@ -296,7 +355,7 @@ export default function LandingPage() {
                 <p className="mt-1 truncate text-sm font-medium text-slate-500">
                   {user.branch || "GBPIET"} | {roleLabel(user.year)}
                 </p>
-                <div className="mt-auto flex justify-between gap-3 border-t border-slate-100 pt-4 text-xs font-bold text-slate-700">
+                <div className="mt-auto flex justify-evenly gap-3 border-t border-slate-100 pt-4 text-xs font-bold text-slate-700">
                   <span>{formatNumber(user.uploads)} Up</span>
                   <span>{formatNumber(user.likes)} Lk</span>
                 </div>
@@ -305,7 +364,9 @@ export default function LandingPage() {
           </div>
         ) : (
           <div className="mt-7">
-            <EmptyState>No contributors yet. The first active users will appear here.</EmptyState>
+            <EmptyState>
+              No contributors yet. The first active users will appear here.
+            </EmptyState>
           </div>
         )}
       </section>
@@ -313,14 +374,21 @@ export default function LandingPage() {
       <section className="bg-[#f1f3f7]">
         <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="font-poppins text-3xl font-semibold">High-Performance Notes</h2>
-            <p className="mt-2 text-sm text-slate-500">The most saved and appreciated resources by your peers.</p>
+            <h2 className="font-poppins text-3xl font-semibold">
+              High-Performance Notes
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              The most saved and appreciated resources by your peers.
+            </p>
           </div>
 
           {loading ? (
             <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
               {[1, 2, 3].map((item) => (
-                <div key={item} className="h-72 animate-pulse rounded-2xl bg-white shadow-sm" />
+                <div
+                  key={item}
+                  className="h-72 animate-pulse rounded-2xl bg-white shadow-sm"
+                />
               ))}
             </div>
           ) : notes.length ? (
@@ -340,14 +408,15 @@ export default function LandingPage() {
                     {note.title}
                   </h3>
                   <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
-                    Semester {note.semester || "-"} | {note.description || "Study material"}
+                    Semester {note.semester || "-"} |{" "}
+                    {note.description || "Study material"}
                   </p>
                   <div className="mt-auto border-t border-slate-100 pt-5">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
                         <Avatar user={note.uploadedBy} size="h-9 w-9" />
                         <span className="truncate text-sm font-semibold text-slate-700">
-                          {note.uploadedBy?.name || "Contributor"}
+                          {note.uploadedBy?.name || note.uploadedBy?.username || "Contributor"}
                         </span>
                       </div>
                       <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-slate-600">
@@ -377,21 +446,32 @@ export default function LandingPage() {
         <h2 className="font-poppins text-2xl font-semibold">Smart Ecosystem</h2>
         <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {featureCards.slice(0, 3).map(([icon, title, text, tone]) => (
-            <article key={title} className="rounded-2xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <article
+              key={title}
+              className="rounded-2xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            >
               <span className={`inline-flex rounded-xl p-3 ${tone}`}>
                 {createElement(icon, { size: 22 })}
               </span>
-              <h3 className="mt-7 font-poppins text-xl font-semibold">{title}</h3>
+              <h3 className="mt-7 font-poppins text-xl font-semibold">
+                {title}
+              </h3>
               <p className="mt-4 text-sm leading-6 text-slate-600">{text}</p>
             </article>
           ))}
 
           <article className="rounded-2xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-            <span className={`inline-flex rounded-xl p-3 ${featureCards[3][3]}`}>
+            <span
+              className={`inline-flex rounded-xl p-3 ${featureCards[3][3]}`}
+            >
               {createElement(featureCards[3][0], { size: 22 })}
             </span>
-            <h3 className="mt-7 font-poppins text-xl font-semibold">{featureCards[3][1]}</h3>
-            <p className="mt-4 text-sm leading-6 text-slate-600">{featureCards[3][2]}</p>
+            <h3 className="mt-7 font-poppins text-xl font-semibold">
+              {featureCards[3][1]}
+            </h3>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              {featureCards[3][2]}
+            </p>
           </article>
 
           <article className="rounded-2xl bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:col-span-2">
@@ -400,9 +480,12 @@ export default function LandingPage() {
                 <span className="inline-flex rounded-xl bg-indigo-600 p-3 text-white">
                   <Bot size={22} />
                 </span>
-                <h3 className="mt-7 font-poppins text-xl font-semibold">AI Study Assistant</h3>
+                <h3 className="mt-7 font-poppins text-xl font-semibold">
+                  AI Study Assistant
+                </h3>
                 <p className="mt-4 text-sm leading-6 text-slate-600">
-                  Our AI analyzes uploaded notes to generate summaries, flashcards, and practice quizzes automatically.
+                  Our AI analyzes uploaded notes to generate summaries,
+                  flashcards, and practice quizzes automatically.
                 </p>
               </div>
               <div className="rounded-2xl border border-dashed border-indigo-200 bg-slate-50 p-5">
@@ -411,7 +494,8 @@ export default function LandingPage() {
                   AI Insight
                 </div>
                 <p className="mt-4 text-sm italic leading-7 text-slate-600">
-                  "Based on Chapter 4 of DBMS, the most important topics for your sessional are Normalization and ER Diagrams."
+                  "Based on Chapter 4 of DBMS, the most important topics for
+                  your sessional are Normalization and ER Diagrams."
                 </p>
               </div>
             </div>
@@ -427,14 +511,19 @@ export default function LandingPage() {
           </p>
           <div className="mt-7 inline-flex max-w-full items-center gap-3 rounded-xl bg-indigo-50 px-5 py-4 text-sm font-semibold text-indigo-700">
             <Zap size={17} />
-            {loading ? "Loading activity..." : `${formatNumber(activityData.activeUsersOnline)} active users online`}
+            {loading
+              ? "Loading activity..."
+              : `${formatNumber(activityData.activeUsersOnline)} active users online`}
           </div>
         </div>
 
         <div className="space-y-4">
           {loading ? (
             [1, 2, 3].map((item) => (
-              <div key={item} className="h-16 animate-pulse rounded-2xl bg-white shadow-sm" />
+              <div
+                key={item}
+                className="h-16 animate-pulse rounded-2xl bg-white shadow-sm"
+              />
             ))
           ) : activityData.activity?.length ? (
             activityData.activity.slice(0, 3).map((item) => {
@@ -452,21 +541,30 @@ export default function LandingPage() {
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
-                      initialsFor({ name: item.user }) || <Icon size={18} />
+                      initialsFor({ username: item.username, name: item.user }) || <Icon size={18} />
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="break-words text-sm font-semibold text-slate-700">
-                      {item.user} {item.type === "upload" ? "uploaded" : item.type === "question" ? "asked about" : "shared"}{" "}
+                      {item.user}{" "}
+                      {item.type === "upload"
+                        ? "uploaded"
+                        : item.type === "question"
+                          ? "asked about"
+                          : "shared"}{" "}
                       <span className="text-indigo-600">{item.content}</span>
                     </p>
                   </div>
-                  <span className="shrink-0 text-xs font-semibold text-slate-400 sm:text-right">{item.time}</span>
+                  <span className="shrink-0 text-xs font-semibold text-slate-400 sm:text-right">
+                    {item.time}
+                  </span>
                 </article>
               );
             })
           ) : (
-            <EmptyState>No activity yet. New uploads and questions will appear here.</EmptyState>
+            <EmptyState>
+              No activity yet. New uploads and questions will appear here.
+            </EmptyState>
           )}
         </div>
       </section>
@@ -477,7 +575,8 @@ export default function LandingPage() {
             Join Your College's Study Community
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-6 text-indigo-100">
-            Stop struggling with scattered notes. Start learning smarter with GBPIET Notes today.
+            Stop struggling with scattered notes. Start learning smarter with
+            GBPIET Notes today.
           </p>
           <div className="mt-9">
             <ActionButtons dark />
@@ -488,14 +587,26 @@ export default function LandingPage() {
       <footer className="bg-white px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-poppins font-semibold text-indigo-600">GBPIET Notes</p>
-            <p className="mt-3 text-sm text-slate-500">&copy; 2024 GBPIET Notes. Built for the community.</p>
+            <p className="font-poppins font-semibold text-indigo-600">
+              GBPIET Notes
+            </p>
+            <p className="mt-3 text-sm text-slate-500">
+              &copy; 2024 GBPIET Notes. Built for the community.
+            </p>
           </div>
           <div className="flex flex-wrap gap-5 text-sm font-medium text-slate-500">
-            <Link to="/login" className="hover:text-indigo-600">Terms of Service</Link>
-            <Link to="/login" className="hover:text-indigo-600">Privacy Policy</Link>
-            <Link to="/login" className="hover:text-indigo-600">Contact Us</Link>
-            <Link to="/login" className="hover:text-indigo-600">Github</Link>
+            <Link to="/login" className="hover:text-indigo-600">
+              Terms of Service
+            </Link>
+            <Link to="/login" className="hover:text-indigo-600">
+              Privacy Policy
+            </Link>
+            <Link to="/login" className="hover:text-indigo-600">
+              Contact Us
+            </Link>
+            <Link to="/login" className="hover:text-indigo-600">
+              Github
+            </Link>
           </div>
         </div>
       </footer>

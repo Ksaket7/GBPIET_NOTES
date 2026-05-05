@@ -303,6 +303,7 @@ const getTopNotes = asyncHandler(async (req, res) => {
         },
         uploadedBy: {
           name: "$uploadedBy.fullName",
+          username: "$uploadedBy.username",
           avatar: "$uploadedBy.avatar",
         },
         likes: 1,

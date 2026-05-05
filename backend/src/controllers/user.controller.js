@@ -195,10 +195,10 @@ const googleAuth = asyncHandler(async (req, res) => {
 });
 
 const completeProfile = asyncHandler(async (req, res) => {
-  const { fullName, username, branch, role } = req.body;
+  const { fullName, username, branch, year, role } = req.body;
 
   if (
-    [fullName, username, branch, role].some(
+    [fullName, username, branch, year, role].some(
       (field) => typeof field !== "string" || !field.trim()
     )
   ) {
@@ -220,6 +220,11 @@ const completeProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user type");
   }
 
+  const allowedYears = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+  if (!allowedYears.includes(year)) {
+    throw new ApiError(400, "Invalid academic year");
+  }
+
   const adminExists = await User.exists({
     role: "admin",
     _id: { $ne: req.user._id },
@@ -233,6 +238,7 @@ const completeProfile = asyncHandler(async (req, res) => {
         fullName: fullName.trim(),
         username: normalizedUsername,
         branch: branch.trim(),
+        year,
         role: finalRole,
         profileCompleted: true,
       },
@@ -416,6 +422,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
         email: 1,
         avatar: 1,
         branch: 1,
+        year: 1,
         role: 1,
         credits: 1,
         followersCount: 1,
@@ -469,7 +476,7 @@ const updateUserRole = asyncHandler(async (req, res) => {
 
 const getUsersByRoles = async (roles, currentUserId) => {
   const users = await User.find({ role: { $in: roles } })
-    .select("fullName username avatar role branch")
+    .select("fullName username avatar role branch year")
     .sort({ fullName: 1 })
     .lean();
 
@@ -637,6 +644,7 @@ const getLandingData = asyncHandler(async (req, res) => {
           avatar: 1,
           role: 1,
           branch: 1,
+          year: 1,
           uploadsCount: 1,
           likesReceived: 1,
           points: 1,
@@ -777,6 +785,7 @@ const getTopContributors = asyncHandler(async (req, res) => {
         _id: 0,
         id: "$_id",
         name: "$fullName",
+        username: 1,
         branch: 1,
         year: {
           $cond: [{ $ifNull: ["$year", false] }, "$year", "$role"],
@@ -799,6 +808,225 @@ const getTopContributors = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, data, "Top contributors fetched successfully"));
 });
 
+const getUserOwnedActivityItems = async (userId, startDate, endDate) => {
+  const range = { createdAt: { $gte: startDate, $lte: endDate } };
+  const [notes, questions, answers, posts] = await Promise.all([
+    Note.find({ originalStudent: userId, ...range }).select("createdAt").lean(),
+    Question.find({ askedBy: userId, ...range }).select("createdAt").lean(),
+    Answer.find({ answeredBy: userId, ...range }).select("createdAt").lean(),
+    Post.find({ postedBy: userId, ...range }).select("createdAt").lean(),
+  ]);
+
+  return [...notes, ...questions, ...answers, ...posts];
+};
+
+const getLeaderboardDashboard = asyncHandler(async (req, res) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 25);
+  const userId = req.user._id;
+  const now = new Date();
+
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+
+  const weeklyDays = Array.from({ length: 7 }).map((_, index) => {
+    const date = new Date(endOfToday);
+    date.setDate(endOfToday.getDate() - (6 - index));
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
+    return {
+      label: start.toLocaleDateString("en-US", { weekday: "short" }),
+      date: start,
+      start,
+      end,
+      count: 0,
+      isToday: start.toDateString() === now.toDateString(),
+    };
+  });
+
+  const weekStart = weeklyDays[0].start;
+  const weeklyItems = await getUserOwnedActivityItems(userId, weekStart, endOfToday);
+  weeklyItems.forEach((item) => {
+    const activityDate = new Date(item.createdAt);
+    const day = weeklyDays.find(({ start, end }) => activityDate >= start && activityDate <= end);
+    if (day) day.count += 1;
+  });
+
+  const previousWeeks = await Promise.all(
+    Array.from({ length: 4 }).map(async (_, index) => {
+      const end = new Date(weekStart);
+      end.setDate(weekStart.getDate() - 1 - index * 7);
+      end.setHours(23, 59, 59, 999);
+      const start = new Date(end);
+      start.setDate(end.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+      const items = await getUserOwnedActivityItems(userId, start, end);
+
+      return {
+        label: `Week ${index + 1}`,
+        count: items.length,
+      };
+    })
+  );
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const monthItems = await getUserOwnedActivityItems(userId, monthStart, monthEnd);
+  const monthlyDays = Array.from({ length: monthEnd.getDate() }).map((_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth(), index + 1);
+    const count = monthItems.filter(
+      (item) => new Date(item.createdAt).toDateString() === date.toDateString()
+    ).length;
+
+    return {
+      date: date.toISOString(),
+      day: index + 1,
+      count,
+    };
+  });
+
+  const yearStart = new Date(now.getFullYear(), 0, 1);
+  const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+  const yearItems = await getUserOwnedActivityItems(userId, yearStart, yearEnd);
+  const yearlyMonths = Array.from({ length: 12 }).map((_, monthIndex) => {
+    const monthDate = new Date(now.getFullYear(), monthIndex, 1);
+    const daysInMonth = new Date(now.getFullYear(), monthIndex + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }).map((__, index) => {
+      const date = new Date(now.getFullYear(), monthIndex, index + 1);
+      const count = yearItems.filter(
+        (item) => new Date(item.createdAt).toDateString() === date.toDateString()
+      ).length;
+      return { day: index + 1, count };
+    });
+
+    return {
+      label: monthDate.toLocaleDateString("en-US", { month: "long" }),
+      days,
+    };
+  });
+
+  const leaderboardPipeline = [
+    { $match: { profileCompleted: true } },
+    {
+      $lookup: {
+        from: "notes",
+        localField: "_id",
+        foreignField: "originalStudent",
+        as: "ownedNotes",
+      },
+    },
+    {
+      $lookup: {
+        from: "questions",
+        localField: "_id",
+        foreignField: "askedBy",
+        as: "ownedQuestions",
+      },
+    },
+    {
+      $lookup: {
+        from: "answers",
+        localField: "_id",
+        foreignField: "answeredBy",
+        as: "ownedAnswers",
+      },
+    },
+    {
+      $lookup: {
+        from: "posts",
+        localField: "_id",
+        foreignField: "postedBy",
+        as: "ownedPosts",
+      },
+    },
+    {
+      $addFields: {
+        contributionsCount: {
+          $add: [
+            { $size: "$ownedNotes" },
+            { $size: "$ownedQuestions" },
+            { $size: "$ownedAnswers" },
+            { $size: "$ownedPosts" },
+          ],
+        },
+        likesEarned: "$upvotes",
+      },
+    },
+    {
+      $addFields: {
+        score: {
+          $add: [
+            { $multiply: ["$contributionsCount", 10] },
+            { $multiply: ["$likesEarned", 5] },
+            "$credits",
+          ],
+        },
+      },
+    },
+    { $sort: { score: -1, contributionsCount: -1, likesEarned: -1, createdAt: 1 } },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        avatar: 1,
+        branch: 1,
+        year: 1,
+        role: 1,
+        score: 1,
+        contributionsCount: 1,
+        likesEarned: 1,
+      },
+    },
+  ];
+
+  const [leaderboard, totalUsers] = await Promise.all([
+    User.aggregate([...leaderboardPipeline, { $skip: (page - 1) * limit }, { $limit: limit }]),
+    User.countDocuments({ profileCompleted: true }),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        activity: {
+          weekly: {
+            days: weeklyDays.map(({ label, date, count, isToday }) => ({
+              label,
+              date: date.toISOString(),
+              count,
+              isToday,
+            })),
+            maxCount: Math.max(...weeklyDays.map((day) => day.count), 1),
+          },
+          previousWeeks,
+          monthly: {
+            label: now.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+            days: monthlyDays,
+          },
+          yearly: {
+            year: now.getFullYear(),
+            months: yearlyMonths,
+          },
+        },
+        leaderboard: leaderboard.map((user, index) => ({
+          ...user,
+          rank: (page - 1) * limit + index + 1,
+        })),
+        pagination: {
+          currentPage: page,
+          totalPages: Math.max(Math.ceil(totalUsers / limit), 1),
+          limit,
+          totalUsers,
+        },
+      },
+      "Leaderboard dashboard fetched successfully"
+    )
+  );
+});
+
 export {
   registerUser,
   loginUser,
@@ -816,4 +1044,5 @@ export {
   getUserActivity,
   getLandingData,
   getTopContributors,
+  getLeaderboardDashboard,
 };

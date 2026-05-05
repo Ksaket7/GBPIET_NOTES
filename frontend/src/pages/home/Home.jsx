@@ -11,7 +11,7 @@ export default function Home() {
     return <Loader message="Waking up server…" />;
   }
 
-  if (isAuthenticated && user?.profileCompleted === false) {
+  if (isAuthenticated && (user?.profileCompleted === false || !user?.year)) {
     return <Navigate to="/complete-profile" replace />;
   }
 

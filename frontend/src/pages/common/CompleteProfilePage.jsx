@@ -4,6 +4,7 @@ import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 
 const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
+const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 const roles = ["student", "cr", "faculty", "admin"];
 
 export default function CompleteProfilePage() {
@@ -13,6 +14,7 @@ export default function CompleteProfilePage() {
     fullName: user?.fullName || "",
     username: user?.username || "",
     branch: user?.branch === "Unassigned" ? "" : user?.branch || "",
+    year: user?.year || "",
     role: user?.role || "student",
   });
   const [errorMessage, setErrorMessage] = useState("");
@@ -100,6 +102,22 @@ export default function CompleteProfilePage() {
             {roles.map((role) => (
               <option key={role} value={role}>
                 {role.toUpperCase()}
+              </option>
+            ))}
+          </select>
+          <select
+            name="year"
+            value={form.year}
+            onChange={handleChange}
+            required
+            className="app-input"
+          >
+            <option value="" disabled>
+              Select academic year
+            </option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
               </option>
             ))}
           </select>
