@@ -823,6 +823,7 @@ const getUserOwnedActivityItems = async (userId, startDate, endDate) => {
 const getLeaderboardDashboard = asyncHandler(async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);
   const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 25);
+  const selectedYear = Number(req.query.year) || new Date().getFullYear();
   const userId = req.user._id;
   const now = new Date();
 
@@ -888,14 +889,14 @@ const getLeaderboardDashboard = asyncHandler(async (req, res) => {
     };
   });
 
-  const yearStart = new Date(now.getFullYear(), 0, 1);
-  const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+  const yearStart = new Date(selectedYear, 0, 1);
+  const yearEnd = new Date(selectedYear, 11, 31, 23, 59, 59, 999);
   const yearItems = await getUserOwnedActivityItems(userId, yearStart, yearEnd);
   const yearlyMonths = Array.from({ length: 12 }).map((_, monthIndex) => {
-    const monthDate = new Date(now.getFullYear(), monthIndex, 1);
-    const daysInMonth = new Date(now.getFullYear(), monthIndex + 1, 0).getDate();
+    const monthDate = new Date(selectedYear, monthIndex, 1);
+    const daysInMonth = new Date(selectedYear, monthIndex + 1, 0).getDate();
     const days = Array.from({ length: daysInMonth }).map((__, index) => {
-      const date = new Date(now.getFullYear(), monthIndex, index + 1);
+      const date = new Date(selectedYear, monthIndex, index + 1);
       const count = yearItems.filter(
         (item) => new Date(item.createdAt).toDateString() === date.toDateString()
       ).length;
@@ -1007,7 +1008,8 @@ const getLeaderboardDashboard = asyncHandler(async (req, res) => {
             days: monthlyDays,
           },
           yearly: {
-            year: now.getFullYear(),
+            year: selectedYear,
+            availableYears: [new Date().getFullYear(), new Date().getFullYear() - 1],
             months: yearlyMonths,
           },
         },

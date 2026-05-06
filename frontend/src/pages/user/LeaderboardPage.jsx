@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  BarChart3,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -11,13 +10,93 @@ import {
 import API from "../../services/api";
 
 const intensityClass = (count) => {
-  if (!count) return "bg-slate-100";
-  if (count <= 1) return "bg-blue-100";
-  if (count <= 3) return "bg-blue-300";
-  return "bg-blue-600";
+  if (!count) return "bg-slate-200";
+  if (count <= 1) return "bg-blue-300";
+  if (count <= 3) return "bg-blue-500";
+  return "bg-blue-700";
 };
 
+const textIntensityClass = (count) => {
+  if (!count) return "text-slate-600";
+  if (count <= 1) return "text-blue-900";
+  return "text-white";
+};
+
+const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const formatNumber = (value = 0) => new Intl.NumberFormat("en-IN").format(value);
+
+const buildMonthlyCells = (monthly) => {
+  const days = monthly?.days || [];
+  if (!days.length) return [];
+
+  const firstDate = new Date(days[0].date);
+  const leadingBlanks = firstDate.getDay();
+  const trailingBlanks = (7 - ((leadingBlanks + days.length) % 7)) % 7;
+
+  return [
+    ...Array.from({ length: leadingBlanks }).map((_, index) => ({
+      key: `leading-${index}`,
+      blank: true,
+    })),
+    ...days.map((day) => ({
+      ...day,
+      key: day.date,
+      blank: false,
+    })),
+    ...Array.from({ length: trailingBlanks }).map((_, index) => ({
+      key: `trailing-${index}`,
+      blank: true,
+    })),
+  ];
+};
+
+const buildYearMonthCells = (month, year) => {
+  const monthIndex = monthNames.findIndex(
+    (name) => name.toLowerCase() === month.label?.toLowerCase(),
+  );
+  const safeMonthIndex = Math.max(monthIndex, 0);
+  const leadingBlanks = new Date(year, safeMonthIndex, 1).getDay();
+  const days = month.days || [];
+  const trailingBlanks = (7 - ((leadingBlanks + days.length) % 7)) % 7;
+
+  return [
+    ...Array.from({ length: leadingBlanks }).map((_, index) => ({
+      key: `${month.label}-leading-${index}`,
+      blank: true,
+    })),
+    ...days.map((day) => ({
+      ...day,
+      key: `${month.label}-${day.day}`,
+      blank: false,
+    })),
+    ...Array.from({ length: trailingBlanks }).map((_, index) => ({
+      key: `${month.label}-trailing-${index}`,
+      blank: true,
+    })),
+  ];
+};
+
+const getYearContributionCount = (yearly) =>
+  (yearly?.months || []).reduce(
+    (total, month) =>
+      total + (month.days || []).reduce((sum, day) => sum + (day.count || 0), 0),
+    0,
+  );
 
 const initialsFor = (user) => {
   const source = user?.username || user?.fullName || "User";
@@ -62,6 +141,7 @@ function Skeleton({ className = "" }) {
 export default function LeaderboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [page, setPage] = useState(1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,7 +151,7 @@ export default function LeaderboardPage() {
       setLoading(true);
       try {
         const response = await API.get("/users/leaderboard-dashboard", {
-          params: { page, limit: 10 },
+          params: { page, limit: 10, year: selectedYear },
         });
         if (active) setDashboard(response.data.data);
       } catch (error) {
@@ -85,7 +165,7 @@ export default function LeaderboardPage() {
     return () => {
       active = false;
     };
-  }, [page]);
+  }, [page, selectedYear]);
 
   const weekly = dashboard?.activity?.weekly;
   const weeklyMax = weekly?.maxCount || 1;
@@ -94,6 +174,15 @@ export default function LeaderboardPage() {
     [dashboard?.activity?.previousWeeks],
   );
   const totalPages = dashboard?.pagination?.totalPages || 1;
+  const monthlyCells = useMemo(
+    () => buildMonthlyCells(dashboard?.activity?.monthly),
+    [dashboard?.activity?.monthly],
+  );
+  const yearlyOverview = dashboard?.activity?.yearly;
+  const yearlyContributionCount = useMemo(
+    () => getYearContributionCount(yearlyOverview),
+    [yearlyOverview],
+  );
 
   return (
     <main className="app-page">
@@ -108,7 +197,7 @@ export default function LeaderboardPage() {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.6fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Your Activity</h2>
@@ -174,42 +263,101 @@ export default function LeaderboardPage() {
             {loading ? (
               <Skeleton className="mt-6 h-44" />
             ) : (
-              <div className="mt-6 grid grid-cols-7 gap-2 overflow-x-auto pb-1">
-                {dashboard?.activity?.monthly?.days?.map((day) => (
-                  <div
-                    key={day.date}
-                    title={`${new Date(day.date).toLocaleDateString()} - ${day.count} activities`}
-                    className={`h-5 w-5 rounded ${intensityClass(day.count)}`}
-                  />
-                ))}
+              <div className="mt-5 overflow-x-auto pb-1">
+                <div className="min-w-[420px]">
+                  <div className="grid grid-cols-7 gap-2">
+                    {weekDays.map((day) => (
+                      <div key={day} className="text-center text-[10px] font-bold uppercase text-slate-400">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2 grid grid-cols-7 gap-2">
+                    {monthlyCells.map((day) =>
+                      day.blank ? (
+                        <div key={day.key} className="h-10 rounded-lg bg-transparent" />
+                      ) : (
+                        <div
+                          key={day.key}
+                          title={`${new Date(day.date).toLocaleDateString()} - ${day.count} activities`}
+                          className={`relative flex h-11 items-center justify-center rounded-xl border border-white shadow-sm ${intensityClass(day.count)}`}
+                        >
+                          <span
+                            className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/45 text-[11px] font-bold shadow-sm ${textIntensityClass(day.count)}`}
+                          >
+                            {day.day}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </Card>
         </div>
 
         <Card className="p-6">
-          <div className="flex items-center gap-2">
-            <CalendarDays size={18} className="text-indigo-600" />
-            <h2 className="text-lg font-semibold">Yearly Overview</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={18} className="text-indigo-600" />
+              <h2 className="text-lg font-semibold">Yearly Overview</h2>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={selectedYear}
+                onChange={(event) => setSelectedYear(Number(event.target.value))}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+              >
+                {(yearlyOverview?.availableYears || [new Date().getFullYear(), new Date().getFullYear() - 1]).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <span>Less</span>
+                {[0, 1, 2, 4].map((count) => (
+                  <span key={count} className={`h-3 w-3 rounded-sm ${intensityClass(count)}`} />
+                ))}
+                <span>More</span>
+              </div>
+            </div>
           </div>
+          <p className="mt-4 text-sm font-medium text-slate-600">
+            {loading
+              ? "Loading yearly contributions..."
+              : `${formatNumber(yearlyContributionCount)} contributions in ${yearlyOverview?.year || selectedYear}`}
+          </p>
           {loading ? (
             <Skeleton className="mt-6 h-28" />
           ) : (
-            <div className="mt-6 flex gap-8 overflow-x-auto pb-2">
-              {dashboard?.activity?.yearly?.months?.map((month) => (
-                <div key={month.label} className="shrink-0">
-                  <p className="mb-3 text-[10px] font-bold uppercase text-slate-500">{month.label}</p>
-                  <div className="grid grid-cols-7 gap-1">
-                    {month.days.map((day) => (
-                      <span
-                        key={`${month.label}-${day.day}`}
-                        title={`${month.label} ${day.day}: ${day.count} activities`}
-                        className={`h-3 w-3 rounded-sm ${intensityClass(day.count)}`}
-                      />
-                    ))}
+            <div className="mt-6 overflow-x-auto pb-2">
+              <div className="flex min-w-max gap-5 lg:grid lg:min-w-0 lg:grid-cols-12 lg:gap-1 xl:gap-2">
+                {yearlyOverview?.months?.map((month) => (
+                  <div key={month.label} className="shrink-0 lg:min-w-0">
+                    <p className="mb-3 max-w-[80px] truncate text-[10px] font-bold uppercase text-slate-500">
+                      {month.label}
+                    </p>
+                    <div className="grid grid-flow-col grid-rows-7 gap-0.5 lg:gap-px xl:gap-0.5">
+                      {buildYearMonthCells(month, yearlyOverview.year).map((day) =>
+                      day.blank ? (
+                        <span
+                          key={day.key}
+                          className="h-6 w-6 rounded-md bg-transparent lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4"
+                        />
+                      ) : (
+                        <span
+                          key={day.key}
+                          title={`${month.label} ${day.day}: ${day.count} activities`}
+                          className={`h-6 w-6 rounded-md border border-white shadow-sm lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4 ${intensityClass(day.count)}`}
+                        />
+                      ),
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </Card>
