@@ -514,6 +514,38 @@ const getStudentUsers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, users, "Student users fetched successfully"));
 });
 
+const getUserSuggestions = asyncHandler(async (req, res) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 5, 1), 12);
+  const currentUserId = req.user._id;
+
+  const users = await User.find({
+    _id: { $ne: currentUserId },
+    profileCompleted: true,
+  })
+    .select("fullName username avatar branch year role credits upvotes")
+    .sort({ credits: -1, upvotes: -1, fullName: 1 })
+    .limit(limit)
+    .lean();
+
+  const follows = await Follow.find({
+    follower: currentUserId,
+    following: { $in: users.map((user) => user._id) },
+  }).select("following");
+
+  const followedIds = new Set(
+    follows.map((follow) => follow.following.toString())
+  );
+
+  const suggestions = users.map((user) => ({
+    ...user,
+    isFollowing: followedIds.has(user._id.toString()),
+  }));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, suggestions, "User suggestions fetched successfully"));
+});
+
 const getUserActivity = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const today = new Date();
@@ -1043,6 +1075,7 @@ export {
   updateUserRole,
   getFacultyUsers,
   getStudentUsers,
+  getUserSuggestions,
   getUserActivity,
   getLandingData,
   getTopContributors,

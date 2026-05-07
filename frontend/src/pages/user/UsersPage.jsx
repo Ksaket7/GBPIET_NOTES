@@ -26,7 +26,7 @@ function DirectoryUserCard({ directoryUser, onToggleFollow }) {
           {directoryUser.fullName || directoryUser.username}
         </h3>
         <p className="truncate text-sm text-slate-500">
-          @{directoryUser.username} - {directoryUser.branch || "GBPIET"}
+          @{directoryUser.username} - {directoryUser.branch || "GBPIET"} / {directoryUser.year || directoryUser.role || "Student"}
         </p>
         <span className="pill mt-2 capitalize">{directoryUser.role}</span>
       </div>

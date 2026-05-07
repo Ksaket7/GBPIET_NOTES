@@ -69,7 +69,7 @@ const getUpvoters = asyncHandler(async (req, res) => {
   const { type, id } = req.params;
 
   const upvotes = await Upvote.find({ [type]: id })
-    .populate("upvotedBy", "username email avatar")
+    .populate("upvotedBy", "fullName username email avatar")
     .sort({ createdAt: -1 });
 
   const upvoters = upvotes.map((u) => u.upvotedBy);

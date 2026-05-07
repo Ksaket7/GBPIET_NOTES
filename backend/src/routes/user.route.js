@@ -13,6 +13,7 @@ import {
   updateUserRole,
   getFacultyUsers,
   getStudentUsers,
+  getUserSuggestions,
   getUserActivity,
   getLandingData,
   getTopContributors,
@@ -37,6 +38,7 @@ router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/activity").get(verifyJWT, getUserActivity);
 router.route("/leaderboard-dashboard").get(verifyJWT, getLeaderboardDashboard);
+router.route("/suggestions").get(verifyJWT, getUserSuggestions);
 router.route("/faculty").get(verifyJWT, getFacultyUsers);
 router.route("/students").get(verifyJWT, getStudentUsers);
 router.route("/profile/:username").get(verifyJWT, getUserProfile);

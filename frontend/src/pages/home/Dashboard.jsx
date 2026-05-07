@@ -531,7 +531,7 @@ function StudentDashboard({
             </header>
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] 2xl:grid-cols-[minmax(0,1fr)_260px]">
-              <ActivityChart activity={activity} onSeeAll={() => navigate("/notes")} />
+              <ActivityChart activity={activity} onSeeAll={() => navigate("/leaderboard")} />
               <section className="space-y-3">
                 <ActionCard icon={Search} title="Browse notes" detail="Find subject material" active onClick={() => navigate("/notes")} />
                 <ActionCard icon={MessageSquareText} title="Ask question" detail="Post a doubt" onClick={() => navigate("/questions")} />
