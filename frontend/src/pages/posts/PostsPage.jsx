@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MessageCircle,
   MoreHorizontal,
   Send,
+  ThumbsUp,
   UserPlus,
 } from "lucide-react";
 import API from "../../services/api";
-import UpvoteButton from "../../components/upvote/UpvoteButton";
 import { timeAgo } from "../../utils/timeAgo";
 import PostComposer from "../../components/posts/PostComposer";
 import { useAuth } from "../../context/AuthContext";
@@ -200,37 +200,75 @@ function LikedUsersModal({ postId, onClose }) {
 }
 
 function PostLikeAction({ post }) {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showLikedUsers, setShowLikedUsers] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    const loadCount = async () => {
+    const loadLikers = async () => {
       try {
-        const res = await API.get(`/upvotes/post/${post._id}/count`);
-        if (mounted) setLikeCount(res.data?.data?.count || 0);
+        const res = await API.get(`/upvotes/post/${post._id}/users`);
+        const users = res.data?.data || [];
+        if (!mounted) return;
+        setLikeCount(users.length);
+        setLiked(users.some((likedUser) => likedUser._id === user?._id));
       } catch {
-        if (mounted) setLikeCount(0);
+        if (!mounted) return;
+        setLikeCount(0);
+        setLiked(false);
       }
     };
 
-    loadCount();
+    loadLikers();
 
     return () => {
       mounted = false;
     };
-  }, [post._id]);
+  }, [post._id, user?._id]);
+
+  const handleToggleLike = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const toggleRes = await API.post(`/upvotes/post/${post._id}/toggle`);
+      const nextLiked = toggleRes.status === 201;
+      const usersRes = await API.get(`/upvotes/post/${post._id}/users`);
+      const users = usersRes.data?.data || [];
+      setLiked(nextLiked);
+      setLikeCount(users.length);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
       <div className="flex items-center gap-2">
-        <UpvoteButton
-          type="post"
-          id={post._id}
-          label="Like"
-          onChanged={({ count }) => setLikeCount(count)}
-        />
+        <button
+          type="button"
+          onClick={handleToggleLike}
+          disabled={loading}
+          className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
+            liked
+              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <ThumbsUp
+            size={14}
+            className={liked ? "fill-current text-indigo-700" : ""}
+          />
+          
+        </button>
         <button
           type="button"
           onClick={() => setShowLikedUsers(true)}
@@ -346,7 +384,7 @@ function SuggestionCard({ user, onToggle }) {
 
 function SuggestionsPanel({ suggestions, loading, onToggle }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-24">
+    <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>

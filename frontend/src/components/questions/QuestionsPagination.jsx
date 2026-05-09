@@ -12,11 +12,11 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
   }
 
   return (
-    <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+    <div className="mt-8 flex max-w-full flex-wrap items-center justify-center gap-2 overflow-hidden">
       <button
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
-        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
+        className="rounded-full bg-white/70 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50 sm:px-4"
       >
         Prev
       </button>
@@ -25,7 +25,7 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+          className={`rounded-full px-3 py-2 text-sm font-semibold transition sm:px-4 ${
             page === currentPage
               ? "bg-slate-950 text-white"
               : "bg-white/70 text-slate-600 hover:bg-white"
@@ -38,7 +38,7 @@ export default function QuestionsPagination({ pagination, onPageChange }) {
       <button
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
-        className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50"
+        className="rounded-full bg-white/70 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-white disabled:opacity-50 sm:px-4"
       >
         Next
       </button>

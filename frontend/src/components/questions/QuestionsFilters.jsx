@@ -12,21 +12,21 @@ export default function QuestionsFilters({ filters, setSearchParams }) {
   };
 
   return (
-    <div className="glass-panel grid gap-3 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_180px]">
+    <div className="grid gap-3 rounded-2xl bg-white p-3 shadow-sm sm:p-4 lg:grid-cols-[minmax(0,1fr)_180px]">
       <input
         type="text"
-        placeholder="Search questions…"
+        placeholder="Search questions..."
         value={filters.query}
-        onChange={(e) => updateParam("query", e.target.value)}
-        className="app-input"
+        onChange={(event) => updateParam("query", event.target.value)}
+        className="app-input border-slate-100 bg-slate-50"
       />
 
       <input
         type="text"
         placeholder="Subject Code"
         value={filters.subjectCode}
-        onChange={(e) => updateParam("subjectCode", e.target.value)}
-        className="app-input"
+        onChange={(event) => updateParam("subjectCode", event.target.value)}
+        className="app-input border-slate-100 bg-slate-50"
       />
     </div>
   );

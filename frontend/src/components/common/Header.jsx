@@ -8,6 +8,7 @@ import {
   LogIn,
   Menu,
   MessageSquareText,
+  Users,
   UserPlus,
   X,
 } from "lucide-react";
@@ -110,6 +111,13 @@ export default function Header() {
           <div className="flex shrink-0 items-center gap-2">
             {isAuthenticated ? (
               <>
+                <Link
+                  to="/users"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 transition hover:bg-indigo-100 lg:hidden"
+                  aria-label="Browse users"
+                >
+                  <Users size={18} />
+                </Link>
                 <Link
                   to={leaderboardLink.path}
                   className={`hidden rounded-full px-4 py-2 text-sm font-semibold transition sm:inline-flex ${

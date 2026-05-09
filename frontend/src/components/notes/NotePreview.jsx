@@ -47,7 +47,7 @@ export default function NotePreview({ note }) {
         </p>
       )}
 
-      <button type="button" onClick={handleAccess} className="app-button mt-5">
+      <button type="button" onClick={handleAccess} className="app-button mt-5 w-full sm:w-auto">
         {isAuthenticated ? "Open / Download" : "Login to Access"}
       </button>
     </section>

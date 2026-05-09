@@ -128,7 +128,7 @@ function Avatar({ user }) {
 
 function Card({ children, className = "" }) {
   return (
-    <section className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
+    <section className={`min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
       {children}
     </section>
   );
@@ -198,7 +198,7 @@ export default function LeaderboardPage() {
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Your Activity</h2>
               <span className="text-xs font-semibold text-slate-500">Last 7 Days</span>
@@ -248,7 +248,7 @@ export default function LeaderboardPage() {
             )}
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">Monthly Activity</h2>
               <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -264,7 +264,7 @@ export default function LeaderboardPage() {
               <Skeleton className="mt-6 h-44" />
             ) : (
               <div className="mt-5 overflow-x-auto pb-1">
-                <div className="min-w-[420px]">
+                <div className="min-w-[340px] sm:min-w-[420px]">
                   <div className="grid grid-cols-7 gap-2">
                     {weekDays.map((day) => (
                       <div key={day} className="text-center text-[10px] font-bold uppercase text-slate-400">
@@ -275,12 +275,12 @@ export default function LeaderboardPage() {
                   <div className="mt-2 grid grid-cols-7 gap-2">
                     {monthlyCells.map((day) =>
                       day.blank ? (
-                        <div key={day.key} className="h-10 rounded-lg bg-transparent" />
+                        <div key={day.key} className="h-9 rounded-lg bg-transparent sm:h-10" />
                       ) : (
                         <div
                           key={day.key}
                           title={`${new Date(day.date).toLocaleDateString()} - ${day.count} activities`}
-                          className={`relative flex h-11 items-center justify-center rounded-xl border border-white shadow-sm ${intensityClass(day.count)}`}
+                          className={`relative flex h-9 items-center justify-center rounded-xl border border-white shadow-sm sm:h-11 ${intensityClass(day.count)}`}
                         >
                           <span
                             className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/45 text-[11px] font-bold shadow-sm ${textIntensityClass(day.count)}`}
@@ -297,7 +297,7 @@ export default function LeaderboardPage() {
           </Card>
         </div>
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <CalendarDays size={18} className="text-indigo-600" />
@@ -363,7 +363,7 @@ export default function LeaderboardPage() {
         </Card>
 
         <Card className="overflow-hidden">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="flex items-center gap-2">
               <Trophy size={18} className="text-indigo-600" />
               <h2 className="text-lg font-semibold">Top Contributors Leaderboard</h2>
@@ -374,7 +374,7 @@ export default function LeaderboardPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-[760px] w-full text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-y border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
                 <tr>
                   <th className="px-6 py-4"># Rank</th>
@@ -450,7 +450,7 @@ export default function LeaderboardPage() {
             </table>
           </div>
 
-          <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p className="text-sm text-slate-500">
               Showing page {dashboard?.pagination?.currentPage || page} of {totalPages}
             </p>

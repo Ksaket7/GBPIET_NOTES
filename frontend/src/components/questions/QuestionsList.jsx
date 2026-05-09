@@ -15,7 +15,7 @@ export default function QuestionsList({ questions, loading }) {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4">
+    <div className="grid w-full grid-cols-1 gap-5">
       {questions.map((q) => (
         <QuestionCard key={q._id} question={q} />
       ))}

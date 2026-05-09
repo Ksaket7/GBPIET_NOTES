@@ -6,12 +6,13 @@ import {
   deleteAnswer,
 } from "../controllers/answer.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { postUpload } from "../middlewares/postUpload.middleware.js";
 
 const router = express.Router();
 
 router.route("/:questionId").get(getAnswersByQuestion);
 
-router.route("/:questionId").post(verifyJWT, addAnswer);
+router.route("/:questionId").post(verifyJWT, postUpload.single("image"), addAnswer);
 
 router.route("/:answerId/comment").post(verifyJWT, addAnswerComment);
 

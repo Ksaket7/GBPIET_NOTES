@@ -55,12 +55,12 @@ export default function NoteHeader({ note }) {
         )}
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <UpvoteButton type="note" id={note._id} />
         <button
           type="button"
           onClick={() => setShowUpvoters(true)}
-          className="app-button-secondary py-2"
+          className="app-button-secondary w-full py-2 sm:w-auto"
         >
           View upvoters
         </button>
@@ -75,7 +75,7 @@ export default function NoteHeader({ note }) {
               state: { noteType: note.type, noteTitle: note.title },
             });
           }}
-          className="app-button py-2"
+          className="app-button w-full py-2 sm:w-auto"
         >
           <Bot size={16} />
           Ask AI
@@ -84,7 +84,7 @@ export default function NoteHeader({ note }) {
           <LoadingButton
             loading={deleting}
             onClick={() => setShowConfirm(true)}
-            className="app-button-secondary py-2 text-red-500"
+            className="app-button-secondary w-full py-2 text-red-500 sm:w-auto"
           >
             Delete Note
           </LoadingButton>

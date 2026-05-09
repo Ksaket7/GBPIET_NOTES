@@ -4,8 +4,14 @@ const answerSchema = new Schema(
   {
     content: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
+    },
+
+    imageUrl: {
+      type: String,
+      trim: true,
+      default: "",
     },
 
     answeredBy: {

@@ -6,9 +6,14 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { isValidObjectId } from "mongoose";
 import { Upvote } from "../models/upvote.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
+import { uploadOnSupabase, deleteFromSupabase } from "../utils/supabaseStorage.js";
 // ask a question
 const askQuestion = asyncHandler(async (req, res) => {
   const { title, description, subjectName, subjectCode, tags } = req.body;
+
+  if (!title?.trim()) {
+    throw new ApiError(400, "Question title is required");
+  }
 
   if (!description?.trim()) {
     throw new ApiError(400, "Question description is required");
@@ -24,9 +29,23 @@ const askQuestion = asyncHandler(async (req, res) => {
     throw new ApiError(400, "At least one question tag is required");
   }
 
+  let imageUrl = "";
+  if (req.file) {
+    imageUrl = await uploadOnSupabase(
+      req.file.buffer,
+      req.file.originalname,
+      "questions"
+    );
+
+    if (!imageUrl) {
+      throw new ApiError(500, "Error uploading question image");
+    }
+  }
+
   const question = await Question.create({
-    title: title || "",
+    title,
     description,
+    imageUrl,
     subjectName,
     subjectCode,
     tags: normalizedTags,
@@ -133,12 +152,21 @@ const deleteQuestion = asyncHandler(async (req, res) => {
   }
 
   // 3️⃣ Delete all answers related to this question
+  const answers = await Answer.find({ question: questionId }).select("imageUrl");
+  await Promise.all(
+    answers
+      .filter((answer) => answer.imageUrl)
+      .map((answer) => deleteFromSupabase(answer.imageUrl))
+  );
   await Answer.deleteMany({ question: questionId });
 
   // 4️⃣ Delete all upvotes related to this question
   await Upvote.deleteMany({ question: questionId });
 
   // 5️⃣ Delete the question itself
+  if (question.imageUrl) {
+    await deleteFromSupabase(question.imageUrl);
+  }
   await Question.findByIdAndDelete(questionId);
 
   // 6️⃣ Recalculate the author's reputation safely

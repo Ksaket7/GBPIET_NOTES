@@ -535,6 +535,7 @@ function StudentDashboard({
               <section className="space-y-3">
                 <ActionCard icon={Search} title="Browse notes" detail="Find subject material" active onClick={() => navigate("/notes")} />
                 <ActionCard icon={MessageSquareText} title="Ask question" detail="Post a doubt" onClick={() => navigate("/questions")} />
+                <ActionCard icon={UsersRound} title="Browse people" detail="Follow contributors" onClick={() => navigate("/users")} />
               </section>
             </div>
           </div>

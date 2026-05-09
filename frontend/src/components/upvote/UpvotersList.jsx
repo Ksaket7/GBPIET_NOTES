@@ -13,11 +13,11 @@ export default function UpvotersList({ type, id, onClose }) {
   }, [type, id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-3 sm:p-4">
       <div className="w-full max-w-sm space-y-4 rounded-3xl border border-white/70 bg-white/95 p-5 shadow-2xl backdrop-blur-xl">
         <h3 className="font-poppins text-lg font-semibold text-slate-950">Liked by</h3>
 
-        <div className="space-y-2 max-h-60 overflow-y-auto">
+        <div className="max-h-60 space-y-2 overflow-y-auto">
           {users.length === 0 ? (
             <p className="text-sm text-slate-500">No likes yet.</p>
           ) : users.map((u) => (
@@ -38,7 +38,7 @@ export default function UpvotersList({ type, id, onClose }) {
                 </span>
               )}
             </div>
-              <span className="font-semibold text-slate-800">@{u.username}</span>
+              <span className="min-w-0 break-words font-semibold text-slate-800">@{u.username}</span>
             </div>
           ))}
         </div>

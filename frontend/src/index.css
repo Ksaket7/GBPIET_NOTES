@@ -7,6 +7,17 @@
     box-sizing: border-box;
   }
 
+  html,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
   body {
     margin: 0;
     min-width: 320px;
@@ -24,16 +35,31 @@
   select,
   textarea {
     font: inherit;
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
   }
 }
 
 @layer components {
   .app-page {
-    @apply min-h-[calc(100vh-4rem)] px-3 py-6 sm:px-5 sm:py-8 lg:px-8;
+    @apply min-h-[calc(100vh-4rem)] w-full min-w-0 overflow-x-hidden px-3 py-6 sm:px-5 sm:py-8 lg:px-8;
+    overflow-wrap: break-word;
   }
 
   .app-shell {
-    @apply mx-auto w-full max-w-7xl rounded-[22px] border border-white/70 bg-white/45 p-3 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl sm:rounded-[28px] sm:p-5 md:p-7;
+    @apply mx-auto w-full min-w-0 max-w-7xl rounded-[22px] border border-white/70 bg-white/45 p-3 shadow-2xl shadow-slate-500/20 backdrop-blur-2xl sm:rounded-[28px] sm:p-5 md:p-7;
+    overflow-wrap: break-word;
+  }
+
+  .app-page *,
+  .app-shell * {
+    min-width: 0;
   }
 
   .glass-panel {
@@ -49,11 +75,11 @@
   }
 
   .app-button {
-    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-500/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3;
+    @apply inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-lg shadow-slate-500/20 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:py-3;
   }
 
   .app-button-secondary {
-    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:bg-white sm:px-5 sm:py-3;
+    @apply inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/70 px-4 py-2.5 text-center text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:bg-white sm:px-5 sm:py-3;
   }
 
   .pill {

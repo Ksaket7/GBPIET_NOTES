@@ -5,25 +5,43 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Upvote } from "../models/upvote.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
+import { uploadOnSupabase, deleteFromSupabase } from "../utils/supabaseStorage.js";
 
 // add answer
 const addAnswer = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
   const { content } = req.body;
 
-  if (!content?.trim()) throw new ApiError(400, "Answer content is required");
-
   const question = await Question.findById(questionId);
   if (!question) throw new ApiError(404, "Question not found");
 
+  let imageUrl = "";
+  if (req.file) {
+    imageUrl = await uploadOnSupabase(
+      req.file.buffer,
+      req.file.originalname,
+      "answers"
+    );
+
+    if (!imageUrl) {
+      throw new ApiError(500, "Error uploading answer image");
+    }
+  }
+
+  if (!content?.trim() && !imageUrl) {
+    throw new ApiError(400, "Answer content or image is required");
+  }
+
   const answer = await Answer.create({
     question: questionId,
-    content,
+    content: content || "",
+    imageUrl,
     answeredBy: req.user._id,
   });
   await Question.findByIdAndUpdate(questionId, {
     $push: { answers: answer._id },
   });
+  await answer.populate("answeredBy", "username fullName avatar");
 
   return res
     .status(201)
@@ -88,6 +106,9 @@ const deleteAnswer = asyncHandler(async (req, res) => {
   await Upvote.deleteMany({ answer: answerId });
 
   // 5️⃣ Delete the answer itself
+  if (answer.imageUrl) {
+    await deleteFromSupabase(answer.imageUrl);
+  }
   await Answer.findByIdAndDelete(answerId);
 
   // 6️⃣ Recalculate the author's reputation
