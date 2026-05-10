@@ -291,7 +291,7 @@ export default function LandingPage() {
             {topContributor && (
               <article className="relative flex min-h-48 min-w-0 flex-col rounded-2xl border-2 border-indigo-100 bg-white px-5 py-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl sm:col-span-1 sm:items-center sm:justify-center lg:col-span-1 lg:px-9 xl:col-span-1">
                 {/* Top Badge */}
-                <div className="absolute right-4 top-4 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
+                <div className="absolute right-3 top-3 max-w-[calc(100%-1.5rem)] rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white sm:right-4 sm:top-4 sm:px-3 sm:text-xs">
                   TOP CONTRIBUTOR
                 </div>
 
@@ -316,7 +316,7 @@ export default function LandingPage() {
                     </p>
 
                     {/* Stats */}
-                    <div className="mt-5 flex justify-center gap-8 text-sm lg:justify-start">
+                    <div className="mt-5 flex flex-wrap justify-center gap-4 text-sm sm:gap-6 lg:justify-start xl:gap-8">
                       <div className="text-center">
                         <p className="text-lg font-bold text-indigo-600">
                           {formatNumber(topContributor.uploads)}

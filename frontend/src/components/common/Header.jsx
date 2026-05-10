@@ -3,12 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
+  Bot,
   HelpCircle,
   Home,
   LogIn,
   Menu,
   MessageSquareText,
-  Users,
   UserPlus,
   X,
 } from "lucide-react";
@@ -20,9 +20,11 @@ const primaryLinks = [
   { name: "Home", path: "/", icon: Home },
   { name: "Notes", path: "/notes", icon: BookOpen },
   { name: "Q&A", path: "/questions", icon: HelpCircle },
+  { name: "AI Chatbot", path: "/ai-chatbot", icon: Bot },
   { name: "Community", path: "/posts", icon: MessageSquareText },
 ];
 
+const usersLink = { name: "Users", path: "/users", icon: UserPlus };
 const leaderboardLink = { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 };
 
 function isActivePath(pathname, link) {
@@ -70,29 +72,29 @@ export default function Header() {
   const location = useLocation();
 
   const closeMenu = () => setOpen(false);
-  const allMobileLinks = [...primaryLinks, leaderboardLink];
+  const allMobileLinks = [...primaryLinks, usersLink, leaderboardLink];
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-3">
+      <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-7xl min-w-0 items-center justify-between gap-2 overflow-hidden pl-3 pr-5 sm:gap-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="rounded-xl p-2 text-slate-700 transition hover:bg-slate-100 lg:hidden"
+              className="shrink-0 rounded-xl p-1.5 text-slate-700 transition hover:bg-slate-100 sm:p-2 lg:hidden"
               aria-label="Open navigation"
             >
               <Menu size={20} />
             </button>
 
-            <Link to="/" className="flex min-w-0 items-center gap-3">
+            <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
               <img
                 src={logo}
                 alt="GBPIET NOTES"
-                className="h-9 w-9 shrink-0 rounded-xl object-cover"
+                className="h-9 w-9 shrink-0 rounded-xl object-cover sm:h-10 sm:w-10"
               />
-              <span className="truncate font-poppins text-base font-semibold text-indigo-700 sm:text-lg">
+              <span className="block max-w-[118px] truncate font-poppins text-sm font-semibold text-indigo-700 min-[390px]:max-w-[150px] sm:max-w-none sm:text-lg">
                 GBPIET NOTES
               </span>
             </Link>
@@ -108,19 +110,12 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {isAuthenticated ? (
               <>
                 <Link
-                  to="/users"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 transition hover:bg-indigo-100 lg:hidden"
-                  aria-label="Browse users"
-                >
-                  <Users size={18} />
-                </Link>
-                <Link
                   to={leaderboardLink.path}
-                  className={`hidden rounded-full px-4 py-2 text-sm font-semibold transition sm:inline-flex ${
+                  className={`hidden max-w-[150px] truncate rounded-full px-3 py-2 text-sm font-semibold transition sm:inline-flex md:max-w-none md:px-4 ${
                     isActivePath(location.pathname, leaderboardLink)
                       ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                       : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"

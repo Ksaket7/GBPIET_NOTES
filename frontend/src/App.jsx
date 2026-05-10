@@ -9,7 +9,7 @@ import CompleteProfilePage from "./pages/common/CompleteProfilePage";
 import NotesPage from "./pages/notes/NotesPage";
 import PostsPage from "./pages/posts/PostsPage";
 import NoteDetailPage from "./pages/notes/NoteDetailPage";
-import NoteAIPage from "./pages/notes/NoteAIPage";
+import AIChatbotPage from "./pages/ai/AIChatbotPage";
 import Loader from "./components/common/Loader";
 import { useAuth } from "./context/AuthContext";
 import QuestionsPage from "./pages/qna/QuestionsPage";
@@ -73,10 +73,10 @@ function App() {
             }
           />
           <Route
-            path="/notes/:noteId/ai"
+            path="/ai-chatbot"
             element={
               <ProtectedRoute>
-                <NoteAIPage />
+                <AIChatbotPage />
               </ProtectedRoute>
             }
           />

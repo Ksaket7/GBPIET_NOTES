@@ -348,7 +348,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
             </button>
           )}
           {menuOpen && (
-            <div className="absolute right-0 top-10 z-20 w-36 rounded-2xl border border-white/70 bg-white/95 p-2 shadow-xl">
+            <div className="absolute right-0 top-10 z-20 w-[min(9rem,calc(100vw-1.5rem))] rounded-2xl border border-white/70 bg-white/95 p-2 shadow-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -465,7 +465,7 @@ function PostCommentBox({ post }) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-11 z-20 w-[min(320px,82vw)] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl sm:w-80">
+        <div className="absolute left-0 top-11 z-20 w-[min(320px,calc(100vw-1.5rem))] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl sm:w-80">
           <div className="max-h-44 space-y-2 overflow-y-auto">
             {comments.length === 0 ? (
               <p className="text-xs text-slate-500">No comments yet.</p>

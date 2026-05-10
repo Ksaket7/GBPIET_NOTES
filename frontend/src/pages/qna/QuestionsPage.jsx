@@ -1,13 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { MessageSquareText, Plus, TrendingUp, UsersRound } from "lucide-react";
+import { MessageSquareText, Plus, TrendingUp, UsersRound, X } from "lucide-react";
 import API from "../../services/api";
 import QuestionsFilters from "../../components/questions/QuestionsFilters";
 import QuestionsList from "../../components/questions/QuestionsList";
 import QuestionsPagination from "../../components/questions/QuestionsPagination";
 import UploadQuestionForm from "../../components/upload/UploadQuestion";
 import { useAuth } from "../../context/AuthContext";
-import FormModal from "../../components/ui/FormModal";
 
 export default function QuestionsPage() {
   const { isAuthenticated } = useAuth();
@@ -16,6 +15,7 @@ export default function QuestionsPage() {
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const questionFormRef = useRef(null);
 
   const filters = useMemo(() => ({
     page: Number(searchParams.get("page")) || 1,
@@ -59,6 +59,16 @@ export default function QuestionsPage() {
     ? Math.round((answeredCount / questions.length) * 100)
     : 0;
 
+  const openQuestionForm = () => {
+    setShowQuestionForm(true);
+    window.setTimeout(() => {
+      questionFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  };
+
   return (
     <main className="app-page">
       <div className="mx-auto w-full max-w-6xl">
@@ -78,24 +88,45 @@ export default function QuestionsPage() {
             {isAuthenticated && (
               <button
                 type="button"
-                onClick={() => setShowQuestionForm(true)}
+                onClick={() => setShowQuestionForm((current) => !current)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-300 transition hover:bg-indigo-700"
               >
-                <Plus size={16} />
-                Ask question
+                {showQuestionForm ? <X size={16} /> : <Plus size={16} />}
+                {showQuestionForm ? "Close form" : "Ask question"}
               </button>
             )}
           </header>
 
           {isAuthenticated && showQuestionForm && (
-            <FormModal title="Ask question" onClose={() => setShowQuestionForm(false)}>
+            <div
+              ref={questionFormRef}
+              className="mt-6 overflow-hidden rounded-[26px] border border-indigo-100 bg-white/85 p-2 shadow-xl shadow-indigo-100/60"
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-3 py-3 sm:px-4">
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">
+                    Ask a new question
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Add a clear title, description, tags, and optional image.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuestionForm(false)}
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+                  aria-label="Close question form"
+                >
+                  <X size={17} />
+                </button>
+              </div>
               <UploadQuestionForm
                 onCreated={() => {
                   setShowQuestionForm(false);
                   fetchQuestions();
                 }}
               />
-            </FormModal>
+            </div>
           )}
 
           <div className="mt-6 space-y-5">
@@ -149,7 +180,7 @@ export default function QuestionsPage() {
       {isAuthenticated && (
         <button
           type="button"
-          onClick={() => setShowQuestionForm(true)}
+          onClick={openQuestionForm}
           className="fixed bottom-5 right-5 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white shadow-xl shadow-indigo-300 transition hover:bg-indigo-700 sm:hidden"
           aria-label="Ask question"
         >

@@ -6,7 +6,7 @@ const features = [
   { icon: Users, title: "Collaborative learning", text: "Students and faculty work together through notes and Q&A." },
   { icon: Shield, title: "Secure access", text: "Role-aware flows keep important actions in the right hands." },
   { icon: Cloud, title: "Cloud storage", text: "Study material stays available through hosted file storage." },
-  { icon: Bot, title: "AI support", text: "Open a note and ask for explanations when you need help." },
+  { icon: Bot, title: "AI support", text: "Use the AI Chatbot to analyze notes, images, PDFs, and study doubts." },
 ];
 
 export default function About() {

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export default function FormModal({ title, onClose, children }) {
@@ -16,16 +17,16 @@ export default function FormModal({ title, onClose, children }) {
     };
   }, [onClose]);
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-slate-950/45 p-3 pt-4 backdrop-blur-lg sm:items-center sm:p-5"
+      className="fixed inset-0 z-[100] flex max-w-[100vw] items-start justify-center overflow-x-hidden overflow-y-auto bg-slate-950/45 p-3 pt-4 backdrop-blur-lg sm:items-center sm:p-5"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
       <div
-        className="relative my-0 max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-y-auto rounded-[24px] shadow-2xl shadow-slate-950/25 sm:my-auto sm:rounded-[28px]"
+        className="relative my-0 max-h-[calc(100vh-2rem)] w-full max-w-[min(48rem,calc(100vw-1.5rem))] overflow-x-hidden overflow-y-auto rounded-[24px] shadow-2xl shadow-slate-950/25 sm:my-auto sm:max-w-[min(48rem,calc(100vw-2.5rem))] sm:rounded-[28px]"
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -40,4 +41,6 @@ export default function FormModal({ title, onClose, children }) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }

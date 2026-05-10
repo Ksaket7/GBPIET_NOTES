@@ -8,9 +8,11 @@
   }
 
   html,
+  body,
   #root {
     width: 100%;
     max-width: 100%;
+    max-width: 100vw;
     overflow-x: hidden;
   }
 
@@ -49,6 +51,7 @@
 @layer components {
   .app-page {
     @apply min-h-[calc(100vh-4rem)] w-full min-w-0 overflow-x-hidden px-3 py-6 sm:px-5 sm:py-8 lg:px-8;
+    max-width: 100vw;
     overflow-wrap: break-word;
   }
 
@@ -60,6 +63,22 @@
   .app-page *,
   .app-shell * {
     min-width: 0;
+  }
+
+  .app-page :where(p, h1, h2, h3, h4, h5, h6, a, span, li, td, th, label),
+  .app-shell :where(p, h1, h2, h3, h4, h5, h6, a, span, li, td, th, label) {
+    overflow-wrap: anywhere;
+  }
+
+  .app-page :where(article, section, form, header, aside, nav),
+  .app-shell :where(article, section, form, header, aside, nav) {
+    max-width: 100%;
+  }
+
+  pre,
+  code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
   }
 
   .glass-panel {

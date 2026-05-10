@@ -31,6 +31,7 @@ import answerRoutes from "./routes/answer.route.js";
 import contactRoutes from "./routes/contact.route.js"
 import postRoutes from "./routes/post.route.js";
 import activityRoutes from "./routes/activity.route.js";
+import aiChatRoutes from "./routes/aiChat.route.js";
 // routes declaration
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/notes", noteRoutes);
@@ -41,5 +42,6 @@ app.use("/api/v1/answers", answerRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/contact",contactRoutes)
 app.use("/api/v1/activity", activityRoutes);
+app.use("/api/v1/ai-chat", aiChatRoutes);
 app.use(errorHandler);
 export { app };

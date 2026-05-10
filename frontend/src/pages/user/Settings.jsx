@@ -46,7 +46,7 @@ export default function Settings() {
           <h1 className="font-poppins text-2xl font-semibold text-slate-950">
             Settings
           </h1>
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1 xl:block xl:space-y-2 xl:overflow-visible xl:pb-0">
+          <div className="mt-5 flex flex-wrap gap-2 xl:block xl:space-y-2 xl:pb-0">
             {["general", "account", "profile"].map((tab) => (
               <button
                 key={tab}

@@ -263,27 +263,27 @@ export default function LeaderboardPage() {
             {loading ? (
               <Skeleton className="mt-6 h-44" />
             ) : (
-              <div className="mt-5 overflow-x-auto pb-1">
-                <div className="min-w-[340px] sm:min-w-[420px]">
-                  <div className="grid grid-cols-7 gap-2">
+              <div className="mt-5 pb-1">
+                <div className="w-full">
+                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
                     {weekDays.map((day) => (
                       <div key={day} className="text-center text-[10px] font-bold uppercase text-slate-400">
                         {day}
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 grid grid-cols-7 gap-2">
+                  <div className="mt-2 grid grid-cols-7 gap-1.5 sm:gap-2">
                     {monthlyCells.map((day) =>
                       day.blank ? (
-                        <div key={day.key} className="h-9 rounded-lg bg-transparent sm:h-10" />
+                        <div key={day.key} className="aspect-square rounded-lg bg-transparent" />
                       ) : (
                         <div
                           key={day.key}
                           title={`${new Date(day.date).toLocaleDateString()} - ${day.count} activities`}
-                          className={`relative flex h-9 items-center justify-center rounded-xl border border-white shadow-sm sm:h-11 ${intensityClass(day.count)}`}
+                          className={`relative flex aspect-square items-center justify-center rounded-xl border border-white shadow-sm ${intensityClass(day.count)}`}
                         >
                           <span
-                            className={`flex h-6 w-6 items-center justify-center rounded-full bg-white/45 text-[11px] font-bold shadow-sm ${textIntensityClass(day.count)}`}
+                            className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/45 text-[10px] font-bold shadow-sm sm:h-6 sm:w-6 sm:text-[11px] ${textIntensityClass(day.count)}`}
                           >
                             {day.day}
                           </span>
@@ -373,8 +373,72 @@ export default function LeaderboardPage() {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+          <div className="space-y-3 px-4 pb-4 md:hidden">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-24" />
+              ))
+            ) : dashboard?.leaderboard?.length ? (
+              dashboard.leaderboard.map((user) => (
+                <article
+                  key={user._id}
+                  className={`rounded-2xl border border-slate-100 p-4 ${
+                    user.rank <= 3 ? "bg-indigo-50/50" : "bg-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                        user.rank === 1
+                          ? "bg-amber-500 text-white"
+                          : user.rank === 2
+                            ? "bg-slate-300 text-slate-700"
+                            : user.rank === 3
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {user.rank <= 3 ? <Crown size={15} /> : user.rank}
+                    </span>
+                    <Avatar user={user} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-indigo-700">
+                        {user.fullName}
+                      </p>
+                      <p className="truncate text-xs text-slate-500">
+                        @{user.username}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-slate-500">
+                    <p className="rounded-xl bg-white/70 p-3">
+                      <span className="block font-semibold text-slate-950">Branch / Year</span>
+                      {user.branch || "GBPIET"} / {user.year || "Year pending"}
+                    </p>
+                    <p className="rounded-xl bg-white/70 p-3">
+                      <span className="block font-semibold text-slate-950">Score</span>
+                      {formatNumber(user.score)}
+                    </p>
+                    <p className="rounded-xl bg-white/70 p-3">
+                      <span className="block font-semibold text-slate-950">Contributions</span>
+                      {formatNumber(user.contributionsCount)}
+                    </p>
+                    <p className="rounded-xl bg-white/70 p-3">
+                      <span className="block font-semibold text-slate-950">Likes</span>
+                      {formatNumber(user.likesEarned)}
+                    </p>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-slate-500">
+                No contributors yet.
+              </p>
+            )}
+          </div>
+
+          <div className="hidden md:block">
+            <table className="w-full text-left text-sm">
               <thead className="border-y border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
                 <tr>
                   <th className="px-6 py-4"># Rank</th>

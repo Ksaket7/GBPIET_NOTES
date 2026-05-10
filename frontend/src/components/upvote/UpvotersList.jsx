@@ -1,55 +1,118 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
+import FormModal from "../ui/FormModal";
+
+const initialsFor = (user) => {
+  const source = user?.fullName || user?.username || "U";
+
+  return source
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
+
+function Avatar({ user, className = "h-10 w-10" }) {
+  if (user?.avatar) {
+    return (
+      <img
+        src={user.avatar}
+        alt={user.fullName || user.username || "User"}
+        className={`${className} shrink-0 rounded-full object-cover`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${className} flex shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700`}
+    >
+      {initialsFor(user)}
+    </div>
+  );
+}
+
+function SkeletonCard({ compact = false }) {
+  return (
+    <div className={`rounded-2xl border border-slate-100 bg-white ${compact ? "p-3" : "p-4"}`}>
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 w-28 animate-pulse rounded bg-slate-100" />
+          <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function UpvotersList({ type, id, onClose }) {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchUpvoters = async () => {
-      const res = await API.get(`/upvotes/${type}/${id}/users`);
-      setUsers(res.data.data);
+      try {
+        const res = await API.get(`/upvotes/${type}/${id}/users`);
+
+        if (mounted) {
+          setUsers(res.data?.data || []);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     };
+
     fetchUpvoters();
+
+    return () => {
+      mounted = false;
+    };
   }, [type, id]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 p-3 sm:p-4">
-      <div className="w-full max-w-sm space-y-4 rounded-3xl border border-white/70 bg-white/95 p-5 shadow-2xl backdrop-blur-xl">
-        <h3 className="font-poppins text-lg font-semibold text-slate-950">Liked by</h3>
+    <FormModal title="Liked by" onClose={onClose}>
+      <div className="rounded-[24px] bg-white p-5 sm:p-6">
+        <h2 className="font-poppins text-xl font-semibold text-slate-950">
+          Liked by
+        </h2>
 
-        <div className="max-h-60 space-y-2 overflow-y-auto">
-          {users.length === 0 ? (
-            <p className="text-sm text-slate-500">No likes yet.</p>
-          ) : users.map((u) => (
-            <div
-              key={u._id}
-              className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2"
-            >
-              <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
-              {u?.avatar ? (
-                <img
-                  src={u.avatar}
-                  alt={u.username}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-indigo-700">
-                  {u?.username?.[0]?.toUpperCase()}
-                </span>
-              )}
-            </div>
-              <span className="min-w-0 break-words font-semibold text-slate-800">@{u.username}</span>
-            </div>
-          ))}
+        <div className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto pr-1">
+          {loading ? (
+            [1, 2, 3].map((item) => (
+              <SkeletonCard key={item} compact />
+            ))
+          ) : users.length ? (
+            users.map((u) => (
+              <div
+                key={u._id}
+                className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3"
+              >
+                <Avatar user={u} />
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-slate-950">
+                    {u.fullName || u.username || "Student"}
+                  </p>
+
+                  <p className="truncate text-xs text-slate-500">
+                    @{u.username || "user"}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+              No likes yet.
+            </p>
+          )}
         </div>
-
-        <button
-          onClick={onClose}
-          className="app-button-secondary w-full"
-        >
-          Close
-        </button>
       </div>
-    </div>
+    </FormModal>
   );
 }

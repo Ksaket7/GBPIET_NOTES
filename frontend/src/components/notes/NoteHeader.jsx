@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Bot } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
@@ -12,7 +12,7 @@ export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const isOwner = user?._id === note.uploadedBy?._id;
 
@@ -63,22 +63,6 @@ export default function NoteHeader({ note }) {
           className="app-button-secondary w-full py-2 sm:w-auto"
         >
           View upvoters
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!isAuthenticated) {
-              navigate("/login");
-              return;
-            }
-            navigate(`/notes/${note._id}/ai`, {
-              state: { noteType: note.type, noteTitle: note.title },
-            });
-          }}
-          className="app-button w-full py-2 sm:w-auto"
-        >
-          <Bot size={16} />
-          Ask AI
         </button>
         {isOwner && (
           <LoadingButton

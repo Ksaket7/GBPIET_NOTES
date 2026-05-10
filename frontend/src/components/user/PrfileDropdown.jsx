@@ -22,7 +22,7 @@ const ProfileDropdown = ({ user, logout }) => {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-sm font-semibold text-white shadow-lg shadow-slate-500/20"
+        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-xs font-semibold text-white shadow-lg shadow-slate-500/20 sm:h-10 sm:w-10 sm:text-sm"
       >
         {user?.avatar ? (
           <img src={user.avatar} alt={user?.username || "User"} className="h-full w-full object-cover" />
@@ -32,7 +32,7 @@ const ProfileDropdown = ({ user, logout }) => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 z-[80] w-56 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl">
+        <div className="absolute right-0 top-12 z-[80] w-[min(14rem,calc(100vw-1rem))] rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl">
           <div className="border-b border-slate-100 px-3 py-3">
             <p className="truncate text-sm font-semibold text-slate-950">
               {user?.username}
