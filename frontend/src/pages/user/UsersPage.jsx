@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import API from "../../services/api";
 
 function DirectoryUserCard({ directoryUser, onToggleFollow }) {
   return (
     <div className="soft-card flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center">
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-indigo-100">
+      <Link
+        to={`/profile/${directoryUser.username}`}
+        className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-indigo-100 transition hover:scale-105"
+      >
         {directoryUser.avatar ? (
           <img
             src={directoryUser.avatar}
@@ -19,12 +23,15 @@ function DirectoryUserCard({ directoryUser, onToggleFollow }) {
               .toUpperCase()}
           </span>
         )}
-      </div>
+      </Link>
 
       <div className="min-w-0 flex-1">
-        <h3 className="truncate font-semibold text-slate-950">
+        <Link
+          to={`/profile/${directoryUser.username}`}
+          className="block truncate font-semibold text-slate-950 transition hover:text-indigo-700"
+        >
           {directoryUser.fullName || directoryUser.username}
-        </h3>
+        </Link>
         <p className="truncate text-sm text-slate-500">
           @{directoryUser.username} - {directoryUser.branch || "GBPIET"} / {directoryUser.year || directoryUser.role || "Student"}
         </p>

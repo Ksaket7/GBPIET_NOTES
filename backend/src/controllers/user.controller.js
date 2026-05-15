@@ -9,7 +9,6 @@ import {
   uploadOnSupabase,
   deleteFromSupabase,
 } from "../utils/supabaseStorage.js";
-import mongoose from "mongoose";
 import { verifyRealEmail } from "../utils/emailValidator.js";
 import { Note } from "../models/note.model.js";
 import { Follow } from "../models/follow.model.js";
@@ -288,14 +287,59 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullName, email, branch } = req.body;
+  const {
+    bio = "",
+    branch,
+    email,
+    fullName,
+    interests = [],
+    techStack = [],
+    username,
+    year,
+  } = req.body;
   if (!fullName || !email) throw new ApiError(400, "All fields required");
+
+  const normalizeList = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") return value.split(",");
+    return [];
+  };
+
+  const normalizedUsername = username?.trim()?.toLowerCase();
+  if (normalizedUsername) {
+    const usernameTaken = await User.exists({
+      username: normalizedUsername,
+      _id: { $ne: req.user._id },
+    });
+
+    if (usernameTaken) {
+      throw new ApiError(409, "Username already exists");
+    }
+  }
+
+  const update = {
+    fullName: fullName.trim(),
+    email: email.toLowerCase().trim(),
+    branch: branch?.trim() || "Unassigned",
+    bio: String(bio || "").trim().slice(0, 500),
+    techStack: normalizeList(techStack)
+      .map((item) => String(item).replace(/^#/, "").trim())
+      .filter(Boolean)
+      .slice(0, 12),
+    interests: normalizeList(interests)
+      .map((item) => String(item).replace(/^#/, "").trim())
+      .filter(Boolean)
+      .slice(0, 12),
+  };
+
+  if (normalizedUsername) update.username = normalizedUsername;
+  if (year?.trim()) update.year = year.trim();
 
   const user = await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { fullName, email, branch } },
+    { $set: update },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
@@ -375,72 +419,98 @@ const getUserProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Username is required");
   }
 
-  const userProfile = await User.aggregate([
-    {
-      $match: {
-        username: { $regex: `^${username}$`, $options: "i" },
-      },
-    },
-    {
-      $lookup: {
-        from: "follows", // from same collection
-        localField: "following",
-        foreignField: "_id",
-        as: "followingList",
-      },
-    },
-    {
-      $lookup: {
-        from: "follows",
-        localField: "follower",
-        foreignField: "_id",
-        as: "followerList",
-      },
-    },
-    {
-      $addFields: {
-        followersCount: { $size: "$followerList" },
-        followingCount: { $size: "$followingList" },
-        isFollowing: {
-          $cond: {
-            if: {
-              $in: [
-                new mongoose.Types.ObjectId(req.user?._id),
-                "$followersList.follower",
-              ],
-            },
-            then: true,
-            else: false,
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        fullName: 1,
-        username: 1,
-        email: 1,
-        avatar: 1,
-        branch: 1,
-        year: 1,
-        role: 1,
-        credits: 1,
-        followersCount: 1,
-        followingCount: 1,
-        isFollowing: 1,
-      },
-    },
-  ]);
+  const profileUser = await User.findOne({
+    username: { $regex: `^${username}$`, $options: "i" },
+  })
+    .select("-password -refreshToken")
+    .lean();
 
-  if (!userProfile.length) {
+  if (!profileUser) {
     throw new ApiError(404, "User not found");
   }
 
+  const userId = profileUser._id;
+  const currentUserId = req.user?._id;
+
+  const [
+    followersCount,
+    followingCount,
+    notesCount,
+    questionsCount,
+    answersCount,
+    postsCount,
+    isFollowing,
+    notes,
+    questions,
+    answers,
+    posts,
+  ] = await Promise.all([
+    Follow.countDocuments({ following: userId }),
+    Follow.countDocuments({ follower: userId }),
+    Note.countDocuments({ originalStudent: userId }),
+    Question.countDocuments({ askedBy: userId }),
+    Answer.countDocuments({ answeredBy: userId }),
+    Post.countDocuments({ postedBy: userId }),
+    currentUserId
+      ? Follow.exists({ follower: currentUserId, following: userId })
+      : false,
+    Note.find({ originalStudent: userId })
+      .sort({ createdAt: -1 })
+      .limit(12)
+      .lean(),
+    Question.find({ askedBy: userId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean(),
+    Answer.find({ answeredBy: userId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("question", "title description tags createdAt")
+      .lean(),
+    Post.find({ postedBy: userId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("postedBy", "fullName username avatar")
+      .lean(),
+  ]);
+
+  const profile = {
+    user: {
+      _id: profileUser._id,
+      fullName: profileUser.fullName,
+      username: profileUser.username,
+      email: profileUser.email,
+      avatar: profileUser.avatar,
+      branch: profileUser.branch,
+      year: profileUser.year,
+      role: profileUser.role,
+      bio: profileUser.bio,
+      techStack: profileUser.techStack || [],
+      interests: profileUser.interests || [],
+      isSelf: currentUserId?.toString() === userId.toString(),
+      isFollowing: Boolean(isFollowing),
+    },
+    stats: {
+      followers: followersCount,
+      following: followingCount,
+      upvotes: profileUser.upvotes || 0,
+      credits: profileUser.credits || 0,
+      notes: notesCount,
+      questions: questionsCount,
+      answers: answersCount,
+      posts: postsCount,
+    },
+    contributions: {
+      notes,
+      questions,
+      answers,
+      posts,
+    },
+  };
+
   return res
     .status(200)
-    .json(
-      new ApiResponse(200, userProfile[0], "User profile fetched successfully")
-    );
+    .json(new ApiResponse(200, profile, "User profile fetched successfully"));
 });
 
 const updateUserRole = asyncHandler(async (req, res) => {

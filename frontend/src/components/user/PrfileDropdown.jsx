@@ -13,7 +13,7 @@ import {
 const menuLinks = [
   {
     label: "Profile",
-    path: "/settings?tab=profile",
+    path: null,
     icon: UserCircle,
   },
   {
@@ -42,6 +42,8 @@ const ProfileDropdown = ({ user, logout }) => {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef();
   const menuRef = useRef();
+  const avatarInitial =
+    (user?.fullName || user?.username || "U").trim().charAt(0).toUpperCase();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -78,14 +80,27 @@ const ProfileDropdown = ({ user, logout }) => {
             ref={menuRef}
             className="fixed right-2 top-[4.5rem] z-[9999] w-[min(16rem,calc(100vw-1rem))] rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl sm:right-6"
           >
-            <div className="border-b border-slate-100 px-3 py-3">
-              <p className="truncate text-sm font-semibold text-slate-950">
-                {user?.fullName || user?.username || "GBPIET user"}
-              </p>
-              <p className="truncate text-xs text-slate-500">
-                @{user?.username || "student"}
-              </p>
-              <p className="truncate text-xs text-slate-400">{user?.email}</p>
+            <div className="flex items-center gap-3 border-b border-slate-100 px-3 py-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-950 text-base font-semibold text-white shadow-lg shadow-slate-500/20">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user?.username || "User"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  avatarInitial
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-950">
+                  {user?.fullName || user?.username || "GBPIET user"}
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  @{user?.username || "student"}
+                </p>
+                <p className="truncate text-xs text-slate-400">{user?.email}</p>
+              </div>
             </div>
 
             <div className="mt-2 space-y-1">
@@ -93,9 +108,9 @@ const ProfileDropdown = ({ user, logout }) => {
                 const Icon = link.icon;
 
                 return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
+                <Link
+                  key={link.label}
+                  to={link.path || `/profile/${user?.username || ""}`}
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
                   >

@@ -11,8 +11,13 @@ export default function Settings() {
     : "general";
   const [form, setForm] = useState(() => ({
     fullName: user?.fullName || "",
+    username: user?.username || "",
     email: user?.email || "",
     branch: user?.branch || "",
+    year: user?.year || "",
+    bio: user?.bio || "",
+    techStack: (user?.techStack || []).join(", "),
+    interests: (user?.interests || []).join(", "),
     oldPassword: "",
     newPassword: "",
   }));
@@ -24,8 +29,13 @@ export default function Settings() {
   const handleSave = async () => {
     const res = await API.patch("/users/update-account", {
       fullName: form.fullName,
+      username: form.username,
       email: form.email,
       branch: form.branch,
+      year: form.year,
+      bio: form.bio,
+      techStack: form.techStack,
+      interests: form.interests,
     });
     setUser?.(res.data.data);
     alert("Updated");
@@ -76,7 +86,9 @@ export default function Settings() {
                   ["Full Name", user?.fullName],
                   ["Email", user?.email],
                   ["Branch", user?.branch],
+                  ["Year", user?.year],
                   ["Role", user?.role],
+                  ["Credits", user?.credits],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-3xl bg-white/65 p-4">
                     <p className="text-xs text-slate-500">{label}</p>
@@ -95,8 +107,9 @@ export default function Settings() {
                 </h2>
                 <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <input name="fullName" value={form.fullName} onChange={handleChange} className="app-input" placeholder="Full Name" />
+                  <input name="username" value={form.username} onChange={handleChange} className="app-input" placeholder="Username" />
                   <input name="email" value={form.email} onChange={handleChange} className="app-input" placeholder="Email" />
-                  <select name="branch" value={form.branch} onChange={handleChange} className="app-input md:col-span-2">
+                  <select name="branch" value={form.branch} onChange={handleChange} className="app-input">
                     <option value="">Select Branch</option>
                     <option>CSE</option>
                     <option>CSE(AIML)</option>
@@ -104,6 +117,13 @@ export default function Settings() {
                     <option>ME</option>
                     <option>CE</option>
                     <option>BT</option>
+                  </select>
+                  <select name="year" value={form.year} onChange={handleChange} className="app-input">
+                    <option value="">Select Year</option>
+                    <option>1st Year</option>
+                    <option>2nd Year</option>
+                    <option>3rd Year</option>
+                    <option>4th Year</option>
                   </select>
                 </div>
                 <button type="button" onClick={handleSave} className="app-button mt-5">
@@ -132,8 +152,35 @@ export default function Settings() {
                 Profile
               </h2>
               <p className="mt-3 text-sm text-slate-500">
-                Avatar upload and username changes can be added here.
+                Add optional details that appear on your public student profile.
               </p>
+              <div className="mt-5 grid gap-4">
+                <textarea
+                  name="bio"
+                  value={form.bio}
+                  onChange={handleChange}
+                  rows={5}
+                  className="app-input resize-none"
+                  placeholder="Short bio about your academic interests, projects, or contribution style"
+                />
+                <input
+                  name="techStack"
+                  value={form.techStack}
+                  onChange={handleChange}
+                  className="app-input"
+                  placeholder="Tech stack, comma separated. Example: React, DSA, NodeJS, DBMS"
+                />
+                <input
+                  name="interests"
+                  value={form.interests}
+                  onChange={handleChange}
+                  className="app-input"
+                  placeholder="Interests, comma separated. Example: Operating Systems, AI, Web Development"
+                />
+              </div>
+              <button type="button" onClick={handleSave} className="app-button mt-5">
+                Save Profile
+              </button>
             </div>
           )}
         </section>

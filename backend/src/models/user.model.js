@@ -53,6 +53,24 @@ const userSchema = new Schema(
       type: String,
       trim: true,
     },
+    bio: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 500,
+    },
+    techStack: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    interests: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     credits: {
       type: Number,
       default: 0,
