@@ -6,7 +6,6 @@ import {
   Image,
   Link as LinkIcon,
   Loader2,
-  MessageSquareText,
   Paperclip,
   Plus,
   Send,
@@ -60,6 +59,22 @@ const formatSessionTime = (timestamp) =>
     minute: "2-digit",
   }).format(new Date(timestamp));
 
+const getApiUrl = (path) => {
+  const baseUrl = API.defaults.baseURL || "";
+  return `${baseUrl.replace(/\/$/, "")}${path}`;
+};
+
+const parseStreamEvents = (chunkText) =>
+  chunkText
+    .split("\n\n")
+    .map((eventBlock) =>
+      eventBlock
+        .split("\n")
+        .find((line) => line.trim().startsWith("data:"))
+        ?.replace(/^data:\s*/, ""),
+    )
+    .filter(Boolean);
+
 function ChatBubble({ message }) {
   const isUser = message.role === "user";
 
@@ -72,24 +87,46 @@ function ChatBubble({ message }) {
             : "border border-slate-200 bg-white text-slate-700"
         }`}
       >
-        <p className="whitespace-pre-wrap break-words">{message.content}</p>
+        <p className="whitespace-pre-wrap break-words">
+          {message.content}
+          {message.streaming && (
+            <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-full bg-indigo-500 align-[-2px]" />
+          )}
+        </p>
         {!isUser && message.sources?.length > 0 && (
           <div className="mt-4 space-y-2 border-t border-slate-100 pt-3">
             <p className="text-xs font-semibold uppercase text-slate-400">
               References
             </p>
-            {message.sources.map((source) => (
-              <a
-                key={source.url}
-                href={source.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
-              >
-                <LinkIcon size={14} className="mt-0.5 shrink-0" />
-                <span className="min-w-0 break-words">{source.title || source.url}</span>
-              </a>
-            ))}
+            {message.sources.map((source, index) => {
+              const content = (
+                <>
+                  <LinkIcon size={14} className="mt-0.5 shrink-0" />
+                  <span className="min-w-0 break-words">
+                    {source.title || source.url || "GBPIET source"}
+                  </span>
+                </>
+              );
+
+              return source.url ? (
+                <a
+                  key={`${source.url}-${index}`}
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                >
+                  {content}
+                </a>
+              ) : (
+                <div
+                  key={`${source.title}-${index}`}
+                  className="flex items-start gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700"
+                >
+                  {content}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -307,10 +344,26 @@ export default function AIChatbotPage() {
     });
   };
 
+  const handleClearChat = () => {
+    if (!activeSessionId) return;
+    handleDeleteSession(activeSessionId);
+    setShowHistory(false);
+  };
+
+  const handleInputKeyDown = (event) => {
+    if (event.key !== "Enter" || event.shiftKey) return;
+
+    event.preventDefault();
+
+    if (loading || (!input.trim() && files.length === 0)) return;
+    event.currentTarget.form?.requestSubmit();
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!input.trim() && files.length === 0) return;
 
+    const assistantMessageId = makeSessionId();
     const userText = input.trim() || "Please analyze the attached file.";
     const attachedSummary = files.length
       ? `\n\nAttached: ${files.map((file) => file.name).join(", ")}`
@@ -319,7 +372,13 @@ export default function AIChatbotPage() {
     commitMessages((currentMessages) => [
       ...currentMessages,
       { role: "user", content: `${userText}${attachedSummary}` },
-      { role: "assistant", content: "Thinking...", pending: true },
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        pending: true,
+        streaming: true,
+      },
     ]);
     setErrorMessage("");
     setInput("");
@@ -331,21 +390,84 @@ export default function AIChatbotPage() {
 
     try {
       setLoading(true);
-      const response = await API.post("/ai-chat/message", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await fetch(getApiUrl("/ai-chat/message/stream"), {
+        method: "POST",
+        body: formData,
+        credentials: "include",
       });
-      const data = response.data?.data;
-      commitMessages((currentMessages) => [
-        ...currentMessages.filter((message) => !message.pending),
-        {
-          role: "assistant",
-          content: data?.answer || "I could not generate a response.",
-          sources: data?.sources || [],
-        },
-      ]);
+
+      if (!response.ok || !response.body) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.message || "AI chatbot failed to start streaming.",
+        );
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullAnswer = "";
+      let latestSources = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const eventBlocks = buffer.split("\n\n");
+        buffer = eventBlocks.pop() || "";
+
+        for (const payload of parseStreamEvents(eventBlocks.join("\n\n"))) {
+          const eventData = JSON.parse(payload);
+
+          if (eventData.type === "meta") {
+            latestSources = eventData.sources || [];
+          }
+
+          if (eventData.type === "delta") {
+            fullAnswer += eventData.text || "";
+            commitMessages((currentMessages) =>
+              currentMessages.map((message) =>
+                message.id === assistantMessageId
+                  ? {
+                      ...message,
+                      content: fullAnswer,
+                      sources: latestSources,
+                      streaming: true,
+                    }
+                  : message,
+              ),
+            );
+          }
+
+          if (eventData.type === "done") {
+            latestSources = eventData.sources || latestSources;
+          }
+
+          if (eventData.type === "error") {
+            throw new Error(eventData.message || "AI chatbot failed.");
+          }
+        }
+      }
+
+      commitMessages((currentMessages) =>
+        currentMessages.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content:
+                  fullAnswer.trim() || "I could not generate a response.",
+                sources: latestSources,
+                pending: false,
+                streaming: false,
+              }
+            : message,
+        ),
+      );
       setFiles([]);
     } catch (error) {
       const message =
+        error.message ||
         error.response?.data?.message ||
         (error.response?.status === 404
           ? "AI chatbot route was not found. Restart the backend server so the new /api/v1/ai-chat route is loaded."
@@ -353,72 +475,27 @@ export default function AIChatbotPage() {
             ? "Backend is not reachable. Make sure the backend server is running."
             : "AI chatbot failed. Check backend env configuration.");
       setErrorMessage(message);
-      commitMessages((currentMessages) => [
-        ...currentMessages.filter((item) => !item.pending),
-        { role: "assistant", content: message },
-      ]);
+      commitMessages((currentMessages) =>
+        currentMessages.map((item) =>
+          item.id === assistantMessageId
+            ? {
+                ...item,
+                content: message,
+                pending: false,
+                streaming: false,
+              }
+            : item,
+        ),
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const activeSessionTitle =
-    sessions.find((session) => session.id === activeSessionId)?.title ||
-    "New study chat";
-
   return (
     <main className="app-page">
-      <div className="fixed left-3 right-3 top-20 z-40 max-w-[calc(100vw-1.5rem)] lg:left-6 lg:right-auto lg:w-[310px]">
-        <div className="grid grid-cols-2 gap-3 rounded-3xl border border-white/80 bg-white/90 p-2 shadow-2xl shadow-slate-500/15 backdrop-blur-xl">
-          <button
-            type="button"
-            onClick={handleNewChat}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700"
-          >
-            <Plus size={17} />
-            New chat
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowHistory((current) => !current)}
-            className={`flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
-              showHistory
-                ? "bg-indigo-50 text-indigo-700"
-                : "bg-white text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            <Clock3 size={17} />
-            History
-          </button>
-        </div>
-
-        {showHistory && (
-          <section className="mt-3 max-h-[min(62vh,460px)] overflow-hidden rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-2xl shadow-slate-500/15 backdrop-blur-xl">
-            <div className="mb-3 flex items-center justify-between px-1">
-              <div>
-                <h2 className="text-sm font-semibold text-slate-950">
-                  Saved chats
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Stored on this browser
-                </p>
-              </div>
-              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
-                {sessions.length}
-              </span>
-            </div>
-            <HistoryPanel
-              activeSessionId={activeSessionId}
-              onDeleteSession={handleDeleteSession}
-              onSelectSession={handleSelectSession}
-              sessions={sessions}
-            />
-          </section>
-        )}
-      </div>
-
       <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[310px_minmax(0,1fr)]">
-        <aside className="space-y-4 pt-24 lg:pt-28">
+        <aside className="space-y-4">
           <section className="rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 p-5 text-white shadow-xl shadow-indigo-200">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
               <Bot size={22} />
@@ -455,7 +532,7 @@ export default function AIChatbotPage() {
 
         <section className="flex min-h-[calc(100vh-9rem)] min-w-0 flex-col overflow-hidden rounded-[28px] border border-white/70 bg-white/55 shadow-2xl shadow-slate-500/15 backdrop-blur-2xl">
           <header className="border-b border-slate-200/70 px-4 py-4 sm:px-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-sm font-semibold text-indigo-700">
                   Study assistant
@@ -464,14 +541,66 @@ export default function AIChatbotPage() {
                   Logged in as {user?.fullName || user?.username || "GBPIET user"}
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-2xl bg-white/80 px-3 py-2 text-xs font-semibold text-slate-500">
-                <MessageSquareText size={15} className="text-indigo-600" />
-                <span className="max-w-[180px] truncate">
-                  {activeSessionTitle}
-                </span>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-2.5 text-xs font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700"
+                >
+                  <Plus size={15} />
+                  New chat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowHistory((current) => !current)}
+                  className={`flex items-center justify-center gap-2 rounded-2xl px-3 py-2.5 text-xs font-semibold transition ${
+                    showHistory
+                      ? "bg-indigo-50 text-indigo-700"
+                      : "bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  <Clock3 size={15} />
+                  History
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearChat}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-red-50 px-3 py-2.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Trash2 size={15} />
+                  Clear chat
+                </button>
               </div>
             </div>
           </header>
+
+          {showHistory && (
+            <section className="border-b border-slate-200/70 bg-white/80 px-4 py-4 sm:px-6">
+              <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-xl shadow-slate-500/10 backdrop-blur-xl">
+                <div className="mb-3 flex items-center justify-between px-1">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-950">
+                      Saved chats
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Stored on this browser
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                    {sessions.length}
+                  </span>
+                </div>
+                <HistoryPanel
+                  activeSessionId={activeSessionId}
+                  onDeleteSession={handleDeleteSession}
+                  onSelectSession={handleSelectSession}
+                  sessions={sessions}
+                />
+              </div>
+            </section>
+          )}
 
           <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6">
             {messages.map((message, index) => (
@@ -515,6 +644,7 @@ export default function AIChatbotPage() {
                 <textarea
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={handleInputKeyDown}
                   placeholder="Ask a doubt, request summary, or upload notes..."
                   rows={1}
                   className="max-h-32 min-h-11 flex-1 resize-none border-0 bg-transparent px-2 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"

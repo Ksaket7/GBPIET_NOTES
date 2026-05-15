@@ -1,5 +1,8 @@
 import express from "express";
-import { sendAiMessage } from "../controllers/aiChat.controller.js";
+import {
+  sendAiMessage,
+  streamAiMessage,
+} from "../controllers/aiChat.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { aiUpload } from "../middlewares/aiUpload.middleware.js";
 
@@ -20,5 +23,9 @@ router.route("/health").get((req, res) =>
 router
   .route("/message")
   .post(verifyJWT, aiUpload.array("files", 4), sendAiMessage);
+
+router
+  .route("/message/stream")
+  .post(verifyJWT, aiUpload.array("files", 4), streamAiMessage);
 
 export default router;

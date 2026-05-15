@@ -1,14 +1,54 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { LogOut, Settings, UserCircle } from "lucide-react";
+import {
+  BarChart3,
+  HelpCircle,
+  LogOut,
+  Settings,
+  UserCircle,
+  Users,
+} from "lucide-react";
+
+const menuLinks = [
+  {
+    label: "Profile",
+    path: "/settings?tab=profile",
+    icon: UserCircle,
+  },
+  {
+    label: "Settings",
+    path: "/settings",
+    icon: Settings,
+  },
+  {
+    label: "Leaderboard",
+    path: "/leaderboard",
+    icon: BarChart3,
+  },
+  {
+    label: "People",
+    path: "/users",
+    icon: Users,
+  },
+  {
+    label: "Contact",
+    path: "/contact",
+    icon: HelpCircle,
+  },
+];
 
 const ProfileDropdown = ({ user, logout }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef();
+  const buttonRef = useRef();
+  const menuRef = useRef();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!ref.current?.contains(event.target)) {
+      if (
+        !buttonRef.current?.contains(event.target) &&
+        !menuRef.current?.contains(event.target)
+      ) {
         setOpen(false);
       }
     };
@@ -18,11 +58,12 @@ const ProfileDropdown = ({ user, logout }) => {
   }, []);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative mr-1 shrink-0 sm:mr-0">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-xs font-semibold text-white shadow-lg shadow-slate-500/20 sm:h-10 sm:w-10 sm:text-sm"
+        className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-xs font-semibold text-white shadow-lg shadow-slate-500/20 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 sm:text-sm"
       >
         {user?.avatar ? (
           <img src={user.avatar} alt={user?.username || "User"} className="h-full w-full object-cover" />
@@ -31,43 +72,54 @@ const ProfileDropdown = ({ user, logout }) => {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-12 z-[80] w-[min(14rem,calc(100vw-1rem))] rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl">
-          <div className="border-b border-slate-100 px-3 py-3">
-            <p className="truncate text-sm font-semibold text-slate-950">
-              {user?.username}
-            </p>
-            <p className="truncate text-xs text-slate-500">{user?.email}</p>
-          </div>
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="fixed right-2 top-[4.5rem] z-[9999] w-[min(16rem,calc(100vw-1rem))] rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl sm:right-6"
+          >
+            <div className="border-b border-slate-100 px-3 py-3">
+              <p className="truncate text-sm font-semibold text-slate-950">
+                {user?.fullName || user?.username || "GBPIET user"}
+              </p>
+              <p className="truncate text-xs text-slate-500">
+                @{user?.username || "student"}
+              </p>
+              <p className="truncate text-xs text-slate-400">{user?.email}</p>
+            </div>
 
-          <div className="mt-2 space-y-1">
-            <Link
-              to="/settings?tab=profile"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
-            >
-              <UserCircle size={16} />
-              Profile
-            </Link>
-            <Link
-              to="/settings"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-slate-600 hover:bg-slate-100"
-            >
-              <Settings size={16} />
-              Settings
-            </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className="flex w-full items-center gap-2 rounded-2xl px-3 py-2 text-sm text-red-500 hover:bg-red-50"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
+            <div className="mt-2 space-y-1">
+              {menuLinks.map((link) => {
+                const Icon = link.icon;
+
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                  >
+                    <Icon size={16} />
+                    {link.label}
+                  </Link>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  logout();
+                }}
+                className="mt-2 flex w-full items-center gap-2 rounded-2xl border-t border-slate-100 px-3 py-2 pt-3 text-sm font-medium text-red-500 transition hover:bg-red-50"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+          ,
+          document.body,
+        )}
     </div>
   );
 };

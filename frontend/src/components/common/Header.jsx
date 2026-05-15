@@ -76,9 +76,9 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-x-clip border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-7xl min-w-0 items-center justify-between gap-2 overflow-hidden pl-3 pr-5 sm:gap-4 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+      <header className="sticky top-0 z-50 w-full max-w-full overflow-hidden border-b border-slate-200/70 bg-white/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 w-full max-w-7xl min-w-0 items-center justify-between gap-1 overflow-hidden px-2 sm:gap-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -88,13 +88,13 @@ export default function Header() {
               <Menu size={20} />
             </button>
 
-            <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <Link to="/" className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
               <img
                 src={logo}
                 alt="GBPIET NOTES"
-                className="h-9 w-9 shrink-0 rounded-xl object-cover sm:h-10 sm:w-10"
+                className="h-10 w-10 shrink-0 rounded-xl object-cover min-[380px]:h-11 min-[380px]:w-11 sm:h-12 sm:w-12"
               />
-              <span className="block max-w-[118px] truncate font-poppins text-sm font-semibold text-indigo-700 min-[390px]:max-w-[150px] sm:max-w-none sm:text-lg">
+              <span className="block max-w-[74px] truncate font-poppins text-sm font-semibold text-indigo-700 min-[380px]:max-w-[104px] min-[430px]:max-w-[142px] sm:max-w-none sm:text-lg">
                 GBPIET NOTES
               </span>
             </Link>
@@ -110,7 +110,7 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 sm:gap-2">
             {isAuthenticated ? (
               <>
                 <Link
@@ -155,7 +155,7 @@ export default function Header() {
                 <img
                   src={logo}
                   alt="GBPIET Notes"
-                  className="h-9 w-9 rounded-xl object-cover"
+                  className="h-12 w-12 rounded-xl object-cover"
                 />
                 <span className="truncate font-poppins font-semibold text-indigo-700">
                   GBPIET NOTES
