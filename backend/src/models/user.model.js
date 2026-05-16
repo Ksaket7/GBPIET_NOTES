@@ -39,6 +39,10 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    coverImage: {
+      type: String,
+      default: "",
+    },
     role: {
       type: String,
       enum: ["student", "cr", "faculty", "admin"],
@@ -71,6 +75,28 @@ const userSchema = new Schema(
         trim: true,
       },
     ],
+    profileLinks: {
+      github: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      linkedin: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      portfolio: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      instagram: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+    },
     credits: {
       type: Number,
       default: 0,

@@ -8,7 +8,9 @@ import {
   getUserProfile,
   getCurrentUser,
   updateAccountDetails,
+  deleteUserCoverImage,
   updateUserAvatar,
+  updateUserCoverImage,
   changeCurrentPassword,
   updateUserRole,
   getFacultyUsers,
@@ -47,6 +49,10 @@ router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 router
   .route("/avatar")
   .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
+router
+  .route("/cover-image")
+  .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
+router.route("/cover-image").delete(verifyJWT, deleteUserCoverImage);
 
 router.route("/update-role").patch(verifyJWT,verifyRole("admin"), updateUserRole);
 export default router;

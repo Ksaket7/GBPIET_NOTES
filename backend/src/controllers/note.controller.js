@@ -293,6 +293,7 @@ const getTopNotes = asyncHandler(async (req, res) => {
         id: "$_id",
         title: 1,
         subjectCode: 1,
+        fileUrl: 1,
         semester: { $literal: null },
         description: {
           $cond: [

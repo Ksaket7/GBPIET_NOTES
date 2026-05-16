@@ -293,6 +293,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     email,
     fullName,
     interests = [],
+    profileLinks = {},
     techStack = [],
     username,
     year,
@@ -330,6 +331,12 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
       .map((item) => String(item).replace(/^#/, "").trim())
       .filter(Boolean)
       .slice(0, 12),
+    profileLinks: {
+      github: String(profileLinks.github || req.body.github || "").trim(),
+      linkedin: String(profileLinks.linkedin || req.body.linkedin || "").trim(),
+      portfolio: String(profileLinks.portfolio || req.body.portfolio || "").trim(),
+      instagram: String(profileLinks.instagram || req.body.instagram || "").trim(),
+    },
   };
 
   if (normalizedUsername) update.username = normalizedUsername;
@@ -347,8 +354,8 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) throw new ApiError(400, "Avatar file missing");
+  const avatarFile = req.file;
+  if (!avatarFile) throw new ApiError(400, "Avatar file missing");
 
   // 1️⃣ Fetch user to get current avatar URL
   const user = await User.findById(req.user._id);
@@ -377,9 +384,10 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
   // 3️⃣ Upload new avatar to Supabase
   const avatarUrl = await uploadOnSupabase(
-    avatarLocalPath,
-    "uploads",
-    "avatars"
+    avatarFile.buffer,
+    avatarFile.originalname,
+    "avatars",
+    "uploads"
   );
   if (!avatarUrl) throw new ApiError(500, "Avatar upload failed");
 
@@ -388,11 +396,61 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     req.user._id,
     { $set: { avatar: avatarUrl } },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
     .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverFile = req.file;
+  if (!coverFile) throw new ApiError(400, "Cover image file missing");
+
+  const user = await User.findById(req.user._id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.coverImage) {
+    await deleteFromSupabase(user.coverImage, "uploads");
+  }
+
+  const coverImageUrl = await uploadOnSupabase(
+    coverFile.buffer,
+    coverFile.originalname,
+    "covers",
+    "uploads"
+  );
+
+  if (!coverImageUrl) throw new ApiError(500, "Cover image upload failed");
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { coverImage: coverImageUrl } },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Cover image updated successfully"));
+});
+
+const deleteUserCoverImage = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.coverImage) {
+    await deleteFromSupabase(user.coverImage, "uploads");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { coverImage: "" } },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Cover image deleted successfully"));
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
@@ -481,12 +539,14 @@ const getUserProfile = asyncHandler(async (req, res) => {
       username: profileUser.username,
       email: profileUser.email,
       avatar: profileUser.avatar,
+      coverImage: profileUser.coverImage,
       branch: profileUser.branch,
       year: profileUser.year,
       role: profileUser.role,
       bio: profileUser.bio,
       techStack: profileUser.techStack || [],
       interests: profileUser.interests || [],
+      profileLinks: profileUser.profileLinks || {},
       isSelf: currentUserId?.toString() === userId.toString(),
       isFollowing: Boolean(isFollowing),
     },
@@ -1140,6 +1200,8 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
+  updateUserCoverImage,
+  deleteUserCoverImage,
   changeCurrentPassword,
   getUserProfile,
   updateUserRole,

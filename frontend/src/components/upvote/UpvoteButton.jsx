@@ -5,7 +5,14 @@ import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingButton from "../ui/LoadingButton";
 
-export default function UpvoteButton({ type, id, label = "", onCountClick, onChanged }) {
+export default function UpvoteButton({
+  type,
+  id,
+  label = "",
+  onCountClick,
+  onChanged,
+  stopPropagation = false,
+}) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [count, setCount] = useState(0);
@@ -13,10 +20,17 @@ export default function UpvoteButton({ type, id, label = "", onCountClick, onCha
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setCount(0);
+      setLiked(false);
+      return undefined;
+    }
+
     const fetchCount = async () => {
       try {
         const res = await API.get(`/upvotes/${type}/${id}/count`);
         setCount(res.data.data.count);
+        setLiked(Boolean(res.data.data.liked));
       } catch {
         console.error("Failed to fetch upvote count");
       }
@@ -25,7 +39,13 @@ export default function UpvoteButton({ type, id, label = "", onCountClick, onCha
     fetchCount();
   }, [type, id]);
 
-  const handleToggle = async () => {
+  const handleToggle = async (event) => {
+    if (stopPropagation) {
+      event?.stopPropagation();
+    }
+
+    if (!id) return;
+
     if (!isAuthenticated) {
       navigate("/login");
       return;

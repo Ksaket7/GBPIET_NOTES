@@ -18,9 +18,14 @@ export default function Settings() {
     bio: user?.bio || "",
     techStack: (user?.techStack || []).join(", "),
     interests: (user?.interests || []).join(", "),
+    github: user?.profileLinks?.github || "",
+    linkedin: user?.profileLinks?.linkedin || "",
+    portfolio: user?.profileLinks?.portfolio || "",
+    instagram: user?.profileLinks?.instagram || "",
     oldPassword: "",
     newPassword: "",
   }));
+  const [coverFile, setCoverFile] = useState(null);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -36,9 +41,37 @@ export default function Settings() {
       bio: form.bio,
       techStack: form.techStack,
       interests: form.interests,
+      profileLinks: {
+        github: form.github,
+        linkedin: form.linkedin,
+        portfolio: form.portfolio,
+        instagram: form.instagram,
+      },
     });
     setUser?.(res.data.data);
     alert("Updated");
+  };
+
+  const handleCoverUpload = async () => {
+    if (!coverFile) return;
+
+    const data = new FormData();
+    data.append("coverImage", coverFile);
+    const res = await API.patch("/users/cover-image", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    setUser?.(res.data.data);
+    setCoverFile(null);
+    alert("Cover image updated");
+  };
+
+  const handleCoverDelete = async () => {
+    if (!user?.coverImage) return;
+
+    const res = await API.delete("/users/cover-image");
+    setUser?.(res.data.data);
+    setCoverFile(null);
+    alert("Cover image deleted");
   };
 
   const handlePassword = async () => {
@@ -177,6 +210,76 @@ export default function Settings() {
                   className="app-input"
                   placeholder="Interests, comma separated. Example: Operating Systems, AI, Web Development"
                 />
+                <div className="rounded-2xl border border-white/70 bg-white/60 p-4">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Cover image
+                  </label>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Optional image shown at the top of your profile card.
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => setCoverFile(event.target.files?.[0] || null)}
+                    className="mt-3 app-input"
+                  />
+                  {user?.coverImage && (
+                    <img
+                      src={user.coverImage}
+                      alt="Profile cover"
+                      className="mt-3 h-32 w-full rounded-2xl object-cover"
+                    />
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCoverUpload}
+                      disabled={!coverFile}
+                      className="app-button-secondary"
+                    >
+                      Upload Cover
+                    </button>
+                    {user?.coverImage && (
+                      <button
+                        type="button"
+                        onClick={handleCoverDelete}
+                        className="rounded-2xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+                      >
+                        Delete Cover
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input
+                    name="github"
+                    value={form.github}
+                    onChange={handleChange}
+                    className="app-input"
+                    placeholder="GitHub profile link"
+                  />
+                  <input
+                    name="linkedin"
+                    value={form.linkedin}
+                    onChange={handleChange}
+                    className="app-input"
+                    placeholder="LinkedIn profile link"
+                  />
+                  <input
+                    name="portfolio"
+                    value={form.portfolio}
+                    onChange={handleChange}
+                    className="app-input"
+                    placeholder="Portfolio / website link"
+                  />
+                  <input
+                    name="instagram"
+                    value={form.instagram}
+                    onChange={handleChange}
+                    className="app-input"
+                    placeholder="Instagram profile link"
+                  />
+                </div>
               </div>
               <button type="button" onClick={handleSave} className="app-button mt-5">
                 Save Profile

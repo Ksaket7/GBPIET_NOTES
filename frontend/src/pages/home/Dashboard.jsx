@@ -5,7 +5,9 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock3,
+  Download,
   Edit3,
+  ExternalLink,
   FileQuestion,
   HelpCircle,
   MessageCircle,
@@ -23,6 +25,7 @@ import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import { timeAgo } from "../../utils/timeAgo";
+import { downloadNoteFile, openNoteFile } from "../../utils/noteFileActions";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -114,7 +117,7 @@ function ActionCard({ icon, title, detail, onClick, active }) {
   );
 }
 
-function ListPanel({ title, items, emptyText, onOpen, meta, onAction }) {
+function ListPanel({ title, items, emptyText, onOpen, meta, onAction, contentType = "item" }) {
   return (
     <section className="glass-panel responsive-panel">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -135,22 +138,48 @@ function ListPanel({ title, items, emptyText, onOpen, meta, onAction }) {
       ) : (
         <div className="space-y-3">
           {items.slice(0, 5).map((item) => (
-            <button
+            <div
               key={item._id}
-              type="button"
-              onClick={() => onOpen(item)}
-              className="flex w-full items-center justify-between rounded-2xl bg-white/65 p-3 text-left hover:bg-white"
+              className="rounded-2xl bg-white/65 p-3 transition hover:bg-white"
             >
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-slate-950">
+              <button
+                type="button"
+                onClick={() => onOpen(item)}
+                className="flex w-full items-center justify-between gap-3 text-left"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-slate-950">
                   {item.title || item.description}
-                </span>
-                <span className="mt-1 block truncate text-xs text-slate-500">
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-slate-500">
                   {meta(item)}
+                  </span>
                 </span>
-              </span>
-              <ChevronRight size={16} className="shrink-0 text-slate-400" />
-            </button>
+                <ChevronRight size={16} className="shrink-0 text-slate-400" />
+              </button>
+
+              {contentType === "note" && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                  <UpvoteButton type="note" id={item._id} stopPropagation />
+                  <button
+                    type="button"
+                    onClick={() => openNoteFile(item)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                  >
+                    <ExternalLink size={13} />
+                    Open
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadNoteFile(item)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                  >
+                    <Download size={13} />
+                    Download
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -290,6 +319,14 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
   const owner = item.postedBy || item.uploadedBy || item.askedBy;
   const isOwner = item.feedType === "post" && owner?._id === currentUser?._id;
 
+  const handleOpenFile = () => {
+    openNoteFile(item);
+  };
+
+  const handleDownloadFile = async () => {
+    await downloadNoteFile(item);
+  };
+
   const handleDelete = async () => {
     if (!window.confirm("Delete this post?")) return;
     await API.delete(`/posts/${item._id}`);
@@ -407,6 +444,34 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
           <>
             <UpvoteButton type="post" id={item._id} />
             <PostCommentBox post={item} />
+          </>
+        ) : item.feedType === "note" ? (
+          <>
+            <UpvoteButton type="note" id={item._id} />
+            <button
+              type="button"
+              onClick={() => onOpen(item)}
+              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+            >
+              <MessageCircle size={14} />
+              Details
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenFile}
+              className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-white/70 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+            >
+              <ExternalLink size={14} />
+              Open
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadFile}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+            >
+              <Download size={14} />
+              Download
+            </button>
           </>
         ) : (
           <>
@@ -555,6 +620,7 @@ function StudentDashboard({
               onOpen={(note) => navigate(`/notes/${note._id}`)}
               meta={(note) => `${note.subjectCode || "Subject"} - ${note.type || "Material"}`}
               onAction={() => navigate("/notes")}
+              contentType="note"
             />
           </aside>
 
@@ -646,6 +712,7 @@ function FacultyDashboard({
               onOpen={(note) => navigate(`/notes/${note._id}`)}
               meta={(note) => `${note.subjectCode || "Subject"} - ${note.uploadedBy?.fullName || "faculty"}`}
               onAction={() => navigate("/notes")}
+              contentType="note"
             />
           </aside>
 

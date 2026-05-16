@@ -58,11 +58,21 @@ const toggleUpvote = asyncHandler(async (req, res) => {
 const getUpvoteCount = asyncHandler(async (req, res) => {
   const { type, id } = req.params;
 
-  const count = await Upvote.countDocuments({ [type]: id });
+  const query = { [type]: id };
+  const count = await Upvote.countDocuments(query);
+  const liked = req.user?._id
+    ? Boolean(await Upvote.exists({ ...query, upvotedBy: req.user._id }))
+    : false;
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { count }, "Upvote count fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { count, liked },
+        "Upvote count fetched successfully"
+      )
+    );
 });
 
 const getUpvoters = asyncHandler(async (req, res) => {

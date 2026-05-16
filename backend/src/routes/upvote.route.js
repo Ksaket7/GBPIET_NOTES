@@ -5,12 +5,13 @@ import {
   getUpvoters,
 } from "../controllers/upvote.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { verifyJWTOptional } from "../middlewares/verifyJWTOptional.js";
 
 const router = express.Router();
 
 router.route("/:type/:id/toggle").post(verifyJWT, toggleUpvote);
 
-router.route("/:type/:id/count").get(getUpvoteCount);
+router.route("/:type/:id/count").get(verifyJWTOptional, getUpvoteCount);
 
 router.route("/:type/:id/users").get(getUpvoters);
 

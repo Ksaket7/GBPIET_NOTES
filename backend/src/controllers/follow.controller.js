@@ -43,6 +43,7 @@ const toggleFollow = asyncHandler(async (req, res) => {
 
 const getUserFollowers = asyncHandler(async (req, res) => {
   const { userId } = req.params;
+  const currentUserId = req.user._id;
 
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid user ID");
@@ -50,13 +51,24 @@ const getUserFollowers = asyncHandler(async (req, res) => {
 
   const followers = await Follow.find({ following: userId }).populate(
     "follower",
-    "username fullName avatar"
+    "username fullName avatar branch year role"
   );
+  const users = followers.map((f) => f.follower).filter(Boolean);
+  const userIds = users.map((user) => user._id);
+  const follows = await Follow.find({
+    follower: currentUserId,
+    following: { $in: userIds },
+  }).select("following");
+  const followedIds = new Set(follows.map((follow) => follow.following.toString()));
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      followers.map((f) => f.follower),
+      users.map((user) => ({
+        ...user.toObject(),
+        isFollowing: followedIds.has(user._id.toString()),
+        isSelf: user._id.toString() === currentUserId.toString(),
+      })),
       "Followers fetched successfully"
     )
   );
@@ -64,18 +76,30 @@ const getUserFollowers = asyncHandler(async (req, res) => {
 
 const getUserFollowing = asyncHandler(async (req, res) => {
   const { userId } = req.params;
+  const currentUserId = req.user._id;
 
   if (!isValidObjectId(userId)) throw new ApiError(400, "Invalid user ID");
 
   const following = await Follow.find({ follower: userId }).populate(
     "following",
-    "username fullName avatar"
+    "username fullName avatar branch year role"
   );
+  const users = following.map((f) => f.following).filter(Boolean);
+  const userIds = users.map((user) => user._id);
+  const follows = await Follow.find({
+    follower: currentUserId,
+    following: { $in: userIds },
+  }).select("following");
+  const followedIds = new Set(follows.map((follow) => follow.following.toString()));
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      following.map((f) => f.following),
+      users.map((user) => ({
+        ...user.toObject(),
+        isFollowing: followedIds.has(user._id.toString()),
+        isSelf: user._id.toString() === currentUserId.toString(),
+      })),
       "Following fetched successfully"
     )
   );

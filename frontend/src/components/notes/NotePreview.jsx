@@ -1,17 +1,33 @@
-import { FileText } from "lucide-react";
+import { Download, ExternalLink, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import {
+  downloadNoteFile,
+  getNoteFileUrl,
+  openNoteFile,
+} from "../../utils/noteFileActions";
 
 export default function NotePreview({ note }) {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const hasFile = Boolean(getNoteFileUrl(note));
 
-  const handleAccess = () => {
+  const requireLogin = () => {
     if (!isAuthenticated) {
       navigate("/login");
-      return;
+      return true;
     }
-    window.open(note.fileUrl, "_blank");
+    return false;
+  };
+
+  const handleOpen = () => {
+    if (requireLogin()) return;
+    openNoteFile(note);
+  };
+
+  const handleDownload = async () => {
+    if (requireLogin()) return;
+    await downloadNoteFile(note);
   };
 
   return (
@@ -47,9 +63,26 @@ export default function NotePreview({ note }) {
         </p>
       )}
 
-      <button type="button" onClick={handleAccess} className="app-button mt-5 w-full sm:w-auto">
-        {isAuthenticated ? "Open / Download" : "Login to Access"}
-      </button>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          disabled={!hasFile}
+          onClick={handleOpen}
+          className="app-button inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+        >
+          <ExternalLink size={16} />
+          {isAuthenticated ? "Open PDF" : "Login to Access"}
+        </button>
+        <button
+          type="button"
+          disabled={!hasFile}
+          onClick={handleDownload}
+          className="app-button-secondary inline-flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          <Download size={16} />
+          Download PDF
+        </button>
+      </div>
     </section>
   );
 }
