@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
+import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import {
   downloadNoteFile,
   getNoteFileUrl,
@@ -419,6 +420,7 @@ export default function LandingPage() {
                   key={getNoteId(note)}
                   className="flex min-h-[320px] flex-col rounded-2xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                 >
+                  <NoteThumbnail note={note} compact className="mb-5" />
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold uppercase text-indigo-600">
                       {note.subjectCode || note.type || "Note"}

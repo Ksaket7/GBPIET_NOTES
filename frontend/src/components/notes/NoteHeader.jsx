@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarDays, ShieldCheck, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
@@ -30,11 +30,12 @@ export default function NoteHeader({ note }) {
   };
 
   return (
-    <section className="glass-panel responsive-panel">
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="border-b border-slate-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 p-4 sm:p-6">
       <button
         type="button"
         onClick={() => navigate("/notes")}
-        className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-indigo-700"
+        className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-white hover:text-indigo-700"
       >
         <ArrowLeft size={16} />
         Back to Notes
@@ -42,18 +43,64 @@ export default function NoteHeader({ note }) {
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
-          <span className="pill break-words">{note.subjectCode} - {note.type}</span>
-          <h1 className="mt-4 break-words font-poppins text-2xl font-semibold text-slate-950 sm:text-3xl">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold uppercase text-white shadow-sm">
+              <BookOpen size={14} />
+              {note.subjectCode || "Subject"}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold capitalize text-slate-600 shadow-sm">
+              {note.type || "Material"}
+            </span>
+          </div>
+          <h1 className="mt-4 break-words font-poppins text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl">
             {note.title}
           </h1>
-          <p className="mt-3 text-sm text-slate-500">
-            Uploaded by <strong className="text-slate-950">{note.uploadedBy?.fullName}</strong>
-          </p>
         </div>
         {note.verified && (
-          <span className="pill bg-emerald-50 text-emerald-700">Verified</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+            <ShieldCheck size={14} />
+            Verified
+          </span>
         )}
       </div>
+      </div>
+
+      <div className="space-y-5 p-4 sm:p-6">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+              <UserRound size={14} />
+              Uploaded by
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-slate-950">
+              {note.uploadedBy?.fullName || note.uploadedBy?.username || "GBPIET"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+              <CalendarDays size={14} />
+              Shared on
+            </p>
+            <p className="mt-1 text-sm font-semibold text-slate-950">
+              {note.createdAt
+                ? new Intl.DateTimeFormat("en", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  }).format(new Date(note.createdAt))
+                : "Recently"}
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-100 bg-white p-4">
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            Description
+          </p>
+          <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+            {note.description || "No description provided for this note."}
+          </p>
+        </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <UpvoteButton type="note" id={note._id} />
@@ -73,6 +120,7 @@ export default function NoteHeader({ note }) {
             Delete Note
           </LoadingButton>
         )}
+      </div>
       </div>
 
       {showUpvoters && (

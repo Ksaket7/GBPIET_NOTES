@@ -1,4 +1,4 @@
-import { Download, ExternalLink, FileText } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -8,6 +8,7 @@ import {
   openNoteFile,
 } from "../../utils/noteFileActions";
 import UpvoteButton from "../upvote/UpvoteButton";
+import NoteThumbnail from "./NoteThumbnail";
 
 export default function NoteCard({ note }) {
   const { isAuthenticated } = useAuth();
@@ -81,9 +82,7 @@ export default function NoteCard({ note }) {
       </div>
 
       <div className="mt-5 space-y-2">
-        <span className="inline-flex rounded-2xl bg-indigo-100 p-3 text-indigo-600">
-          <FileText size={20} />
-        </span>
+        <NoteThumbnail note={note} />
         <h3 className="break-words font-poppins text-lg font-semibold text-slate-950">
           {note.title}
         </h3>

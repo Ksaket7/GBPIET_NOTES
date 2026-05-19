@@ -45,19 +45,33 @@ export default function NoteComments({ noteId }) {
   };
 
   return (
-    <section className="glass-panel responsive-panel space-y-6">
-      <h2 className="font-poppins text-2xl font-semibold text-slate-950">Comments</h2>
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <h2 className="font-poppins text-2xl font-semibold text-slate-950">
+            Comments
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Discuss improvements, doubts, or corrections for this note.
+          </p>
+        </div>
+        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+          {comments.length} comments
+        </span>
+      </div>
 
       {/* Comments list */}
-      <div className="space-y-4">
+      <div className="mt-5 space-y-4">
         {comments.length === 0 && (
-          <p className="text-sm text-slate-500">No comments yet.</p>
+          <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
+            No comments yet.
+          </p>
         )}
 
         {comments.map((c, idx) => (
           <div
             key={idx}
-            className="flex gap-3 rounded-2xl bg-white/65 p-3 sm:rounded-3xl sm:p-4"
+            className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 transition hover:bg-white hover:shadow-sm sm:p-4"
           >
             {/* Avatar */}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
@@ -95,14 +109,14 @@ export default function NoteComments({ noteId }) {
       <button
         type="button"
         onClick={() => setFormOpen((value) => !value)}
-        className="app-button-secondary"
+        className="app-button-secondary mt-5"
       >
         <MessageCircle size={16} />
         {formOpen ? "Hide comment form" : "Add comment"}
       </button>
 
       {formOpen && (
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 sm:p-4">
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -120,7 +134,7 @@ export default function NoteComments({ noteId }) {
               disabled={!isAuthenticated || loading}
               className="app-button disabled:opacity-50"
             >
-              Post Comment
+              {loading ? "Posting..." : "Post Comment"}
             </button>
           </div>
         </form>

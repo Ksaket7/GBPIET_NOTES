@@ -6,7 +6,6 @@ import {
   Calendar,
   Download,
   ExternalLink,
-  FileText,
   Github,
   Globe,
   Heart,
@@ -23,6 +22,7 @@ import {
 import API from "../../services/api";
 import FormModal from "../../components/ui/FormModal";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
+import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import {
   downloadNoteFile,
   getNoteId,
@@ -132,13 +132,8 @@ function NoteCard({ note }) {
       }}
       className="group cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <div className="flex min-h-28 items-center justify-center bg-indigo-50 px-4 py-6">
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm">
-          <FileText size={34} />
-          <span className="absolute -right-3 -top-3 rounded-full bg-white px-2 py-1 text-[10px] font-bold text-indigo-600 shadow-sm">
-            PDF
-          </span>
-        </div>
+      <div className="p-3">
+        <NoteThumbnail note={note} compact />
       </div>
       <div className="space-y-4 p-4">
         <div>

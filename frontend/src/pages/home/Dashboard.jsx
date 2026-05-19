@@ -13,7 +13,6 @@ import {
   MessageCircle,
   MessageSquareText,
   MoreHorizontal,
-  NotebookTabs,
   Plus,
   Search,
   Sparkles,
@@ -24,6 +23,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
+import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import { timeAgo } from "../../utils/timeAgo";
 import { downloadNoteFile, openNoteFile } from "../../utils/noteFileActions";
 
@@ -159,25 +159,28 @@ function ListPanel({ title, items, emptyText, onOpen, meta, onAction, contentTyp
               </button>
 
               {contentType === "note" && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                  <UpvoteButton type="note" id={item._id} stopPropagation />
-                  <button
-                    type="button"
-                    onClick={() => openNoteFile(item)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
-                  >
-                    <ExternalLink size={13} />
-                    Open
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => downloadNoteFile(item)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
-                  >
-                    <Download size={13} />
-                    Download
-                  </button>
-                </div>
+                <>
+                  <NoteThumbnail note={item} compact className="mt-3" />
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                    <UpvoteButton type="note" id={item._id} stopPropagation />
+                    <button
+                      type="button"
+                      onClick={() => openNoteFile(item)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <ExternalLink size={13} />
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadNoteFile(item)}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                    >
+                      <Download size={13} />
+                      Download
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           ))}
@@ -215,18 +218,14 @@ function FeedPreview({ item }) {
   if (item.feedType === "note") {
     return (
       <div className="mt-4 overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-indigo-100 via-white to-sky-100 p-4 sm:rounded-3xl sm:p-5">
-        <div className="flex items-center gap-3">
-          <span className="rounded-2xl bg-indigo-600 p-3 text-white">
-            <NotebookTabs size={22} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase text-indigo-700">
-              {item.subjectCode || "Notes"}
-            </p>
-            <h3 className="line-clamp-2 break-words font-poppins text-lg font-semibold text-slate-950 sm:text-xl">
-              {item.title || "Untitled note"}
-            </h3>
-          </div>
+        <NoteThumbnail note={item} compact />
+        <div className="mt-4 min-w-0">
+          <p className="text-xs font-semibold uppercase text-indigo-700">
+            {item.subjectCode || "Notes"}
+          </p>
+          <h3 className="line-clamp-2 break-words font-poppins text-lg font-semibold text-slate-950 sm:text-xl">
+            {item.title || "Untitled note"}
+          </h3>
         </div>
         <ExpandableText
           text={item.description || "No description provided for this note."}

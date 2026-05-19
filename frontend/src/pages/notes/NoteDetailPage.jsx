@@ -42,10 +42,17 @@ export default function NoteDetailPage() {
 
   return (
     <main className="app-page">
-      <div className="app-shell space-y-6">
-        <NoteHeader note={note} />
-        <NotePreview note={note} />
-        <NoteComments noteId={note._id} />
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="min-w-0 space-y-6">
+            <NoteHeader note={note} />
+            <NoteComments noteId={note._id} />
+          </div>
+
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <NotePreview note={note} />
+          </aside>
+        </div>
       </div>
     </main>
   );
