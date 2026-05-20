@@ -7,6 +7,39 @@ import { isValidObjectId } from "mongoose";
 import { Upvote } from "../models/upvote.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 import { uploadOnSupabase, deleteFromSupabase } from "../utils/supabaseStorage.js";
+
+const getUploadedFiles = (req) => {
+  if (Array.isArray(req.files)) return req.files;
+  return req.file ? [req.file] : [];
+};
+
+const uploadQuestionImages = async (files) => {
+  if (!files.length) return [];
+
+  const uploadedImages = await Promise.all(
+    files.map((file) =>
+      uploadOnSupabase(file.buffer, file.originalname, "questions")
+    )
+  );
+
+  if (uploadedImages.some((imageUrl) => !imageUrl)) {
+    throw new ApiError(500, "Error uploading question image");
+  }
+
+  return uploadedImages;
+};
+
+const getStoredImages = (item) => {
+  const images = Array.isArray(item?.images) ? item.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return item?.imageUrl ? [item.imageUrl] : [];
+};
+
+const deleteStoredImages = async (items) => {
+  const urls = items.flatMap((item) => getStoredImages(item));
+  await Promise.all(urls.map((url) => deleteFromSupabase(url)));
+};
+
 // ask a question
 const askQuestion = asyncHandler(async (req, res) => {
   const { title, description, subjectName, subjectCode, tags } = req.body;
@@ -29,23 +62,14 @@ const askQuestion = asyncHandler(async (req, res) => {
     throw new ApiError(400, "At least one question tag is required");
   }
 
-  let imageUrl = "";
-  if (req.file) {
-    imageUrl = await uploadOnSupabase(
-      req.file.buffer,
-      req.file.originalname,
-      "questions"
-    );
-
-    if (!imageUrl) {
-      throw new ApiError(500, "Error uploading question image");
-    }
-  }
+  const images = await uploadQuestionImages(getUploadedFiles(req));
+  const imageUrl = images[0] || "";
 
   const question = await Question.create({
     title,
     description,
     imageUrl,
+    images,
     subjectName,
     subjectCode,
     tags: normalizedTags,
@@ -152,21 +176,15 @@ const deleteQuestion = asyncHandler(async (req, res) => {
   }
 
   // 3️⃣ Delete all answers related to this question
-  const answers = await Answer.find({ question: questionId }).select("imageUrl");
-  await Promise.all(
-    answers
-      .filter((answer) => answer.imageUrl)
-      .map((answer) => deleteFromSupabase(answer.imageUrl))
-  );
+  const answers = await Answer.find({ question: questionId }).select("imageUrl images");
+  await deleteStoredImages(answers);
   await Answer.deleteMany({ question: questionId });
 
   // 4️⃣ Delete all upvotes related to this question
   await Upvote.deleteMany({ question: questionId });
 
   // 5️⃣ Delete the question itself
-  if (question.imageUrl) {
-    await deleteFromSupabase(question.imageUrl);
-  }
+  await deleteStoredImages([question]);
   await Question.findByIdAndDelete(questionId);
 
   // 6️⃣ Recalculate the author's reputation safely

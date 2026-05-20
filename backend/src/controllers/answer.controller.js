@@ -7,6 +7,37 @@ import { Upvote } from "../models/upvote.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 import { uploadOnSupabase, deleteFromSupabase } from "../utils/supabaseStorage.js";
 
+const getUploadedFiles = (req) => {
+  if (Array.isArray(req.files)) return req.files;
+  return req.file ? [req.file] : [];
+};
+
+const uploadAnswerImages = async (files) => {
+  if (!files.length) return [];
+
+  const uploadedImages = await Promise.all(
+    files.map((file) =>
+      uploadOnSupabase(file.buffer, file.originalname, "answers")
+    )
+  );
+
+  if (uploadedImages.some((imageUrl) => !imageUrl)) {
+    throw new ApiError(500, "Error uploading answer image");
+  }
+
+  return uploadedImages;
+};
+
+const getStoredImages = (item) => {
+  const images = Array.isArray(item?.images) ? item.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return item?.imageUrl ? [item.imageUrl] : [];
+};
+
+const deleteStoredImages = async (item) => {
+  await Promise.all(getStoredImages(item).map((url) => deleteFromSupabase(url)));
+};
+
 // add answer
 const addAnswer = asyncHandler(async (req, res) => {
   const { questionId } = req.params;
@@ -15,18 +46,8 @@ const addAnswer = asyncHandler(async (req, res) => {
   const question = await Question.findById(questionId);
   if (!question) throw new ApiError(404, "Question not found");
 
-  let imageUrl = "";
-  if (req.file) {
-    imageUrl = await uploadOnSupabase(
-      req.file.buffer,
-      req.file.originalname,
-      "answers"
-    );
-
-    if (!imageUrl) {
-      throw new ApiError(500, "Error uploading answer image");
-    }
-  }
+  const images = await uploadAnswerImages(getUploadedFiles(req));
+  const imageUrl = images[0] || "";
 
   if (!content?.trim() && !imageUrl) {
     throw new ApiError(400, "Answer content or image is required");
@@ -36,6 +57,7 @@ const addAnswer = asyncHandler(async (req, res) => {
     question: questionId,
     content: content || "",
     imageUrl,
+    images,
     answeredBy: req.user._id,
   });
   await Question.findByIdAndUpdate(questionId, {
@@ -106,9 +128,7 @@ const deleteAnswer = asyncHandler(async (req, res) => {
   await Upvote.deleteMany({ answer: answerId });
 
   // 5️⃣ Delete the answer itself
-  if (answer.imageUrl) {
-    await deleteFromSupabase(answer.imageUrl);
-  }
+  await deleteStoredImages(answer);
   await Answer.findByIdAndDelete(answerId);
 
   // 6️⃣ Recalculate the author's reputation

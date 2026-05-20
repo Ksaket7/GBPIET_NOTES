@@ -1,64 +1,86 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import { GraduationCap, MapPin, UserRoundCheck } from "lucide-react";
 import API from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 function DirectoryUserCard({ directoryUser, onToggleFollow }) {
+  const displayName = directoryUser.fullName || directoryUser.username || "GBPIET user";
+  const branch = directoryUser.branch || "GBPIET";
+  const year = directoryUser.year || directoryUser.role || "Student";
+
   return (
-    <div className="soft-card flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center">
+    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
       <Link
         to={`/profile/${directoryUser.username}`}
-        className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-indigo-100 transition hover:scale-105"
+            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 ring-4 ring-indigo-50 transition hover:scale-105"
       >
         {directoryUser.avatar ? (
           <img
             src={directoryUser.avatar}
-            alt={directoryUser.fullName}
+                alt={displayName}
             className="h-full w-full object-cover"
           />
         ) : (
           <span className="text-lg font-semibold text-indigo-700">
-            {(directoryUser.fullName || directoryUser.username || "?")
-              .charAt(0)
-              .toUpperCase()}
+                {displayName.charAt(0).toUpperCase()}
           </span>
         )}
       </Link>
 
-      <div className="min-w-0 flex-1">
+          <div className="min-w-0">
         <Link
           to={`/profile/${directoryUser.username}`}
-          className="block truncate font-semibold text-slate-950 transition hover:text-indigo-700"
+              className="block truncate font-poppins text-base font-semibold text-slate-950 transition hover:text-indigo-700"
         >
-          {directoryUser.fullName || directoryUser.username}
+              {displayName}
         </Link>
         <p className="truncate text-sm text-slate-500">
-          @{directoryUser.username} - {directoryUser.branch || "GBPIET"} / {directoryUser.year || directoryUser.role || "Student"}
+              @{directoryUser.username || "student"}
         </p>
-        <span className="pill mt-2 capitalize">{directoryUser.role}</span>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+                <MapPin size={13} />
+                {branch}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                <GraduationCap size={13} />
+                {year}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold capitalize text-slate-500">
+                <UserRoundCheck size={13} />
+                {directoryUser.role || "student"}
+              </span>
+            </div>
+          </div>
       </div>
 
       <button
         type="button"
         disabled={directoryUser.isSelf}
         onClick={() => onToggleFollow(directoryUser)}
-        className={`w-full rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${
+          className={`inline-flex w-full shrink-0 items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto ${
           directoryUser.isFollowing
-            ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
-            : "bg-slate-950 text-white hover:bg-indigo-700"
+              ? "border border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              : "bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:-translate-y-0.5 hover:bg-indigo-700"
         }`}
       >
         {directoryUser.isSelf
           ? "You"
           : directoryUser.isFollowing
-            ? "Unfollow"
+              ? "Following"
             : "Follow"}
       </button>
-    </div>
+      </div>
+    </article>
   );
 }
 
 export default function UsersPage() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedType = searchParams.get("type") || "all";
   const [facultyUsers, setFacultyUsers] = useState([]);
@@ -116,10 +138,20 @@ export default function UsersPage() {
   };
 
   const visibleUsers = useMemo(() => {
-    if (selectedType === "faculty") return facultyUsers;
-    if (selectedType === "students") return studentUsers;
-    return [...facultyUsers, ...studentUsers];
-  }, [facultyUsers, selectedType, studentUsers]);
+    const users =
+      selectedType === "faculty"
+        ? facultyUsers
+        : selectedType === "students"
+          ? studentUsers
+          : [...facultyUsers, ...studentUsers];
+
+    return users.filter(
+      (directoryUser) =>
+        !directoryUser.isSelf &&
+        directoryUser._id !== user?._id &&
+        directoryUser.username !== user?.username
+    );
+  }, [facultyUsers, selectedType, studentUsers, user?._id, user?.username]);
 
   const tabs = [
     { label: "All", value: "all" },
@@ -147,8 +179,8 @@ export default function UsersPage() {
                 onClick={() => setSearchParams({ type: tab.value })}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   selectedType === tab.value
-                    ? "bg-slate-950 text-white"
-                    : "bg-white/70 text-slate-600 hover:bg-white"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                    : "border border-slate-200 bg-white/80 text-slate-600 hover:border-indigo-100 hover:bg-indigo-50 hover:text-indigo-700"
                 }`}
               >
                 {tab.label}
@@ -157,16 +189,17 @@ export default function UsersPage() {
           </div>
         </header>
 
-        {loading ? (
-          <div className="glass-panel p-6 text-sm text-slate-500">
+        <section className="mx-auto w-full max-w-3xl">
+          {loading ? (
+            <div className="rounded-2xl border border-white/70 bg-white/80 p-6 text-sm text-slate-500 shadow-sm">
             Loading users...
           </div>
-        ) : visibleUsers.length === 0 ? (
-          <div className="glass-panel p-6 text-sm text-slate-500">
+          ) : visibleUsers.length === 0 ? (
+            <div className="rounded-2xl border border-white/70 bg-white/80 p-6 text-sm text-slate-500 shadow-sm">
             No users found.
           </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          ) : (
+            <div className="flex flex-col gap-4">
             {visibleUsers.map((directoryUser) => (
               <DirectoryUserCard
                 key={directoryUser._id}
@@ -175,7 +208,8 @@ export default function UsersPage() {
               />
             ))}
           </div>
-        )}
+          )}
+        </section>
       </div>
     </main>
   );

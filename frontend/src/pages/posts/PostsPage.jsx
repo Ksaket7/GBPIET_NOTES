@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  ChevronLeft,
+  ChevronRight,
   MessageCircle,
   MoreHorizontal,
   Send,
@@ -21,6 +23,12 @@ const initialsFor = (user) => {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+};
+
+const getPostImages = (post) => {
+  const images = Array.isArray(post?.images) ? post.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return post?.imageUrl ? [post.imageUrl] : [];
 };
 
 function Avatar({ user, className = "h-11 w-11" }) {
@@ -288,6 +296,77 @@ function PostLikeAction({ post }) {
   );
 }
 
+function PostImageCarousel({ post }) {
+  const images = getPostImages(post);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  if (!images.length) return null;
+
+  const hasMultipleImages = images.length > 1;
+
+  const goPrevious = () => {
+    setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
+  };
+
+  const goNext = () => {
+    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
+  };
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900 bg-black pt-3">
+      <div className="relative bg-black">
+        <img
+          src={images[activeIndex]}
+          alt={`Community post image ${activeIndex + 1}`}
+          className="max-h-[520px] min-h-64 w-full bg-black object-contain"
+        />
+
+        {hasMultipleImages && (
+          <>
+            <button
+              type="button"
+              onClick={goPrevious}
+              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Next image"
+            >
+              <ChevronRight size={20} />
+            </button>
+            <span className="absolute right-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
+              {activeIndex + 1} / {images.length}
+            </span>
+          </>
+        )}
+      </div>
+
+      {hasMultipleImages && (
+        <div className="flex items-center justify-center gap-2 bg-black px-4 py-3">
+          {images.map((image, index) => (
+            <button
+              key={image}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              className={`h-2 rounded-full transition ${
+                activeIndex === index
+                  ? "w-6 bg-indigo-600"
+                  : "w-2 bg-slate-300 hover:bg-indigo-300"
+              }`}
+              aria-label={`Show image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PostCard({ post }) {
   const [showComments, setShowComments] = useState(false);
   const owner = post.postedBy;
@@ -317,13 +396,7 @@ function PostCard({ post }) {
 
       <ExpandableText text={post.text} />
 
-      {post.imageUrl && (
-        <img
-          src={post.imageUrl}
-          alt="Community post"
-          className="mt-4 max-h-[520px] w-full rounded-2xl object-cover"
-        />
-      )}
+      <PostImageCarousel post={post} />
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
         <PostLikeAction post={post} />

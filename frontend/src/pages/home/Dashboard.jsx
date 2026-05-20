@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Clock3,
   Download,
@@ -214,6 +215,83 @@ function ExpandableText({ text, className = "" }) {
   );
 }
 
+const getPostImages = (post) => {
+  const images = Array.isArray(post?.images) ? post.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return post?.imageUrl ? [post.imageUrl] : [];
+};
+
+function PostImageCarousel({ post }) {
+  const images = getPostImages(post);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  if (!images.length) return null;
+
+  const hasMultipleImages = images.length > 1;
+
+  const goPrevious = () => {
+    setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
+  };
+
+  const goNext = () => {
+    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
+  };
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900 bg-black pt-3">
+      <div className="relative bg-black">
+        <img
+          src={images[activeIndex]}
+          alt={`Community post image ${activeIndex + 1}`}
+          className="max-h-[520px] min-h-64 w-full bg-black object-contain"
+        />
+
+        {hasMultipleImages && (
+          <>
+            <button
+              type="button"
+              onClick={goPrevious}
+              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Next image"
+            >
+              <ChevronRight size={20} />
+            </button>
+            <span className="absolute right-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
+              {activeIndex + 1} / {images.length}
+            </span>
+          </>
+        )}
+      </div>
+
+      {hasMultipleImages && (
+        <div className="flex items-center justify-center gap-2 bg-black px-4 py-3">
+          {images.map((image, index) => (
+            <button
+              key={`${image}-${index}`}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              className={`h-2 rounded-full transition ${
+                activeIndex === index
+                  ? "w-6 bg-indigo-600"
+                  : "w-2 bg-slate-300 hover:bg-indigo-300"
+              }`}
+              aria-label={`Show image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FeedPreview({ item }) {
   if (item.feedType === "note") {
     return (
@@ -258,14 +336,8 @@ function FeedPreview({ item }) {
 
   return (
     <>
-      {item.imageUrl && (
-        <img
-          src={item.imageUrl}
-          alt=""
-          className="mt-4 max-h-[360px] w-full rounded-2xl object-cover sm:max-h-[520px] sm:rounded-3xl"
-        />
-      )}
       <ExpandableText text={item.text} className="mt-4" />
+      <PostImageCarousel post={item} />
     </>
   );
 }
@@ -315,6 +387,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(item.text || "");
   const [saving, setSaving] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const owner = item.postedBy || item.uploadedBy || item.askedBy;
   const isOwner = item.feedType === "post" && owner?._id === currentUser?._id;
 
@@ -349,10 +422,10 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
   };
 
   return (
-    <article className="soft-card mx-auto flex w-full max-w-3xl flex-col overflow-visible p-3 sm:p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <article className="mx-auto flex w-full max-w-3xl flex-col overflow-visible rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100">
             {owner?.avatar ? (
               <img src={owner.avatar} alt={owner.fullName} className="h-full w-full object-cover" />
             ) : (
@@ -372,12 +445,11 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
         </div>
 
         <div className="relative flex flex-wrap items-center justify-end gap-2">
-          <span className="pill capitalize">{item.feedType}</span>
           {isOwner && (
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              className="rounded-full bg-white/80 p-2 text-slate-600 hover:bg-white"
+              className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
               aria-label="Post options"
             >
               <MoreHorizontal size={18} />
@@ -428,7 +500,7 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
               type="button"
               onClick={handleSave}
               disabled={saving || (!editText.trim() && !item.imageUrl)}
-              className="app-button py-2"
+              className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
             >
               {saving ? "Saving..." : "Save"}
             </button>
@@ -438,11 +510,18 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
         <FeedPreview item={item} />
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/70 pt-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
         {item.feedType === "post" ? (
           <>
-            <UpvoteButton type="post" id={item._id} />
-            <PostCommentBox post={item} />
+            <UpvoteButton type="post" id={item._id} label="Like" />
+            <button
+              type="button"
+              onClick={() => setShowComments((value) => !value)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              <MessageCircle size={14} />
+              Comment {item.comments?.length || 0}
+            </button>
           </>
         ) : item.feedType === "note" ? (
           <>
@@ -492,6 +571,8 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
           </>
         )}
       </div>
+
+      {item.feedType === "post" && showComments && <PostCommentBox post={item} />}
     </article>
   );
 }
@@ -500,7 +581,6 @@ function PostCommentBox({ post }) {
   const [comments, setComments] = useState(post.comments || []);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -518,49 +598,42 @@ function PostCommentBox({ post }) {
   };
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
-      >
-        <MessageCircle size={14} />
-        {comments.length}
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-11 z-20 w-[min(320px,calc(100vw-1.5rem))] rounded-3xl border border-white/70 bg-white/95 p-3 shadow-2xl sm:w-80">
-          <div className="max-h-44 space-y-2 overflow-y-auto">
-            {comments.length === 0 ? (
-              <p className="text-xs text-slate-500">No comments yet.</p>
-            ) : (
-              comments.map((comment, index) => (
-                <div key={comment._id || index} className="rounded-2xl bg-slate-50 p-2">
-                  <p className="text-xs font-semibold text-slate-950">
-                    @{comment.user?.username || "user"}
-                  </p>
-                  <p className="text-xs text-slate-600">{comment.message}</p>
-                </div>
-              ))
-            )}
-          </div>
-          <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-2 sm:flex-row">
-            <input
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="Write a comment..."
-              className="app-input py-2 text-xs"
-            />
-            <button
-              type="submit"
-              disabled={loading || !message.trim()}
-              className="rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
-            >
-              {loading ? "..." : "Send"}
-            </button>
-          </form>
+    <div className="mt-4 border-t border-slate-100 pt-4">
+      {comments.length > 0 && (
+        <div className="space-y-2">
+          {comments.map((comment, index) => (
+            <div key={comment._id || index} className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold text-slate-900">
+                @{comment.user?.username || "user"}
+              </p>
+              <p className="mt-1 text-sm leading-5 text-slate-600">{comment.message}</p>
+            </div>
+          ))}
         </div>
       )}
+
+      {comments.length === 0 && (
+        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          No comments yet.
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
+        <input
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder="Write a comment..."
+          className="app-input py-2 text-xs"
+        />
+        <button
+          type="submit"
+          disabled={loading || !message.trim()}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition hover:bg-indigo-700 disabled:opacity-50"
+          aria-label="Send comment"
+        >
+          {loading ? "..." : <ChevronRight size={15} />}
+        </button>
+      </form>
     </div>
   );
 }

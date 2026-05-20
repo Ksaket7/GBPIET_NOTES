@@ -16,6 +16,12 @@ const questionSchema = new Schema(
       trim: true,
       default: "",
     },
+    images: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     subjectName: {
       type: String,
       trim: true,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Send } from "lucide-react";
 import API from "../../services/api";
 import InputField from "./InputField";
 import FileUpload from "./FileUpload";
@@ -78,10 +79,13 @@ const UploadForm = ({ onUploaded }) => {
   };
 
   return (
-    <div className="glass-panel responsive-panel">
-      <h1 className="font-poppins text-2xl font-semibold text-slate-950">
+    <div className="rounded-[24px] bg-white p-5 shadow-sm sm:p-6">
+      <h1 className="font-poppins text-2xl font-semibold text-slate-950 max-sm:text-xl">
         Upload Notes
       </h1>
+      <p className="mt-2 text-sm text-slate-500">
+        Add clear details so students can discover the right material quickly.
+      </p>
 
       {errorMessage && (
         <div className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -96,7 +100,6 @@ const UploadForm = ({ onUploaded }) => {
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-        {/* GRID START */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="title"
@@ -128,9 +131,7 @@ const UploadForm = ({ onUploaded }) => {
             onChange={handleChange}
           />
         </div>
-        {/* GRID END */}
 
-        {/* Full width textarea */}
         <textarea
           name="description"
           placeholder="Description"
@@ -139,7 +140,6 @@ const UploadForm = ({ onUploaded }) => {
           className="app-input min-h-28"
         />
 
-        {/* Tags + Type row */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="tags"
@@ -161,15 +161,15 @@ const UploadForm = ({ onUploaded }) => {
           </select>
         </div>
 
-        {/* File Upload full width */}
         <FileUpload file={file} setFile={setFile} />
 
         <div className="flex justify-stretch sm:justify-end">
           <button
             type="submit"
             disabled={loading}
-            className="app-button w-full sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
+            <Send size={16} />
             {loading ? "Uploading..." : "Upload Notes"}
           </button>
         </div>

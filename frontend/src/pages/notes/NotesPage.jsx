@@ -7,7 +7,6 @@ import NotesList from "../../components/notes/NotesList";
 import NotesPagination from "../../components/notes/NotesPagination";
 import UploadNoteForm from "../../components/upload/UploadNote";
 import { useAuth } from "../../context/AuthContext";
-import FormModal from "../../components/ui/FormModal";
 
 const canUploadNotes = (role) => ["cr", "faculty", "admin"].includes(role);
 
@@ -58,7 +57,7 @@ export default function NotesPage() {
             <button
               type="button"
               onClick={() => setShowUploadForm((value) => !value)}
-              className="app-button w-full md:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 md:w-auto"
             >
               {showUploadForm ? <X size={16} /> : <Plus size={16} />}
               {showUploadForm ? "Close form" : "Upload note"}
@@ -67,14 +66,32 @@ export default function NotesPage() {
         </header>
 
         {allowNoteUpload && showUploadForm && (
-          <FormModal title="Upload note" onClose={() => setShowUploadForm(false)}>
+          <div className="overflow-hidden rounded-[26px] border border-indigo-100 bg-white/85 p-2 shadow-xl shadow-indigo-100/60">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-3 py-3 sm:px-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">
+                  Upload study material
+                </p>
+                <p className="text-xs text-slate-500">
+                  Share notes, assignments, PYQs, and tutorials with the community.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUploadForm(false)}
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-950"
+                aria-label="Close upload note form"
+              >
+                <X size={17} />
+              </button>
+            </div>
             <UploadNoteForm
               onUploaded={() => {
                 setShowUploadForm(false);
                 fetchNotes();
               }}
             />
-          </FormModal>
+          </div>
         )}
 
         <NotesFilters filters={filters} setSearchParams={setSearchParams} />

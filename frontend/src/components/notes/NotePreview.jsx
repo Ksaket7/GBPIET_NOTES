@@ -32,11 +32,11 @@ export default function NotePreview({ note }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 p-4 sm:p-5">
+    <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/85 shadow-xl shadow-slate-500/10 backdrop-blur">
+      <div className="border-b border-slate-100 bg-gradient-to-br from-white via-indigo-50/70 to-sky-50 p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="rounded-2xl bg-indigo-50 p-3 text-indigo-700">
+          <span className="rounded-2xl bg-indigo-600 p-3 text-white shadow-lg shadow-indigo-200">
             <FileText size={20} />
           </span>
           <div className="min-w-0">
@@ -48,28 +48,32 @@ export default function NotePreview({ note }) {
             </p>
           </div>
         </div>
-        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase text-indigo-700">
+        <span className="rounded-full border border-indigo-100 bg-white px-3 py-1 text-xs font-bold uppercase text-indigo-700 shadow-sm">
           PDF
         </span>
         </div>
       </div>
 
-      <div className="space-y-5 p-4 sm:p-5">
+      <div className="space-y-5 p-5">
         <NoteThumbnail
           note={note}
-          size="h-[360px] sm:h-[460px] lg:h-[560px]"
-          className="rounded-2xl"
+          size="h-[340px] sm:h-[460px] xl:h-[560px]"
+          className="rounded-2xl border border-slate-100 shadow-sm"
         />
 
         <div className="grid gap-3 text-sm text-slate-500 sm:grid-cols-2">
-          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-            <strong className="text-slate-950">Type:</strong>{" "}
-            {note.type?.toUpperCase() || "NOTE"}
-          </p>
-          <p className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
-            <strong className="text-slate-950">Subject:</strong>{" "}
-            {note.subjectCode || "General"}
-          </p>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+            <p className="text-xs font-semibold uppercase text-slate-400">Type</p>
+            <p className="mt-1 font-semibold text-slate-950">
+              {note.type?.toUpperCase() || "NOTE"}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+            <p className="text-xs font-semibold uppercase text-slate-400">Subject</p>
+            <p className="mt-1 font-semibold text-slate-950">
+              {note.subjectCode || "General"}
+            </p>
+          </div>
         </div>
 
       {!isAuthenticated && (
@@ -83,7 +87,7 @@ export default function NotePreview({ note }) {
           type="button"
           disabled={!hasFile}
           onClick={handleOpen}
-          className="app-button inline-flex w-full items-center justify-center gap-2 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <ExternalLink size={16} />
           {isAuthenticated ? "Open PDF" : "Login to Access"}
@@ -92,7 +96,7 @@ export default function NotePreview({ note }) {
           type="button"
           disabled={!hasFile}
           onClick={handleDownload}
-          className="app-button-secondary inline-flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Download size={16} />
           Download PDF

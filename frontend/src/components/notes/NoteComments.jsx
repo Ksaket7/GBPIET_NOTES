@@ -3,7 +3,7 @@ import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/timeAgo";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Send } from "lucide-react";
 
 export default function NoteComments({ noteId }) {
   const { isAuthenticated } = useAuth();
@@ -45,7 +45,7 @@ export default function NoteComments({ noteId }) {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <section className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-xl shadow-slate-500/10 backdrop-blur sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <h2 className="font-poppins text-2xl font-semibold text-slate-950">
@@ -71,10 +71,9 @@ export default function NoteComments({ noteId }) {
         {comments.map((c, idx) => (
           <div
             key={idx}
-            className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 transition hover:bg-white hover:shadow-sm sm:p-4"
+            className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition hover:bg-white hover:shadow-sm sm:p-4"
           >
-            {/* Avatar */}
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100">
               {c.user?.avatar ? (
                 <img
                   src={c.user.avatar}
@@ -88,7 +87,6 @@ export default function NoteComments({ noteId }) {
               )}
             </div>
 
-            {/* Content */}
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="break-words font-semibold text-slate-950">
@@ -109,7 +107,7 @@ export default function NoteComments({ noteId }) {
       <button
         type="button"
         onClick={() => setFormOpen((value) => !value)}
-        className="app-button-secondary mt-5"
+        className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-indigo-700"
       >
         <MessageCircle size={16} />
         {formOpen ? "Hide comment form" : "Add comment"}
@@ -132,8 +130,9 @@ export default function NoteComments({ noteId }) {
             <button
               type="submit"
               disabled={!isAuthenticated || loading}
-              className="app-button disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
+              <Send size={16} />
               {loading ? "Posting..." : "Post Comment"}
             </button>
           </div>

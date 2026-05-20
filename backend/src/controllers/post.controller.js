@@ -7,29 +7,52 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnSupabase, deleteFromSupabase } from "../utils/supabaseStorage.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 
-const createPost = asyncHandler(async (req, res) => {
-  const { text = "" } = req.body;
-  let imageUrl = "";
+const getUploadedFiles = (req) => {
+  if (Array.isArray(req.files)) return req.files;
+  return req.file ? [req.file] : [];
+};
 
-  if (req.file) {
-    imageUrl = await uploadOnSupabase(
-      req.file.buffer,
-      req.file.originalname,
-      "posts"
-    );
+const uploadPostImages = async (files = []) => {
+  const uploadedImages = await Promise.all(
+    files.map((file) =>
+      uploadOnSupabase(file.buffer, file.originalname, "posts")
+    )
+  );
 
-    if (!imageUrl) {
-      throw new ApiError(500, "Error uploading post image");
-    }
+  if (uploadedImages.some((imageUrl) => !imageUrl)) {
+    throw new ApiError(500, "Error uploading post image");
   }
 
-  if (!text.trim() && !imageUrl) {
+  return uploadedImages;
+};
+
+const getStoredImages = (post) => {
+  const images = Array.isArray(post.images) ? post.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return post.imageUrl ? [post.imageUrl] : [];
+};
+
+const deletePostImages = async (images = []) => {
+  await Promise.all(
+    images
+      .filter(Boolean)
+      .map((imageUrl) => deleteFromSupabase(imageUrl))
+  );
+};
+
+const createPost = asyncHandler(async (req, res) => {
+  const { text = "" } = req.body;
+  const images = await uploadPostImages(getUploadedFiles(req));
+  const imageUrl = images[0] || "";
+
+  if (!text.trim() && images.length === 0) {
     throw new ApiError(400, "Post must contain text, image, or both");
   }
 
   const post = await Post.create({
     text,
     imageUrl,
+    images,
     postedBy: req.user._id,
   });
 
@@ -118,30 +141,22 @@ const updatePost = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized to edit this post");
   }
 
-  let imageUrl = post.imageUrl;
+  let images = getStoredImages(post);
 
-  if (req.file) {
-    imageUrl = await uploadOnSupabase(
-      req.file.buffer,
-      req.file.originalname,
-      "posts"
-    );
-
-    if (!imageUrl) {
-      throw new ApiError(500, "Error uploading post image");
-    }
-
-    if (post.imageUrl) {
-      await deleteFromSupabase(post.imageUrl);
-    }
+  const uploadedFiles = getUploadedFiles(req);
+  if (uploadedFiles.length) {
+    const previousImages = getStoredImages(post);
+    images = await uploadPostImages(uploadedFiles);
+    await deletePostImages(previousImages);
   }
 
-  if (!text.trim() && !imageUrl) {
+  if (!text.trim() && images.length === 0) {
     throw new ApiError(400, "Post must contain text, image, or both");
   }
 
   post.text = text;
-  post.imageUrl = imageUrl;
+  post.images = images;
+  post.imageUrl = images[0] || "";
   await post.save();
 
   await post.populate("postedBy", "fullName username avatar role");
@@ -168,9 +183,7 @@ const deletePost = asyncHandler(async (req, res) => {
     throw new ApiError(403, "You are not authorized to delete this post");
   }
 
-  if (post.imageUrl) {
-    await deleteFromSupabase(post.imageUrl);
-  }
+  await deletePostImages(getStoredImages(post));
 
   await Upvote.deleteMany({ post: postId });
   await Post.findByIdAndDelete(postId);

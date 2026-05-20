@@ -13,6 +13,12 @@ const answerSchema = new Schema(
       trim: true,
       default: "",
     },
+    images: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
 
     answeredBy: {
       type: Schema.Types.ObjectId,

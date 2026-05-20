@@ -15,11 +15,11 @@ router.route("/").get(getAllPosts);
 
 router.use(verifyJWT);
 
-router.route("/").post(postUpload.single("image"), createPost);
+router.route("/").post(postUpload.array("images", 6), createPost);
 router.route("/:postId/comment").post(addPostComment);
 router
   .route("/:postId")
-  .patch(postUpload.single("image"), updatePost)
+  .patch(postUpload.array("images", 6), updatePost)
   .delete(deletePost);
 
 export default router;

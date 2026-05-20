@@ -89,7 +89,7 @@ export default function QuestionsPage() {
               <button
                 type="button"
                 onClick={() => setShowQuestionForm((current) => !current)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-300 transition hover:bg-indigo-700"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700"
               >
                 {showQuestionForm ? <X size={16} /> : <Plus size={16} />}
                 {showQuestionForm ? "Close form" : "Ask question"}

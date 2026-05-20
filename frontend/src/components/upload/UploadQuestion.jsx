@@ -14,7 +14,7 @@ export default function UploadQuestion({ onCreated }) {
     tags: "",
     subjectCode: "",
   });
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -40,7 +40,7 @@ export default function UploadQuestion({ onCreated }) {
     Object.entries(form).forEach(([key, value]) => {
       formData.append(key, value);
     });
-    if (image) formData.append("image", image);
+    images.forEach((image) => formData.append("images", image));
 
     try {
       setLoading(true);
@@ -49,7 +49,7 @@ export default function UploadQuestion({ onCreated }) {
       });
       onCreated?.(res.data.data);
       setForm({ title: "", description: "", tags: "", subjectCode: "" });
-      setImage(null);
+      setImages([]);
     } catch (err) {
       setErrorMessage(err.response?.data?.message || "Failed to post question");
     } finally {
@@ -116,23 +116,41 @@ export default function UploadQuestion({ onCreated }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <label className="app-button-secondary max-w-full cursor-pointer py-2">
             <Image size={16} />
-            <span className="truncate">{image ? image.name : "Add image"}</span>
+            <span className="truncate">
+              {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
+            </span>
             <input
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
-              onChange={(event) => setImage(event.target.files?.[0] || null)}
+              onChange={(event) => {
+                setImages((currentImages) => [
+                  ...currentImages,
+                  ...Array.from(event.target.files || []),
+                ].slice(0, 6));
+                event.target.value = "";
+              }}
             />
           </label>
-          {image && (
-            <button
-              type="button"
-              onClick={() => setImage(null)}
-              className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-            >
-              <X size={14} />
-              Remove image
-            </button>
+          {images.length > 0 && (
+            <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+              {images.map((image, index) => (
+                <button
+                  key={`${image.name}-${index}`}
+                  type="button"
+                  onClick={() =>
+                    setImages((currentImages) =>
+                      currentImages.filter((_, imageIndex) => imageIndex !== index)
+                    )
+                  }
+                  className="inline-flex max-w-full items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                >
+                  <span className="max-w-36 truncate">{image.name}</span>
+                  <X size={14} />
+                </button>
+              ))}
+            </div>
           )}
           <LoadingButton
             loading={loading}

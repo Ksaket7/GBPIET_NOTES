@@ -10,6 +10,12 @@ const postSchema = new Schema(
       type: String,
       default: "",
     },
+    images: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     postedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -33,7 +39,9 @@ const postSchema = new Schema(
 );
 
 postSchema.pre("validate", function (next) {
-  if (!this.text && !this.imageUrl) {
+  const hasImages = this.imageUrl || (Array.isArray(this.images) && this.images.length > 0);
+
+  if (!this.text && !hasImages) {
     next(new Error("Post must contain text, image, or both"));
     return;
   }

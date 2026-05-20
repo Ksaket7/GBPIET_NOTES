@@ -1,4 +1,13 @@
-import { Image, MessageSquareText, MoreHorizontal, Send, ThumbsUp, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Image,
+  MessageSquareText,
+  MoreHorizontal,
+  Send,
+  ThumbsUp,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
@@ -200,6 +209,83 @@ function TagPill({ tag }) {
   );
 }
 
+const getAttachmentImages = (item) => {
+  const images = Array.isArray(item?.images) ? item.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return item?.imageUrl ? [item.imageUrl] : [];
+};
+
+function QnaImageCarousel({ item, label }) {
+  const images = getAttachmentImages(item);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  if (!images.length) return null;
+
+  const hasMultipleImages = images.length > 1;
+
+  const goPrevious = () => {
+    setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
+  };
+
+  const goNext = () => {
+    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
+  };
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900 bg-black pt-3">
+      <div className="relative bg-black">
+        <img
+          src={images[activeIndex]}
+          alt={`${label} ${activeIndex + 1}`}
+          className="max-h-[520px] min-h-64 w-full bg-black object-contain"
+        />
+
+        {hasMultipleImages && (
+          <>
+            <button
+              type="button"
+              onClick={goPrevious}
+              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
+              aria-label="Next image"
+            >
+              <ChevronRight size={20} />
+            </button>
+            <span className="absolute right-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
+              {activeIndex + 1} / {images.length}
+            </span>
+          </>
+        )}
+      </div>
+
+      {hasMultipleImages && (
+        <div className="flex items-center justify-center gap-2 bg-black px-4 py-3">
+          {images.map((image, index) => (
+            <button
+              key={`${image}-${index}`}
+              type="button"
+              onClick={() => setActiveIndex(index)}
+              className={`h-2 rounded-full transition ${
+                activeIndex === index
+                  ? "w-6 bg-indigo-600"
+                  : "w-2 bg-slate-300 hover:bg-indigo-300"
+              }`}
+              aria-label={`Show image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AnswerCard({ answer }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
@@ -221,13 +307,7 @@ function AnswerCard({ answer }) {
         </p>
       )}
 
-      {answer.imageUrl && (
-        <img
-          src={answer.imageUrl}
-          alt="Answer attachment"
-          className="mt-3 max-h-[420px] w-full rounded-2xl object-cover"
-        />
-      )}
+      <QnaImageCarousel item={answer} label="Answer attachment" />
 
       <div className="mt-4">
         <QnaLikeAction type="answer" id={answer._id} />
@@ -241,7 +321,7 @@ export default function QuestionCard({ question }) {
   const [answers, setAnswers] = useState(question.answers || []);
   const [answersLoading, setAnswersLoading] = useState(false);
   const [answerText, setAnswerText] = useState("");
-  const [answerImage, setAnswerImage] = useState(null);
+  const [answerImages, setAnswerImages] = useState([]);
   const [answering, setAnswering] = useState(false);
   const owner = question.askedBy;
   const tags = question.tags?.length ? question.tags : ["qna"];
@@ -268,11 +348,11 @@ export default function QuestionCard({ question }) {
 
   const handleAnswerSubmit = async (event) => {
     event.preventDefault();
-    if (!answerText.trim() && !answerImage) return;
+    if (!answerText.trim() && answerImages.length === 0) return;
 
     const formData = new FormData();
     formData.append("content", answerText);
-    if (answerImage) formData.append("image", answerImage);
+    answerImages.forEach((image) => formData.append("images", image));
 
     try {
       setAnswering(true);
@@ -281,7 +361,7 @@ export default function QuestionCard({ question }) {
       });
       setAnswers((currentAnswers) => [res.data.data, ...currentAnswers]);
       setAnswerText("");
-      setAnswerImage(null);
+      setAnswerImages([]);
     } finally {
       setAnswering(false);
     }
@@ -325,13 +405,7 @@ export default function QuestionCard({ question }) {
         </p>
       </div>
 
-      {question.imageUrl && (
-        <img
-          src={question.imageUrl}
-          alt="Question attachment"
-          className="mt-4 max-h-[520px] w-full rounded-2xl object-cover"
-        />
-      )}
+      <QnaImageCarousel item={question} label="Question attachment" />
 
       <div className="clear-both mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
         <QnaLikeAction type="question" id={question._id} />
@@ -372,28 +446,46 @@ export default function QuestionCard({ question }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="app-button-secondary max-w-full cursor-pointer py-2">
                 <Image size={16} />
-                <span className="truncate">{answerImage ? answerImage.name : "Add image"}</span>
+                <span className="truncate">
+                  {answerImages.length ? `${answerImages.length} image${answerImages.length === 1 ? "" : "s"} selected` : "Add images"}
+                </span>
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   className="hidden"
-                  onChange={(event) => setAnswerImage(event.target.files?.[0] || null)}
+                  onChange={(event) => {
+                    setAnswerImages((currentImages) => [
+                      ...currentImages,
+                      ...Array.from(event.target.files || []),
+                    ].slice(0, 6));
+                    event.target.value = "";
+                  }}
                 />
               </label>
-              {answerImage && (
-                <button
-                  type="button"
-                  onClick={() => setAnswerImage(null)}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold text-slate-500 transition hover:bg-white hover:text-slate-800"
-                >
-                  <X size={14} />
-                  Remove image
-                </button>
+              {answerImages.length > 0 && (
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                  {answerImages.map((image, index) => (
+                    <button
+                      key={`${image.name}-${index}`}
+                      type="button"
+                      onClick={() =>
+                        setAnswerImages((currentImages) =>
+                          currentImages.filter((_, imageIndex) => imageIndex !== index)
+                        )
+                      }
+                      className="inline-flex max-w-full items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-slate-500 shadow-sm transition hover:text-slate-800"
+                    >
+                      <span className="max-w-36 truncate">{image.name}</span>
+                      <X size={14} />
+                    </button>
+                  ))}
+                </div>
               )}
               <LoadingButton
                 type="submit"
                 loading={answering}
-                disabled={!answerText.trim() && !answerImage}
+                disabled={!answerText.trim() && answerImages.length === 0}
                 className="inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Send size={16} />

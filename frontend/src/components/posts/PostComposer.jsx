@@ -4,17 +4,17 @@ import API from "../../services/api";
 
 export default function PostComposer({ onPostCreated, onClose }) {
   const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!text.trim() && !image) return;
+    if (!text.trim() && images.length === 0) return;
 
     const formData = new FormData();
     formData.append("text", text);
-    if (image) formData.append("image", image);
+    images.forEach((image) => formData.append("images", image));
 
     try {
       setLoading(true);
@@ -23,10 +23,22 @@ export default function PostComposer({ onPostCreated, onClose }) {
       });
       onPostCreated?.(res.data.data);
       setText("");
-      setImage(null);
+      setImages([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageChange = (event) => {
+    const selectedImages = Array.from(event.target.files || []);
+    setImages(selectedImages.slice(0, 6));
+    event.target.value = "";
+  };
+
+  const removeImage = (imageName) => {
+    setImages((currentImages) =>
+      currentImages.filter((image) => image.name !== imageName),
+    );
   };
 
   return (
@@ -66,23 +78,47 @@ export default function PostComposer({ onPostCreated, onClose }) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <label className="app-button-secondary max-w-full cursor-pointer py-2">
               <Image size={16} />
-              <span className="truncate">{image ? image.name : "Add image"}</span>
+              <span className="truncate">
+                {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
+              </span>
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
-                onChange={(event) => setImage(event.target.files?.[0] || null)}
+                onChange={handleImageChange}
               />
             </label>
             <button
               type="submit"
-              disabled={loading || (!text.trim() && !image)}
+              disabled={loading || (!text.trim() && images.length === 0)}
               className="inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
             >
               <Send size={16} />
               {loading ? "Posting..." : "Post"}
             </button>
           </div>
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {images.map((image) => (
+                <div
+                  key={`${image.name}-${image.size}`}
+                  className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700"
+                >
+                  <span className="truncate">{image.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeImage(image.name)}
+                    className="shrink-0 rounded-full p-1 transition hover:bg-white"
+                    aria-label={`Remove ${image.name}`}
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </form>

@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.route("/").get(getAllQuestions);
 
-router.route("/ask").post(verifyJWT, postUpload.single("image"), askQuestion);
+router.route("/ask").post(verifyJWT, postUpload.array("images", 6), askQuestion);
 
 router.route("/:questionId").get(getQuestionById);
 
