@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  AlertTriangle,
   Camera,
   Github,
   Instagram,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import ConfirmModal from "../../components/ui/ConfirmModal";
 import API from "../../services/api";
 
 const tabs = [
@@ -67,6 +69,7 @@ function InfoTile({ label, value }) {
 export default function Settings() {
   const { user, setUser } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = ["general", "account", "profile"].includes(searchParams.get("tab"))
     ? searchParams.get("tab")
@@ -91,6 +94,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [coverLoading, setCoverLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -177,6 +182,21 @@ export default function Settings() {
       showToast(error.response?.data?.message || "Failed to update password.", "error");
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setDeletingAccount(true);
+      await API.delete("/users/account");
+      setUser?.(null);
+      showToast("Your account and owned content were deleted.", "success");
+      navigate("/signup", { replace: true });
+    } catch (error) {
+      showToast(error.response?.data?.message || "Failed to delete account.", "error");
+    } finally {
+      setDeletingAccount(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -347,6 +367,33 @@ export default function Settings() {
                     {passwordLoading ? "Updating..." : "Update Password"}
                   </button>
                 </SectionCard>
+
+                <SectionCard
+                  title="Danger Zone"
+                  icon={AlertTriangle}
+                >
+                  <div className="rounded-3xl border border-red-100 bg-red-50/80 p-4 sm:p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="min-w-0">
+                        <h3 className="font-poppins text-lg font-semibold text-red-700">
+                          Delete account
+                        </h3>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-red-600/80">
+                          Permanently delete your profile, notes, posts, questions, answers,
+                          comments, likes, followers, following, avatar, cover image, and uploaded files.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-200 transition hover:-translate-y-0.5 hover:bg-red-700"
+                      >
+                        <Trash2 size={16} />
+                        Delete Account
+                      </button>
+                    </div>
+                  </div>
+                </SectionCard>
               </>
             )}
 
@@ -476,6 +523,16 @@ export default function Settings() {
           </section>
         </div>
       </div>
+
+      <ConfirmModal
+        open={showDeleteConfirm}
+        title="Delete Account"
+        message="This will permanently remove your account and all content owned by you. This action cannot be undone."
+        confirmText="Delete Account"
+        loading={deletingAccount}
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccount}
+      />
     </main>
   );
 }

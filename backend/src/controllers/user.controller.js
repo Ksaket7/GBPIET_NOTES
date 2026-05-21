@@ -15,6 +15,8 @@ import { Follow } from "../models/follow.model.js";
 import { Question } from "../models/question.model.js";
 import { Answer } from "../models/answer.model.js";
 import { Post } from "../models/post.model.js";
+import { Upvote } from "../models/upvote.model.js";
+import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -258,6 +260,123 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", authCookieOptions)
     .clearCookie("refreshToken", authCookieOptions)
     .json(new ApiResponse(200, {}, "Logged out successfully"));
+});
+
+const uniqueObjectIds = (items = []) => [
+  ...new Set(items.filter(Boolean).map((item) => item.toString())),
+];
+
+const getStoredImages = (item) => {
+  const images = Array.isArray(item?.images) ? item.images.filter(Boolean) : [];
+  if (images.length) return images;
+  return item?.imageUrl ? [item.imageUrl] : [];
+};
+
+const deleteStoredFiles = async (urls = []) => {
+  const storedUrls = urls.filter(
+    (url) => typeof url === "string" && url.includes("/uploads/")
+  );
+
+  await Promise.allSettled(
+    storedUrls.map((url) => deleteFromSupabase(url, "uploads"))
+  );
+};
+
+const collectUpvoteOwnerIds = async (upvotes = []) => {
+  const noteIds = upvotes.filter((upvote) => upvote.note).map((upvote) => upvote.note);
+  const questionIds = upvotes.filter((upvote) => upvote.question).map((upvote) => upvote.question);
+  const answerIds = upvotes.filter((upvote) => upvote.answer).map((upvote) => upvote.answer);
+  const postIds = upvotes.filter((upvote) => upvote.post).map((upvote) => upvote.post);
+
+  const [notes, questions, answers, posts] = await Promise.all([
+    Note.find({ _id: { $in: noteIds } }).select("originalStudent").lean(),
+    Question.find({ _id: { $in: questionIds } }).select("askedBy").lean(),
+    Answer.find({ _id: { $in: answerIds } }).select("answeredBy").lean(),
+    Post.find({ _id: { $in: postIds } }).select("postedBy").lean(),
+  ]);
+
+  return uniqueObjectIds([
+    ...notes.map((note) => note.originalStudent),
+    ...questions.map((question) => question.askedBy),
+    ...answers.map((answer) => answer.answeredBy),
+    ...posts.map((post) => post.postedBy),
+  ]);
+};
+
+const deleteCurrentUserAccount = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const [ownedNotes, ownedPosts, ownedQuestions, ownedAnswers, upvotesByUser] =
+    await Promise.all([
+      Note.find({ $or: [{ uploadedBy: userId }, { originalStudent: userId }] }),
+      Post.find({ postedBy: userId }),
+      Question.find({ askedBy: userId }),
+      Answer.find({ answeredBy: userId }),
+      Upvote.find({ upvotedBy: userId }).lean(),
+    ]);
+
+  const noteIds = ownedNotes.map((note) => note._id);
+  const postIds = ownedPosts.map((post) => post._id);
+  const questionIds = ownedQuestions.map((question) => question._id);
+  const answersOnOwnedQuestions = await Answer.find({ question: { $in: questionIds } });
+  const allAnswersToDelete = [...ownedAnswers, ...answersOnOwnedQuestions];
+  const answerIds = uniqueObjectIds(allAnswersToDelete.map((answer) => answer._id));
+  const upvoteIdsByUser = upvotesByUser.map((upvote) => upvote._id);
+
+  const impactedUserIds = uniqueObjectIds([
+    ...(await collectUpvoteOwnerIds(upvotesByUser)),
+    ...allAnswersToDelete.map((answer) => answer.answeredBy),
+  ]).filter((id) => id !== userId.toString());
+
+  await deleteStoredFiles([
+    user.avatar,
+    user.coverImage,
+    ...ownedNotes.map((note) => note.fileUrl),
+    ...ownedPosts.flatMap((post) => getStoredImages(post)),
+    ...ownedQuestions.flatMap((question) => getStoredImages(question)),
+    ...allAnswersToDelete.flatMap((answer) => getStoredImages(answer)),
+  ]);
+
+  await Promise.all([
+    Note.updateMany({}, { $pull: { comments: { user: userId }, upvotes: { $in: upvoteIdsByUser } } }),
+    Question.updateMany({}, { $pull: { answers: { $in: answerIds }, upvotes: { $in: upvoteIdsByUser } } }),
+    Answer.updateMany({}, { $pull: { comments: { user: userId }, upvotes: { $in: upvoteIdsByUser } } }),
+    Post.updateMany({}, { $pull: { comments: { user: userId }, upvotes: { $in: upvoteIdsByUser } } }),
+  ]);
+
+  await Promise.all([
+    Upvote.deleteMany({
+      $or: [
+        { upvotedBy: userId },
+        { note: { $in: noteIds } },
+        { post: { $in: postIds } },
+        { question: { $in: questionIds } },
+        { answer: { $in: answerIds } },
+      ],
+    }),
+    Follow.deleteMany({ $or: [{ follower: userId }, { following: userId }] }),
+    Note.deleteMany({ _id: { $in: noteIds } }),
+    Post.deleteMany({ _id: { $in: postIds } }),
+    Question.deleteMany({ _id: { $in: questionIds } }),
+    Answer.deleteMany({ _id: { $in: answerIds } }),
+  ]);
+
+  await User.findByIdAndDelete(userId);
+
+  await Promise.allSettled(
+    impactedUserIds.map((impactedUserId) => recalculateUserReputation(impactedUserId))
+  );
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", authCookieOptions)
+    .clearCookie("refreshToken", authCookieOptions)
+    .json(new ApiResponse(200, {}, "Account deleted successfully"));
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -1197,6 +1316,7 @@ export {
   googleAuth,
   completeProfile,
   logoutUser,
+  deleteCurrentUserAccount,
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,

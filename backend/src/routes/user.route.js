@@ -5,6 +5,7 @@ import {
   googleAuth,
   completeProfile,
   logoutUser,
+  deleteCurrentUserAccount,
   getUserProfile,
   getCurrentUser,
   updateAccountDetails,
@@ -37,6 +38,7 @@ router.route("/top-contributors").get(getTopContributors);
 router.route("/complete-profile").patch(verifyJWT, completeProfile);
 
 router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/account").delete(verifyJWT, deleteCurrentUserAccount);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/activity").get(verifyJWT, getUserActivity);
 router.route("/leaderboard-dashboard").get(verifyJWT, getLeaderboardDashboard);
