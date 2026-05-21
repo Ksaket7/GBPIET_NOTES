@@ -127,13 +127,16 @@ function PostCommentBox({ post }) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder="Write a comment..."
-          className="app-input py-2 text-xs"
-        />
+      <form onSubmit={handleSubmit} className="mt-3 flex items-end gap-2">
+        <label className="block flex-1 space-y-2">
+          <span className="text-xs font-semibold text-slate-700">Comment</span>
+          <input
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Write a comment..."
+            className="app-input py-2 text-xs"
+          />
+        </label>
         <button
           type="submit"
           disabled={loading || !message.trim()}
@@ -548,9 +551,6 @@ export default function PostsPage() {
         <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="page-title">Community</h1>
-            <p className="page-subtitle">
-              See what students are sharing and discussing.
-            </p>
           </div>
         </header>
 

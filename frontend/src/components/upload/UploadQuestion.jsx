@@ -73,66 +73,50 @@ export default function UploadQuestion({ onCreated }) {
       )}
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-        <input
-          type="text"
-          name="title"
-          placeholder="Question Title"
-          value={form.title}
-          onChange={handleChange}
-          className="app-input"
-          required
-        />
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-slate-700">Question title</span>
+          <input type="text" name="title" placeholder="Question Title" value={form.title} onChange={handleChange} className="app-input" required />
+        </label>
 
-        <textarea
-          name="description"
-          placeholder="Question Description"
-          value={form.description}
-          onChange={handleChange}
-          rows={5}
-          className="app-input min-h-32"
-          required
-        />
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-slate-700">Question description</span>
+          <textarea name="description" placeholder="Question Description" value={form.description} onChange={handleChange} rows={5} className="app-input min-h-32" required />
+        </label>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
-          <input
-            type="text"
-            name="tags"
-            placeholder="Tags (e.g. #react #dbms)"
-            value={form.tags}
-            onChange={handleChange}
-            className="app-input"
-            required
-          />
-          <input
-            type="text"
-            name="subjectCode"
-            placeholder="Subject Code"
-            value={form.subjectCode}
-            onChange={handleChange}
-            className="app-input"
-          />
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Tags</span>
+            <input type="text" name="tags" placeholder="Tags (e.g. #react #dbms)" value={form.tags} onChange={handleChange} className="app-input" required />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Subject code</span>
+            <input type="text" name="subjectCode" placeholder="Subject Code" value={form.subjectCode} onChange={handleChange} className="app-input" />
+          </label>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="app-button-secondary max-w-full cursor-pointer py-2">
-            <Image size={16} />
-            <span className="truncate">
-              {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(event) => {
-                setImages((currentImages) => [
-                  ...currentImages,
-                  ...Array.from(event.target.files || []),
-                ].slice(0, 6));
-                event.target.value = "";
-              }}
-            />
-          </label>
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-slate-700">Images</p>
+            <label className="app-button-secondary max-w-full cursor-pointer py-2">
+              <Image size={16} />
+              <span className="truncate">
+                {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(event) => {
+                  setImages((currentImages) => [
+                    ...currentImages,
+                    ...Array.from(event.target.files || []),
+                  ].slice(0, 6));
+                  event.target.value = "";
+                }}
+              />
+            </label>
+          </div>
           {images.length > 0 && (
             <div className="flex min-w-0 flex-1 flex-wrap gap-2">
               {images.map((image, index) => (

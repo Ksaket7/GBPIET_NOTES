@@ -483,11 +483,15 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
 
       {editing ? (
         <div className="mt-4 space-y-3">
-          <textarea
-            value={editText}
-            onChange={(event) => setEditText(event.target.value)}
-            className="app-input min-h-28"
-          />
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Post content</span>
+            <textarea
+              value={editText}
+              onChange={(event) => setEditText(event.target.value)}
+              placeholder="Edit your post..."
+              className="app-input min-h-28"
+            />
+          </label>
           <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
@@ -618,13 +622,16 @@ function PostCommentBox({ post }) {
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
-        <input
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder="Write a comment..."
-          className="app-input py-2 text-xs"
-        />
+      <form onSubmit={handleSubmit} className="mt-3 flex items-end gap-2">
+        <label className="block flex-1 space-y-2">
+          <span className="text-xs font-semibold text-slate-700">Comment</span>
+          <input
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Write a comment..."
+            className="app-input py-2 text-xs"
+          />
+        </label>
         <button
           type="submit"
           disabled={loading || !message.trim()}

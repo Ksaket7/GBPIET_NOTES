@@ -82,24 +82,30 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              required
-              onChange={handleChange}
-              className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              required
-              value={form.password}
-              onChange={handleChange}
-              className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
-            />
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-slate-700">Email</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                required
+                onChange={handleChange}
+                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-slate-700">Password</span>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+                value={form.password}
+                onChange={handleChange}
+                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+              />
+            </label>
             <button
               type="submit"
               disabled={loading || googleLoading}

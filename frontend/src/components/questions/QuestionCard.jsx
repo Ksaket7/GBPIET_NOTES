@@ -437,32 +437,38 @@ export default function QuestionCard({ question }) {
             onSubmit={handleAnswerSubmit}
             className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4"
           >
-            <textarea
-              value={answerText}
-              onChange={(event) => setAnswerText(event.target.value)}
-              placeholder="Write your answer..."
-              className="app-input min-h-24"
-            />
+            <label className="block space-y-2">
+              <span className="text-sm font-semibold text-slate-700">Answer</span>
+              <textarea
+                value={answerText}
+                onChange={(event) => setAnswerText(event.target.value)}
+                placeholder="Write your answer..."
+                className="app-input min-h-24"
+              />
+            </label>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <label className="app-button-secondary max-w-full cursor-pointer py-2">
-                <Image size={16} />
-                <span className="truncate">
-                  {answerImages.length ? `${answerImages.length} image${answerImages.length === 1 ? "" : "s"} selected` : "Add images"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(event) => {
-                    setAnswerImages((currentImages) => [
-                      ...currentImages,
-                      ...Array.from(event.target.files || []),
-                    ].slice(0, 6));
-                    event.target.value = "";
-                  }}
-                />
-              </label>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-slate-700">Images</p>
+                <label className="app-button-secondary max-w-full cursor-pointer py-2">
+                  <Image size={16} />
+                  <span className="truncate">
+                    {answerImages.length ? `${answerImages.length} image${answerImages.length === 1 ? "" : "s"} selected` : "Add images"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(event) => {
+                      setAnswerImages((currentImages) => [
+                        ...currentImages,
+                        ...Array.from(event.target.files || []),
+                      ].slice(0, 6));
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </div>
               {answerImages.length > 0 && (
                 <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                   {answerImages.map((image, index) => (

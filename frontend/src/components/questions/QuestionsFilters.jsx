@@ -13,21 +13,27 @@ export default function QuestionsFilters({ filters, setSearchParams }) {
 
   return (
     <div className="grid gap-3 rounded-2xl bg-white p-3 shadow-sm sm:p-4 lg:grid-cols-[minmax(0,1fr)_180px]">
-      <input
-        type="text"
-        placeholder="Search questions..."
-        value={filters.query}
-        onChange={(event) => updateParam("query", event.target.value)}
-        className="app-input border-slate-100 bg-slate-50"
-      />
+      <label className="block space-y-2">
+        <span className="text-sm font-semibold text-slate-700">Search</span>
+        <input
+          type="text"
+          placeholder="Search questions..."
+          value={filters.query}
+          onChange={(event) => updateParam("query", event.target.value)}
+          className="app-input border-slate-100 bg-slate-50"
+        />
+      </label>
 
-      <input
-        type="text"
-        placeholder="Subject Code"
-        value={filters.subjectCode}
-        onChange={(event) => updateParam("subjectCode", event.target.value)}
-        className="app-input border-slate-100 bg-slate-50"
-      />
+      <label className="block space-y-2">
+        <span className="text-sm font-semibold text-slate-700">Subject code</span>
+        <input
+          type="text"
+          placeholder="Subject Code"
+          value={filters.subjectCode}
+          onChange={(event) => updateParam("subjectCode", event.target.value)}
+          className="app-input border-slate-100 bg-slate-50"
+        />
+      </label>
     </div>
   );
 }

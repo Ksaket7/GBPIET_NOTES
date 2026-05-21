@@ -16,12 +16,14 @@ import ConfirmModal from "../ui/ConfirmModal";
 import LoadingButton from "../ui/LoadingButton";
 import UpvoteButton from "../upvote/UpvoteButton";
 import UpvotersList from "../upvote/UpvotersList";
+import { useToast } from "../../context/ToastContext";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const isOwner = user?._id === note.uploadedBy?._id;
   const uploadedDate = note.createdAt
@@ -39,7 +41,7 @@ export default function NoteHeader({ note }) {
       await API.delete(`/notes/${note._id}`);
       navigate("/notes");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete note");
+      showToast(err.response?.data?.message || "Failed to delete note", "error");
     } finally {
       setDeleting(false);
       setShowConfirm(false);

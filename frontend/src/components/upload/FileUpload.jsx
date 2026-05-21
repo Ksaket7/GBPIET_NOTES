@@ -2,6 +2,8 @@ import { UploadCloud } from "lucide-react";
 
 const FileUpload = ({ file, setFile }) => {
   return (
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-slate-700">File</p>
     <label
       className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-6 text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-50"
     >
@@ -16,6 +18,7 @@ const FileUpload = ({ file, setFile }) => {
         onChange={(e) => setFile(e.target.files[0])}
       />
     </label>
+    </div>
   );
 };
 

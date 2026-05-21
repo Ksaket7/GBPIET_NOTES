@@ -164,11 +164,7 @@ export default function UsersPage() {
       <div className="app-shell space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="pill">Directory</span>
-            <h1 className="page-title mt-3">Users</h1>
-            <p className="page-subtitle">
-              Browse faculty, students, CR users, and admins. Follow people to keep track of them.
-            </p>
+            <h1 className="page-title">Users</h1>
           </div>
 
           <div className="flex flex-wrap gap-2">

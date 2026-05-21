@@ -103,6 +103,7 @@ const UploadForm = ({ onUploaded }) => {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="title"
+            label="Title"
             placeholder="Title"
             value={form.title}
             onChange={handleChange}
@@ -111,6 +112,7 @@ const UploadForm = ({ onUploaded }) => {
 
           <InputField
             name="subjectName"
+            label="Subject name"
             placeholder="Subject Name"
             value={form.subjectName}
             onChange={handleChange}
@@ -118,6 +120,7 @@ const UploadForm = ({ onUploaded }) => {
 
           <InputField
             name="subjectCode"
+            label="Subject code"
             placeholder="Subject Code"
             value={form.subjectCode}
             onChange={handleChange}
@@ -126,39 +129,47 @@ const UploadForm = ({ onUploaded }) => {
 
           <InputField
             name="originalStudentUsername"
+            label="Original student username"
             placeholder="Original Student Username"
             value={form.originalStudentUsername}
             onChange={handleChange}
           />
         </div>
 
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          className="app-input min-h-28"
-        />
+        <label className="block space-y-2">
+          <span className="text-sm font-semibold text-slate-700">Description</span>
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            className="app-input min-h-28"
+          />
+        </label>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="tags"
+            label="Tags"
             placeholder="Tags (comma separated)"
             value={form.tags}
             onChange={handleChange}
           />
 
-          <select
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            className="app-input"
-          >
-            <option value="notes">Notes</option>
-            <option value="pyqs">PYQs</option>
-            <option value="tuts">Tutorials</option>
-            <option value="assignments">Assignments</option>
-          </select>
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Material type</span>
+            <select
+              name="type"
+              value={form.type}
+              onChange={handleChange}
+              className="app-input"
+            >
+              <option value="notes">Notes</option>
+              <option value="pyqs">PYQs</option>
+              <option value="tuts">Tutorials</option>
+              <option value="assignments">Assignments</option>
+            </select>
+          </label>
         </div>
 
         <FileUpload file={file} setFile={setFile} />

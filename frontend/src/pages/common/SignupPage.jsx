@@ -85,22 +85,28 @@ export default function SignupPage() {
             )}
 
             <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                required
-                onChange={handleChange}
-                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                required
-                onChange={handleChange}
-                className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
-              />
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-slate-700">Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  required
+                  onChange={handleChange}
+                  className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+                />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-slate-700">Password</span>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  required
+                  onChange={handleChange}
+                  className="app-input rounded-full bg-slate-50 px-5 shadow-inner shadow-slate-200/70"
+                />
+              </label>
 
               <button
                 type="submit"

@@ -47,11 +47,7 @@ export default function NotesPage() {
       <div className="app-shell space-y-6">
         <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <span className="pill">Library</span>
-            <h1 className="page-title mt-3">Notes</h1>
-            <p className="page-subtitle">
-              Search shared notes, assignments, PYQs, and tutorial material.
-            </p>
+            <h1 className="page-title">Notes</h1>
           </div>
           {allowNoteUpload && (
             <button

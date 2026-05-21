@@ -188,13 +188,9 @@ export default function LeaderboardPage() {
     <main className="app-page">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header>
-          <p className="pill">Leaderboard</p>
-          <h1 className="mt-3 font-poppins text-3xl font-semibold text-slate-950">
+          <h1 className="font-poppins text-3xl font-semibold text-slate-950">
             Activity Dashboard
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Track your contribution journey and see where you stand in the GBPIET community.
-          </p>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
@@ -304,17 +300,20 @@ export default function LeaderboardPage() {
               <h2 className="text-lg font-semibold">Yearly Overview</h2>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <select
-                value={selectedYear}
-                onChange={(event) => setSelectedYear(Number(event.target.value))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-              >
-                {(yearlyOverview?.availableYears || [new Date().getFullYear(), new Date().getFullYear() - 1]).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                Year
+                <select
+                  value={selectedYear}
+                  onChange={(event) => setSelectedYear(Number(event.target.value))}
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+                >
+                  {(yearlyOverview?.availableYears || [new Date().getFullYear(), new Date().getFullYear() - 1]).map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span>Less</span>
                 {[0, 1, 2, 4].map((count) => (

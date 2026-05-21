@@ -3,19 +3,25 @@ const InputField = ({
   value,
   onChange,
   placeholder,
+  label,
   type = "text",
   required = false,
 }) => {
   return (
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      required={required}
-      className="app-input"
-    />
+    <label className="block space-y-2">
+      {label && (
+        <span className="text-sm font-semibold text-slate-700">{label}</span>
+      )}
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        className="app-input"
+      />
+    </label>
   );
 };
 

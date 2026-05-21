@@ -115,16 +115,19 @@ export default function NoteComments({ noteId }) {
 
       {formOpen && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-3 sm:p-4">
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={
-              isAuthenticated ? "Write a comment..." : "Login to add a comment"
-            }
-            disabled={!isAuthenticated || loading}
-            rows={3}
-            className="app-input min-h-28 disabled:opacity-60"
-          />
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Comment</span>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={
+                isAuthenticated ? "Write a comment..." : "Login to add a comment"
+              }
+              disabled={!isAuthenticated || loading}
+              rows={3}
+              className="app-input min-h-28 disabled:opacity-60"
+            />
+          </label>
 
           <div className="flex justify-end">
             <button

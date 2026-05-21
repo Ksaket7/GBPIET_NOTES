@@ -632,6 +632,7 @@ export default function AIChatbotPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
+              <p className="text-sm font-semibold text-slate-700">Message</p>
               <div className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
                 <button
                   type="button"

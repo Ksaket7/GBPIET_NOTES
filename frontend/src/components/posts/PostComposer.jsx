@@ -69,26 +69,26 @@ export default function PostComposer({ onPostCreated, onClose }) {
           <FileText size={18} />
         </div>
         <div className="min-w-0 flex-1 space-y-3">
-          <textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder="Post an update, thought, or image..."
-            className="app-input min-h-28"
-          />
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Post content</span>
+            <textarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              placeholder="Post an update, thought, or image..."
+              className="app-input min-h-28"
+            />
+          </label>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <label className="app-button-secondary max-w-full cursor-pointer py-2">
-              <Image size={16} />
-              <span className="truncate">
-                {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleImageChange}
-              />
-            </label>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">Images</p>
+              <label className="app-button-secondary max-w-full cursor-pointer py-2">
+                <Image size={16} />
+                <span className="truncate">
+                  {images.length ? `${images.length} image${images.length === 1 ? "" : "s"} selected` : "Add images"}
+                </span>
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+              </label>
+            </div>
             <button
               type="submit"
               disabled={loading || (!text.trim() && images.length === 0)}

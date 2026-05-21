@@ -75,15 +75,9 @@ export default function QuestionsPage() {
         <section className="rounded-[28px] border border-white/70 bg-white/45 p-4 shadow-2xl shadow-slate-500/15 backdrop-blur-2xl sm:p-6 md:p-8">
           <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wide text-indigo-700">
-                Discussion
-              </span>
-              <h1 className="mt-2 font-poppins text-4xl font-semibold tracking-tight text-slate-950 max-sm:text-2xl">
+              <h1 className="font-poppins text-4xl font-semibold tracking-tight text-slate-950 max-sm:text-2xl">
                 Questions
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Browse student doubts and answers in one focused workspace.
-              </p>
             </div>
             {isAuthenticated && (
               <button
