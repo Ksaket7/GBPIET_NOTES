@@ -8,7 +8,7 @@ export default function Home() {
   const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
-    return <Loader message="Waking up server…" />;
+    return <Loader message="Waking up server..." />;
   }
 
   if (isAuthenticated && (user?.profileCompleted === false || !user?.year)) {

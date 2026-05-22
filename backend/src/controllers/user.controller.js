@@ -869,7 +869,7 @@ const getLandingData = asyncHandler(async (req, res) => {
   ] = await Promise.all([
     Note.countDocuments(),
     Question.countDocuments(),
-    User.countDocuments({ profileCompleted: true }),
+    User.countDocuments(),
     User.aggregate([
       { $match: { profileCompleted: true } },
       {

@@ -17,6 +17,7 @@ import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import UserAvatar from "../../components/ui/UserAvatar";
+import { useAuth } from "../../context/AuthContext";
 import {
   downloadNoteFile,
   getNoteFileUrl,
@@ -69,6 +70,22 @@ const formatNumber = (value = 0) => {
   }
   return new Intl.NumberFormat("en-IN").format(number);
 };
+
+const normalizeStats = (stats = {}) => ({
+  notes: Number(stats.notes ?? stats.totalNotes ?? 0),
+  students: Number(stats.students ?? stats.users ?? stats.totalUsers ?? 0),
+  questions: Number(stats.questions ?? stats.totalQuestions ?? 0),
+});
+
+const normalizeContributor = (user = {}, index = 0) => ({
+  ...user,
+  id: user.id || user._id || user.username || index,
+  name: user.name || user.fullName || user.username || "GBPIET user",
+  uploads: Number(user.uploads ?? user.uploadsCount ?? 0),
+  likes: Number(user.likes ?? user.likesReceived ?? 0),
+  credits: Number(user.credits ?? user.points ?? 0),
+  isTop: Boolean(user.isTop ?? index === 0),
+});
 
 const initialsFor = (user) => {
   const source = user?.username || user?.name || user?.fullName || "User";
@@ -128,6 +145,7 @@ function EmptyState({ children }) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [statsData, setStatsData] = useState(emptyLandingData.stats);
   const [topContributors, setTopContributors] = useState([]);
   const [topNotes, setTopNotes] = useState([]);
@@ -142,7 +160,7 @@ export default function LandingPage() {
 
     const fetchLandingData = async () => {
       try {
-        const [statsRes, contributorsRes, notesRes, activityRes] =
+        const [landingRes, contributorsRes, notesRes, activityRes] =
           await Promise.allSettled([
             API.get("/users/landing"),
             API.get("/users/top-contributors"),
@@ -152,14 +170,30 @@ export default function LandingPage() {
 
         if (!active) return;
 
-        if (statsRes.status === "fulfilled") {
-          setStatsData(
-            statsRes.value.data?.data?.stats || emptyLandingData.stats,
-          );
+        if (landingRes.status === "fulfilled") {
+          const landingData = landingRes.value.data?.data || {};
+          setStatsData(normalizeStats(landingData.stats));
+
+          if (landingData.topContributors?.length) {
+            setTopContributors(landingData.topContributors.map(normalizeContributor));
+          }
+
+          if (landingData.topStudyMaterial?.length) {
+            setTopNotes(landingData.topStudyMaterial);
+          }
+
+          if (landingData.activity?.length) {
+            setActivityData((current) => ({
+              ...current,
+              activity: landingData.activity,
+            }));
+          }
         }
 
         if (contributorsRes.status === "fulfilled") {
-          setTopContributors(contributorsRes.value.data?.data || []);
+          setTopContributors(
+            (contributorsRes.value.data?.data || []).map(normalizeContributor),
+          );
         }
 
         if (notesRes.status === "fulfilled") {
@@ -173,8 +207,21 @@ export default function LandingPage() {
             activity: activityRes.value.data?.data?.activity || [],
           });
         }
+
+        if (landingRes.status === "rejected") {
+          setStatsData((currentStats) =>
+            normalizeStats({
+              ...currentStats,
+              notes:
+                notesRes.status === "fulfilled"
+                  ? notesRes.value.data?.data?.length || currentStats.notes
+                  : currentStats.notes,
+            }),
+          );
+        }
       } catch (error) {
         console.error("Failed to fetch landing data:", error);
+        setStatsData(emptyLandingData.stats);
       } finally {
         if (active) setLoading(false);
       }
@@ -249,7 +296,7 @@ export default function LandingPage() {
                     <Icon size={16} />
                   </div>
                   <p className="text-lg font-bold text-slate-950">
-                    {loading ? "..." : formatNumber(value)}
+                    {formatNumber(value)}
                   </p>
                   <p className="mt-1 text-xs font-semibold text-slate-500">
                     {label}
@@ -290,56 +337,50 @@ export default function LandingPage() {
             ))}
           </div>
         ) : topContributors.length ? (
-          <div className="mt-7 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="mt-7 grid grid-cols-1 gap-5 lg:grid-cols-[1.15fr_1fr_1fr]">
             {topContributor && (
-              <article className="relative flex min-h-48 min-w-0 flex-col rounded-2xl border-2 border-indigo-100 bg-white px-5 py-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl sm:col-span-1 sm:items-center sm:justify-center lg:col-span-1 lg:px-9 xl:col-span-1">
-                {/* Top Badge */}
-                <div className="absolute right-3 top-3 max-w-[calc(100%-1.5rem)] rounded-full bg-indigo-600 px-2.5 py-1 text-[10px] font-semibold text-white sm:right-4 sm:top-4 sm:px-3 sm:text-xs">
-                  TOP CONTRIBUTOR
-                </div>
+              <article className="relative overflow-hidden rounded-[28px] border border-indigo-100 bg-white p-5 shadow-xl shadow-slate-200/70 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/70 sm:p-6">
+                <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-indigo-600 via-violet-500 to-sky-500" />
+                <div className="relative flex min-h-52 flex-col gap-6 sm:flex-row sm:items-end">
+                  <div className="flex flex-col items-center sm:items-start">
+                    <UserAvatar
+                      user={topContributor}
+                      className="h-28 w-28 border-4 border-white text-3xl shadow-xl shadow-indigo-950/15"
+                    />
+                  </div>
 
-                <div className="flex w-full min-w-0 flex-col items-center gap-5 text-center lg:flex-row lg:items-center lg:gap-6 lg:text-left">
-                  {/* Avatar */}
-                  <UserAvatar
-                    user={topContributor}
-                    className="h-20 w-20 shadow-sm lg:h-24 lg:w-24"
-                  />
-
-                  {/* Content */}
-                  <div className="min-w-0 flex-1">
-                    {/* Name */}
-                    <h3 className="truncate font-poppins text-xl font-semibold text-slate-800 lg:text-2xl">
+                  <div className="min-w-0 flex-1 text-center sm:text-left">
+                    <div className="mb-3 flex justify-center sm:justify-start">
+                      <span className="max-w-full rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-semibold text-white sm:text-xs">
+                        TOP CONTRIBUTOR
+                      </span>
+                    </div>
+                    <h3 className="truncate font-poppins text-2xl font-semibold text-slate-950">
                       {topContributor.name}
                     </h3>
-
-                    {/* Branch + Year */}
                     <p className="mt-1 text-sm font-medium text-slate-500">
                       {topContributor.branch || "GBPIET"} |{" "}
                       {roleLabel(topContributor.year)}
                     </p>
 
-                    {/* Stats */}
-                    <div className="mt-5 flex flex-wrap justify-center gap-4 text-sm sm:gap-6 lg:justify-start xl:gap-8">
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-indigo-600">
-                          {formatNumber(topContributor.uploads)}
-                        </p>
-                        <p className="text-slate-500">Uploads</p>
-                      </div>
-
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-indigo-600">
-                          {formatNumber(topContributor.likes)}
-                        </p>
-                        <p className="text-slate-500">Likes</p>
-                      </div>
-
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-indigo-600">
-                          {formatNumber(topContributor.credits)}
-                        </p>
-                        <p className="text-slate-500">Credits</p>
-                      </div>
+                    <div className="mt-5 grid grid-cols-3 gap-2">
+                      {[
+                        ["Uploads", topContributor.uploads],
+                        ["Likes", topContributor.likes],
+                        ["Credits", topContributor.credits],
+                      ].map(([label, value]) => (
+                        <div
+                          key={label}
+                          className="rounded-2xl border border-slate-100 bg-slate-50/80 px-3 py-3 text-center"
+                        >
+                          <p className="font-poppins text-lg font-semibold text-indigo-700">
+                            {formatNumber(value)}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-slate-500">
+                            {label}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -349,18 +390,37 @@ export default function LandingPage() {
             {sideContributors.map((user) => (
               <article
                 key={user.id || user.name}
-                className="flex min-h-48 min-w-0 flex-col rounded-2xl bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl sm:px-7"
+                className="flex min-h-64 min-w-0 flex-col rounded-[28px] border border-white bg-white p-6 text-center shadow-xl shadow-slate-200/70 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/60"
               >
-                <UserAvatar user={user} className="mx-auto h-20 w-20 shadow-sm" />
-                <h3 className="mt-5 truncate font-poppins text-base font-semibold">
-                  {user.name}
-                </h3>
-                <p className="mt-1 truncate text-sm font-medium text-slate-500">
-                  {user.branch || "GBPIET"} | {roleLabel(user.year)}
-                </p>
-                <div className="mt-auto flex justify-evenly gap-3 border-t border-slate-100 pt-4 text-xs font-bold text-slate-700">
-                  <span>{formatNumber(user.uploads)} Up</span>
-                  <span>{formatNumber(user.likes)} Lk</span>
+                <UserAvatar
+                  user={user}
+                  className="mx-auto h-24 w-24 text-xl shadow-sm ring-8 ring-indigo-50/80"
+                />
+                <div className="mt-5 min-w-0">
+                  <h3 className="truncate font-poppins text-lg font-semibold text-slate-950">
+                    {user.name}
+                  </h3>
+                  <p className="mt-1 truncate text-sm font-medium text-slate-500">
+                    {user.branch || "GBPIET"} | {roleLabel(user.year)}
+                  </p>
+                </div>
+                <div className="mt-auto grid grid-cols-2 gap-3 border-t border-slate-100 pt-5">
+                  <div className="rounded-2xl bg-slate-50 px-3 py-3">
+                    <p className="font-poppins text-base font-semibold text-slate-950">
+                      {formatNumber(user.uploads)}
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold uppercase text-slate-400">
+                      Uploads
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-indigo-50 px-3 py-3">
+                    <p className="font-poppins text-base font-semibold text-indigo-700">
+                      {formatNumber(user.likes)}
+                    </p>
+                    <p className="mt-1 text-[11px] font-semibold uppercase text-indigo-400">
+                      Likes
+                    </p>
+                  </div>
                 </div>
               </article>
             ))}
@@ -429,27 +489,31 @@ export default function LandingPage() {
                         stopPropagation
                       />
                     </div>
-                    <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className={`mt-5 grid grid-cols-1 gap-2 ${isAuthenticated ? "sm:grid-cols-3" : ""}`}>
                       <Link
                         to={`/notes/${getNoteId(note)}`}
                         className="inline-flex w-full items-center justify-center rounded-xl bg-slate-100 px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-600 hover:text-white"
                       >
                         View
                       </Link>
-                      <button
-                        type="button"
-                        onClick={getNoteFileUrl(note) ? () => handleOpenNote(note) : requireLogin}
-                        className="inline-flex w-full items-center justify-center rounded-xl border border-indigo-100 bg-white px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
-                      >
-                        Open
-                      </button>
-                      <button
-                        type="button"
-                        onClick={getNoteFileUrl(note) ? () => handleDownloadNote(note) : requireLogin}
-                        className="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
-                      >
-                        Download
-                      </button>
+                      {isAuthenticated && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={getNoteFileUrl(note) ? () => handleOpenNote(note) : requireLogin}
+                            className="inline-flex w-full items-center justify-center rounded-xl border border-indigo-100 bg-white px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50"
+                          >
+                            Open
+                          </button>
+                          <button
+                            type="button"
+                            onClick={getNoteFileUrl(note) ? () => handleDownloadNote(note) : requireLogin}
+                            className="inline-flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                          >
+                            Download
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </article>

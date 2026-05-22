@@ -25,7 +25,7 @@ function App() {
   const { loading } = useAuth();
 
   if (loading) {
-    return <Loader message="Checking your session…" />;
+    return <Loader message="Checking your session..." />;
   }
   return (
     <>
