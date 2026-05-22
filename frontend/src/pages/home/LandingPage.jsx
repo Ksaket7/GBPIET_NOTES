@@ -16,6 +16,7 @@ import {
 import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import NoteThumbnail from "../../components/notes/NoteThumbnail";
+import UserAvatar from "../../components/ui/UserAvatar";
 import {
   downloadNoteFile,
   getNoteFileUrl,
@@ -113,26 +114,6 @@ function ActionButtons({ dark = false }) {
       >
         Login
       </Link>
-    </div>
-  );
-}
-
-function Avatar({ user, size = "h-14 w-14" }) {
-  if (user?.avatar) {
-    return (
-      <img
-        src={user.avatar}
-        alt={user.name || user.username || "Contributor"}
-        className={`${size} shrink-0 rounded-full object-cover shadow-sm`}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`${size} flex shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-bold text-slate-600`}
-    >
-      {initialsFor(user)}
     </div>
   );
 }
@@ -319,9 +300,9 @@ export default function LandingPage() {
 
                 <div className="flex w-full min-w-0 flex-col items-center gap-5 text-center lg:flex-row lg:items-center lg:gap-6 lg:text-left">
                   {/* Avatar */}
-                  <Avatar
+                  <UserAvatar
                     user={topContributor}
-                    size="h-20 w-20 lg:h-24 lg:w-24"
+                    className="h-20 w-20 shadow-sm lg:h-24 lg:w-24"
                   />
 
                   {/* Content */}
@@ -370,7 +351,7 @@ export default function LandingPage() {
                 key={user.id || user.name}
                 className="flex min-h-48 min-w-0 flex-col rounded-2xl bg-white px-5 py-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl sm:px-7"
               >
-                <Avatar user={user} size="mx-auto h-20 w-20" />
+                <UserAvatar user={user} className="mx-auto h-20 w-20 shadow-sm" />
                 <h3 className="mt-5 truncate font-poppins text-base font-semibold">
                   {user.name}
                 </h3>
@@ -437,7 +418,7 @@ export default function LandingPage() {
                   <div className="mt-auto border-t border-slate-100 pt-5">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
-                        <Avatar user={note.uploadedBy} size="h-9 w-9" />
+                        <UserAvatar user={note.uploadedBy} className="h-9 w-9 shadow-sm" />
                         <span className="truncate text-sm font-semibold text-slate-700">
                           {note.uploadedBy?.name || note.uploadedBy?.username || "Contributor"}
                         </span>

@@ -1,203 +1,17 @@
 import {
-  ChevronLeft,
-  ChevronRight,
   Image,
   MessageSquareText,
   MoreHorizontal,
   Send,
-  ThumbsUp,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import API from "../../services/api";
-import { useAuth } from "../../context/AuthContext";
 import LoadingButton from "../ui/LoadingButton";
-import FormModal from "../ui/FormModal";
+import AttachmentCarousel from "../ui/AttachmentCarousel";
+import SocialLikeAction from "../ui/SocialLikeAction";
+import UserAvatar from "../ui/UserAvatar";
 import { timeAgo } from "../../utils/timeAgo";
-
-const initialsFor = (user) => {
-  const source = user?.fullName || user?.username || "U";
-  return source
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-};
-
-function Avatar({ user, className = "h-11 w-11" }) {
-  if (user?.avatar) {
-    return (
-      <img
-        src={user.avatar}
-        alt={user.fullName || user.username || "User"}
-        className={`${className} shrink-0 rounded-full object-cover`}
-      />
-    );
-  }
-
-  return (
-    <div className={`${className} flex shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700`}>
-      {initialsFor(user)}
-    </div>
-  );
-}
-
-function SkeletonCard({ compact = false }) {
-  return (
-    <div className={`rounded-2xl border border-slate-100 bg-white ${compact ? "p-3" : "p-4"}`}>
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-100" />
-        <div className="flex-1 space-y-2">
-          <div className="h-3 w-28 animate-pulse rounded bg-slate-100" />
-          <div className="h-3 w-20 animate-pulse rounded bg-slate-100" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LikedUsersModal({ type, id, onClose }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadUsers = async () => {
-      try {
-        const res = await API.get(`/upvotes/${type}/${id}/users`);
-        if (mounted) setUsers(res.data?.data || []);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    loadUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, [id, type]);
-
-  return (
-    <FormModal title="Liked by" onClose={onClose}>
-      <div className="rounded-[24px] bg-white p-5 sm:p-6">
-        <h2 className="font-poppins text-xl font-semibold text-slate-950">
-          Liked by
-        </h2>
-        <div className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto pr-1">
-          {loading ? (
-            [1, 2, 3].map((item) => <SkeletonCard key={item} compact />)
-          ) : users.length ? (
-            users.map((likedUser) => (
-              <div
-                key={likedUser._id}
-                className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3"
-              >
-                <Avatar user={likedUser} className="h-10 w-10" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-950">
-                    {likedUser.fullName || likedUser.username || "GBPIET user"}
-                  </p>
-                  <p className="truncate text-xs text-slate-500">
-                    @{likedUser.username || likedUser.email || "user"}
-                  </p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-              No likes yet.
-            </p>
-          )}
-        </div>
-      </div>
-    </FormModal>
-  );
-}
-
-function QnaLikeAction({ type, id }) {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-  const [count, setCount] = useState(0);
-  const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showUpvoters, setShowUpvoters] = useState(false);
-
-  const loadLikers = useCallback(async (mounted = true) => {
-    try {
-      const res = await API.get(`/upvotes/${type}/${id}/users`);
-      const users = res.data?.data || [];
-      if (!mounted) return;
-      setCount(users.length);
-      setLiked(users.some((likedUser) => likedUser._id === user?._id));
-    } catch {
-      if (!mounted) return;
-      setCount(0);
-      setLiked(false);
-    }
-  }, [id, type, user?._id]);
-
-  useEffect(() => {
-    let mounted = true;
-    loadLikers(mounted);
-    return () => {
-      mounted = false;
-    };
-  }, [loadLikers]);
-
-  const handleToggle = async () => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await API.post(`/upvotes/${type}/${id}/toggle`);
-      setLiked(res.status === 201);
-      await loadLikers(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="inline-flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={loading}
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-            liked
-              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-          }`}
-        >
-          <ThumbsUp size={14} className={liked ? "fill-current text-indigo-700" : ""} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowUpvoters(true)}
-          className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-indigo-700"
-        >
-          {count} {count === 1 ? "like" : "likes"}
-        </button>
-      </div>
-
-      {showUpvoters && (
-        <LikedUsersModal
-          type={type}
-          id={id}
-          onClose={() => setShowUpvoters(false)}
-        />
-      )}
-    </>
-  );
-}
 
 function TagPill({ tag }) {
   const cleanTag = String(tag || "").replace(/^#/, "");
@@ -209,88 +23,11 @@ function TagPill({ tag }) {
   );
 }
 
-const getAttachmentImages = (item) => {
-  const images = Array.isArray(item?.images) ? item.images.filter(Boolean) : [];
-  if (images.length) return images;
-  return item?.imageUrl ? [item.imageUrl] : [];
-};
-
-function QnaImageCarousel({ item, label }) {
-  const images = getAttachmentImages(item);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  if (!images.length) return null;
-
-  const hasMultipleImages = images.length > 1;
-
-  const goPrevious = () => {
-    setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
-  };
-
-  const goNext = () => {
-    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
-  };
-
-  return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900 bg-black pt-3">
-      <div className="relative bg-black">
-        <img
-          src={images[activeIndex]}
-          alt={`${label} ${activeIndex + 1}`}
-          className="max-h-[520px] min-h-64 w-full bg-black object-contain"
-        />
-
-        {hasMultipleImages && (
-          <>
-            <button
-              type="button"
-              onClick={goPrevious}
-              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
-              aria-label="Previous image"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
-              aria-label="Next image"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <span className="absolute right-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
-              {activeIndex + 1} / {images.length}
-            </span>
-          </>
-        )}
-      </div>
-
-      {hasMultipleImages && (
-        <div className="flex items-center justify-center gap-2 bg-black px-4 py-3">
-          {images.map((image, index) => (
-            <button
-              key={`${image}-${index}`}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              className={`h-2 rounded-full transition ${
-                activeIndex === index
-                  ? "w-6 bg-indigo-600"
-                  : "w-2 bg-slate-300 hover:bg-indigo-300"
-              }`}
-              aria-label={`Show image ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function AnswerCard({ answer }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
       <div className="flex items-center gap-3">
-        <Avatar user={answer.answeredBy} className="h-9 w-9" />
+        <UserAvatar user={answer.answeredBy} className="h-9 w-9" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-slate-950">
             {answer.answeredBy?.fullName || answer.answeredBy?.username || "Student"}
@@ -307,10 +44,10 @@ function AnswerCard({ answer }) {
         </p>
       )}
 
-      <QnaImageCarousel item={answer} label="Answer attachment" />
+      <AttachmentCarousel item={answer} label="Answer attachment" />
 
       <div className="mt-4">
-        <QnaLikeAction type="answer" id={answer._id} />
+        <SocialLikeAction type="answer" id={answer._id} />
       </div>
     </div>
   );
@@ -371,7 +108,7 @@ export default function QuestionCard({ question }) {
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar user={owner} />
+          <UserAvatar user={owner} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
               {owner?.fullName || owner?.username || "Student"}
@@ -405,10 +142,10 @@ export default function QuestionCard({ question }) {
         </p>
       </div>
 
-      <QnaImageCarousel item={question} label="Question attachment" />
+      <AttachmentCarousel item={question} label="Question attachment" />
 
       <div className="clear-both mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
-        <QnaLikeAction type="question" id={question._id} />
+        <SocialLikeAction type="question" id={question._id} />
         <button
           type="button"
           onClick={handleToggleAnswers}

@@ -8,6 +8,7 @@ import {
   Trophy,
 } from "lucide-react";
 import API from "../../services/api";
+import UserAvatar from "../../components/ui/UserAvatar";
 
 const intensityClass = (count) => {
   if (!count) return "bg-slate-200";
@@ -97,34 +98,6 @@ const getYearContributionCount = (yearly) =>
       total + (month.days || []).reduce((sum, day) => sum + (day.count || 0), 0),
     0,
   );
-
-const initialsFor = (user) => {
-  const source = user?.username || user?.fullName || "User";
-  return source
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-};
-
-function Avatar({ user }) {
-  if (user?.avatar) {
-    return (
-      <img
-        src={user.avatar}
-        alt={user.username || user.fullName}
-        className="h-10 w-10 rounded-xl object-cover"
-      />
-    );
-  }
-
-  return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-xs font-bold text-indigo-700">
-      {initialsFor(user)}
-    </div>
-  );
-}
 
 function Card({ children, className = "" }) {
   return (
@@ -399,7 +372,7 @@ export default function LeaderboardPage() {
                     >
                       {user.rank <= 3 ? <Crown size={15} /> : user.rank}
                     </span>
-                    <Avatar user={user} />
+                    <UserAvatar user={user} className="h-10 w-10 text-xs" rounded="rounded-xl" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-indigo-700">
                         {user.fullName}
@@ -482,7 +455,7 @@ export default function LeaderboardPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <Avatar user={user} />
+                          <UserAvatar user={user} className="h-10 w-10 text-xs" rounded="rounded-xl" />
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-indigo-700">{user.fullName}</p>
                             <p className="truncate text-xs text-slate-500">@{user.username}</p>

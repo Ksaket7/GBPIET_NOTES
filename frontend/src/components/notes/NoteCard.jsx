@@ -9,6 +9,7 @@ import {
 } from "../../utils/noteFileActions";
 import UpvoteButton from "../upvote/UpvoteButton";
 import NoteThumbnail from "./NoteThumbnail";
+import UserAvatar from "../ui/UserAvatar";
 
 export default function NoteCard({ note }) {
   const { isAuthenticated } = useAuth();
@@ -54,19 +55,7 @@ export default function NoteCard({ note }) {
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-100">
-            {owner?.avatar ? (
-              <img
-                src={owner.avatar}
-                alt={owner.fullName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="font-semibold text-indigo-700">
-                {(owner?.fullName || owner?.username || "?").charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+          <UserAvatar user={owner} className="h-11 w-11" rounded="rounded-2xl" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
               {owner?.fullName || "Original student"}

@@ -4,11 +4,13 @@ import { Link } from "react-router-dom";
 import {
   BarChart3,
   HelpCircle,
+  Info,
   LogOut,
   Settings,
   UserCircle,
   Users,
 } from "lucide-react";
+import UserAvatar from "../ui/UserAvatar";
 
 const menuLinks = [
   {
@@ -36,14 +38,17 @@ const menuLinks = [
     path: "/contact",
     icon: HelpCircle,
   },
+  {
+    label: "About",
+    path: "/about",
+    icon: Info,
+  },
 ];
 
 const ProfileDropdown = ({ user, logout }) => {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef();
   const menuRef = useRef();
-  const avatarInitial =
-    (user?.fullName || user?.username || "U").trim().charAt(0).toUpperCase();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,13 +70,12 @@ const ProfileDropdown = ({ user, logout }) => {
         ref={buttonRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 text-xs font-semibold text-white shadow-lg shadow-slate-500/20 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 sm:text-sm"
+        className="shrink-0 rounded-full"
       >
-        {user?.avatar ? (
-          <img src={user.avatar} alt={user?.username || "User"} className="h-full w-full object-cover" />
-        ) : (
-          user?.username?.charAt(0).toUpperCase()
-        )}
+        <UserAvatar
+          user={user}
+          className="h-8 w-8 text-xs shadow-lg shadow-slate-500/20 min-[380px]:h-9 min-[380px]:w-9 sm:h-10 sm:w-10 sm:text-sm"
+        />
       </button>
 
       {open &&
@@ -81,17 +85,11 @@ const ProfileDropdown = ({ user, logout }) => {
             className="fixed right-2 top-[4.5rem] z-[9999] w-[min(16rem,calc(100vw-1rem))] rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl shadow-slate-500/20 backdrop-blur-xl sm:right-6"
           >
             <div className="flex items-center gap-3 border-b border-slate-100 px-3 py-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-950 text-base font-semibold text-white shadow-lg shadow-slate-500/20">
-                {user?.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user?.username || "User"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  avatarInitial
-                )}
-              </div>
+              <UserAvatar
+                user={user}
+                className="h-12 w-12 text-base shadow-lg shadow-slate-500/20"
+                rounded="rounded-2xl"
+              />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-slate-950">
                   {user?.fullName || user?.username || "GBPIET user"}

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/timeAgo";
 import { MessageCircle, Send } from "lucide-react";
+import UserAvatar from "../ui/UserAvatar";
 
 export default function NoteComments({ noteId }) {
   const { isAuthenticated } = useAuth();
@@ -73,19 +74,7 @@ export default function NoteComments({ noteId }) {
             key={idx}
             className="flex gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition hover:bg-white hover:shadow-sm sm:p-4"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100">
-              {c.user?.avatar ? (
-                <img
-                  src={c.user.avatar}
-                  alt={c.user.username}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-sm font-semibold text-indigo-700">
-                  {c.user?.username?.[0]?.toUpperCase()}
-                </span>
-              )}
-            </div>
+            <UserAvatar user={c.user} className="h-10 w-10" />
 
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">

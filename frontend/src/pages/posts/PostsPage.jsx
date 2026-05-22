@@ -1,97 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
-  ChevronLeft,
-  ChevronRight,
   MessageCircle,
   MoreHorizontal,
   Send,
-  ThumbsUp,
   UserPlus,
 } from "lucide-react";
 import API from "../../services/api";
 import { timeAgo } from "../../utils/timeAgo";
 import PostComposer from "../../components/posts/PostComposer";
 import { useAuth } from "../../context/AuthContext";
-import FormModal from "../../components/ui/FormModal";
-
-const initialsFor = (user) => {
-  const source = user?.username || user?.fullName || "User";
-  return source
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-};
-
-const getPostImages = (post) => {
-  const images = Array.isArray(post?.images) ? post.images.filter(Boolean) : [];
-  if (images.length) return images;
-  return post?.imageUrl ? [post.imageUrl] : [];
-};
-
-function Avatar({ user, className = "h-11 w-11" }) {
-  if (user?.avatar) {
-    return (
-      <img
-        src={user.avatar}
-        alt={user.fullName || user.username || "User"}
-        className={`${className} shrink-0 rounded-full object-cover`}
-      />
-    );
-  }
-
-  return (
-    <div className={`${className} flex shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700`}>
-      {initialsFor(user)}
-    </div>
-  );
-}
-
-function SkeletonCard({ compact = false }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="h-11 w-11 animate-pulse rounded-full bg-slate-100" />
-        <div className="flex-1 space-y-2">
-          <div className="h-3 w-32 animate-pulse rounded bg-slate-100" />
-          <div className="h-3 w-24 animate-pulse rounded bg-slate-100" />
-        </div>
-      </div>
-      {!compact && (
-        <>
-          <div className="mt-5 h-4 w-full animate-pulse rounded bg-slate-100" />
-          <div className="mt-2 h-4 w-3/4 animate-pulse rounded bg-slate-100" />
-        </>
-      )}
-    </div>
-  );
-}
-
-function ExpandableText({ text }) {
-  const [expanded, setExpanded] = useState(false);
-  const shouldClamp = text && text.length > 220;
-
-  if (!text?.trim()) return null;
-
-  return (
-    <div className="mt-4">
-      <p className={`whitespace-pre-wrap text-sm leading-6 text-slate-700 ${expanded ? "" : "line-clamp-4"}`}>
-        {text}
-      </p>
-      {shouldClamp && (
-        <button
-          type="button"
-          onClick={() => setExpanded((value) => !value)}
-          className="mt-2 text-xs font-semibold text-indigo-700"
-        >
-          {expanded ? "See less" : "See more"}
-        </button>
-      )}
-    </div>
-  );
-}
+import AttachmentCarousel from "../../components/ui/AttachmentCarousel";
+import ExpandableText from "../../components/ui/ExpandableText";
+import SkeletonCard from "../../components/ui/SkeletonCard";
+import SocialLikeAction from "../../components/ui/SocialLikeAction";
+import UserAvatar from "../../components/ui/UserAvatar";
 
 function PostCommentBox({ post }) {
   const [comments, setComments] = useState(post.comments || []);
@@ -150,226 +73,6 @@ function PostCommentBox({ post }) {
   );
 }
 
-function LikedUsersModal({ postId, onClose }) {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadUsers = async () => {
-      try {
-        const res = await API.get(`/upvotes/post/${postId}/users`);
-        if (mounted) setUsers(res.data?.data || []);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    loadUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, [postId]);
-
-  return (
-    <FormModal title="Liked by" onClose={onClose}>
-      <div className="rounded-[24px] bg-white p-5 sm:p-6">
-        <h2 className="font-poppins text-xl font-semibold text-slate-950">
-          Liked by
-        </h2>
-        <div className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto pr-1">
-          {loading ? (
-            [1, 2, 3].map((item) => <SkeletonCard key={item} compact />)
-          ) : users.length ? (
-            users.map((likedUser) => (
-              <div
-                key={likedUser._id}
-                className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3"
-              >
-                <Avatar user={likedUser} className="h-10 w-10" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-950">
-                    {likedUser.fullName || likedUser.username || "GBPIET user"}
-                  </p>
-                  <p className="truncate text-xs text-slate-500">
-                    @{likedUser.username || likedUser.email || "user"}
-                  </p>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-              No likes yet.
-            </p>
-          )}
-        </div>
-      </div>
-    </FormModal>
-  );
-}
-
-function PostLikeAction({ post }) {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-  const [likeCount, setLikeCount] = useState(0);
-  const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showLikedUsers, setShowLikedUsers] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadLikers = async () => {
-      try {
-        const res = await API.get(`/upvotes/post/${post._id}/users`);
-        const users = res.data?.data || [];
-        if (!mounted) return;
-        setLikeCount(users.length);
-        setLiked(users.some((likedUser) => likedUser._id === user?._id));
-      } catch {
-        if (!mounted) return;
-        setLikeCount(0);
-        setLiked(false);
-      }
-    };
-
-    loadLikers();
-
-    return () => {
-      mounted = false;
-    };
-  }, [post._id, user?._id]);
-
-  const handleToggleLike = async () => {
-    if (!isAuthenticated) {
-      navigate("/login");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const toggleRes = await API.post(`/upvotes/post/${post._id}/toggle`);
-      const nextLiked = toggleRes.status === 201;
-      const usersRes = await API.get(`/upvotes/post/${post._id}/users`);
-      const users = usersRes.data?.data || [];
-      setLiked(nextLiked);
-      setLikeCount(users.length);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleToggleLike}
-          disabled={loading}
-          className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-            liked
-              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
-              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-          }`}
-        >
-          <ThumbsUp
-            size={14}
-            className={liked ? "fill-current text-indigo-700" : ""}
-          />
-          
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowLikedUsers(true)}
-          className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-indigo-700"
-        >
-          {likeCount} {likeCount === 1 ? "like" : "likes"}
-        </button>
-      </div>
-
-      {showLikedUsers && (
-        <LikedUsersModal
-          postId={post._id}
-          onClose={() => setShowLikedUsers(false)}
-        />
-      )}
-    </>
-  );
-}
-
-function PostImageCarousel({ post }) {
-  const images = getPostImages(post);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  if (!images.length) return null;
-
-  const hasMultipleImages = images.length > 1;
-
-  const goPrevious = () => {
-    setActiveIndex((index) => (index === 0 ? images.length - 1 : index - 1));
-  };
-
-  const goNext = () => {
-    setActiveIndex((index) => (index === images.length - 1 ? 0 : index + 1));
-  };
-
-  return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-900 bg-black pt-3">
-      <div className="relative bg-black">
-        <img
-          src={images[activeIndex]}
-          alt={`Community post image ${activeIndex + 1}`}
-          className="max-h-[520px] min-h-64 w-full bg-black object-contain"
-        />
-
-        {hasMultipleImages && (
-          <>
-            <button
-              type="button"
-              onClick={goPrevious}
-              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
-              aria-label="Previous image"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              type="button"
-              onClick={goNext}
-              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-lg shadow-slate-900/10 transition hover:bg-indigo-600 hover:text-white"
-              aria-label="Next image"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <span className="absolute right-3 top-3 rounded-full bg-black/80 px-3 py-1 text-xs font-semibold text-white">
-              {activeIndex + 1} / {images.length}
-            </span>
-          </>
-        )}
-      </div>
-
-      {hasMultipleImages && (
-        <div className="flex items-center justify-center gap-2 bg-black px-4 py-3">
-          {images.map((image, index) => (
-            <button
-              key={image}
-              type="button"
-              onClick={() => setActiveIndex(index)}
-              className={`h-2 rounded-full transition ${
-                activeIndex === index
-                  ? "w-6 bg-indigo-600"
-                  : "w-2 bg-slate-300 hover:bg-indigo-300"
-              }`}
-              aria-label={`Show image ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function PostCard({ post }) {
   const [showComments, setShowComments] = useState(false);
   const owner = post.postedBy;
@@ -378,7 +81,7 @@ function PostCard({ post }) {
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar user={owner} />
+          <UserAvatar user={owner} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
               {owner?.fullName || owner?.username || "GBPIET user"}
@@ -399,10 +102,10 @@ function PostCard({ post }) {
 
       <ExpandableText text={post.text} />
 
-      <PostImageCarousel post={post} />
+      <AttachmentCarousel item={post} label="Community post image" />
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
-        <PostLikeAction post={post} />
+        <SocialLikeAction type="post" id={post._id} />
         <button
           type="button"
           onClick={() => setShowComments((value) => !value)}
@@ -433,7 +136,7 @@ function SuggestionCard({ user, onToggle }) {
 
   return (
     <div className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-slate-50">
-      <Avatar user={user} className="h-10 w-10" />
+      <UserAvatar user={user} className="h-10 w-10" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-slate-950">
           {user.fullName || user.username}
@@ -562,7 +265,7 @@ export default function PostsPage() {
                 onClick={() => setShowPostForm(true)}
                 className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md"
               >
-                <Avatar user={user} className="h-10 w-10" />
+                <UserAvatar user={user} className="h-10 w-10" />
                 <span className="flex-1 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
                   Share a post...
                 </span>

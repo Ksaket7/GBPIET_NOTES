@@ -23,6 +23,8 @@ import API from "../../services/api";
 import FormModal from "../../components/ui/FormModal";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import NoteThumbnail from "../../components/notes/NoteThumbnail";
+import AttachmentCarousel from "../../components/ui/AttachmentCarousel";
+import UserAvatar from "../../components/ui/UserAvatar";
 import {
   downloadNoteFile,
   getNoteId,
@@ -51,22 +53,6 @@ const shortText = (text = "", length = 140) =>
   text.length > length ? `${text.slice(0, length).trim()}...` : text;
 
 const countItems = (value) => (Array.isArray(value) ? value.length : Number(value) || 0);
-
-function Avatar({ user, size = "h-24 w-24", textSize = "text-3xl" }) {
-  const initial = (user?.fullName || user?.username || "U").charAt(0).toUpperCase();
-
-  return (
-    <div
-      className={`${size} ${textSize} flex shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-indigo-100 font-semibold text-indigo-700 shadow-lg shadow-slate-300/40`}
-    >
-      {user?.avatar ? (
-        <img src={user.avatar} alt={user?.username || "User"} className="h-full w-full object-cover" />
-      ) : (
-        initial
-      )}
-    </div>
-  );
-}
 
 function StatCard({ icon, label, onClick, value }) {
   const IconComponent = icon;
@@ -247,7 +233,10 @@ function PostCard({ post }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-3">
-        <Avatar user={author} size="h-11 w-11" textSize="text-base" />
+        <UserAvatar
+          user={author}
+          className="h-11 w-11 border-4 border-white text-base shadow-lg shadow-slate-300/40"
+        />
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-slate-950">
             {author.fullName || author.username || "Student"}
@@ -260,13 +249,7 @@ function PostCard({ post }) {
       {post.text && (
         <p className="mt-4 text-sm leading-6 text-slate-700">{post.text}</p>
       )}
-      {post.imageUrl && (
-        <img
-          src={post.imageUrl}
-          alt="Post"
-          className="mt-4 max-h-80 w-full rounded-xl object-cover"
-        />
-      )}
+      <AttachmentCarousel item={post} label="Profile post image" />
       <div className="mt-5 flex items-center gap-5 border-t border-slate-100 pt-4 text-xs font-semibold text-slate-500">
         <span className="flex items-center gap-1">
           <Heart size={14} />
@@ -361,7 +344,10 @@ function ConnectionListModal({ loading, onClose, onToggleFollow, title, users })
                   onClick={onClose}
                   className="flex min-w-0 flex-1 items-center gap-3"
                 >
-                  <Avatar user={connectionUser} size="h-12 w-12" textSize="text-base" />
+                  <UserAvatar
+                    user={connectionUser}
+                    className="h-12 w-12 border-4 border-white text-base shadow-lg shadow-slate-300/40"
+                  />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-950">
                       {connectionUser.fullName || connectionUser.username}
@@ -585,7 +571,10 @@ export default function StudentProfilePage() {
               )}
               <div className="-mt-14 px-5 pb-6">
                 <div className="relative inline-flex">
-                  <Avatar user={user} />
+                  <UserAvatar
+                    user={user}
+                    className="h-24 w-24 border-4 border-white text-3xl shadow-lg shadow-slate-300/40"
+                  />
                   <span className="absolute bottom-3 right-2 h-4 w-4 rounded-full border-2 border-white bg-emerald-400" />
                 </div>
                 <h1 className="mt-4 font-poppins text-2xl font-semibold text-slate-950">

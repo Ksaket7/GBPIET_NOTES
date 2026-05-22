@@ -20,6 +20,8 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import ConfirmModal from "../../components/ui/ConfirmModal";
+import SectionCard from "../../components/ui/SectionCard";
+import UserAvatar from "../../components/ui/UserAvatar";
 import API from "../../services/api";
 
 const tabs = [
@@ -30,30 +32,6 @@ const tabs = [
 
 const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
 const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-
-function avatarInitial(user) {
-  return (user?.fullName || user?.username || "U").trim().charAt(0).toUpperCase();
-}
-
-function SectionCard({ title, icon, children }) {
-  const IconComponent = icon;
-
-  return (
-    <section className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-xl shadow-slate-500/10 backdrop-blur sm:p-6">
-      <div className="flex items-start gap-3 border-b border-slate-100 pb-4">
-        <span className="rounded-2xl bg-indigo-600 p-3 text-white shadow-lg shadow-indigo-200">
-          <IconComponent size={20} />
-        </span>
-        <div>
-          <h2 className="font-poppins text-xl font-semibold text-slate-950 sm:text-2xl">
-            {title}
-          </h2>
-        </div>
-      </div>
-      <div className="mt-5">{children}</div>
-    </section>
-  );
-}
 
 function InfoTile({ label, value }) {
   return (
@@ -223,17 +201,10 @@ export default function Settings() {
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-950/5 to-slate-950/20" />
               </div>
               <div className="relative z-10 px-5 pb-5">
-                <div className="relative z-20 -mt-12 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-indigo-100 text-2xl font-bold text-indigo-700 shadow-xl shadow-slate-500/20">
-                  {user?.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user?.username || "User"}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    avatarInitial(user)
-                  )}
-                </div>
+                <UserAvatar
+                  user={user}
+                  className="relative z-20 -mt-12 h-24 w-24 border-4 border-white text-2xl shadow-xl shadow-slate-500/20"
+                />
                 <h2 className="mt-4 truncate font-poppins text-xl font-semibold text-slate-950">
                   {user?.fullName || user?.username || "GBPIET user"}
                 </h2>

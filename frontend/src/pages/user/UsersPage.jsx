@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { GraduationCap, MapPin, UserRoundCheck } from "lucide-react";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import UserAvatar from "../../components/ui/UserAvatar";
 
 function DirectoryUserCard({ directoryUser, onToggleFollow }) {
   const displayName = directoryUser.fullName || directoryUser.username || "GBPIET user";
@@ -16,19 +17,12 @@ function DirectoryUserCard({ directoryUser, onToggleFollow }) {
         <div className="flex min-w-0 items-center gap-4">
       <Link
         to={`/profile/${directoryUser.username}`}
-            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 ring-4 ring-indigo-50 transition hover:scale-105"
+            className="transition hover:scale-105"
       >
-        {directoryUser.avatar ? (
-          <img
-            src={directoryUser.avatar}
-                alt={displayName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span className="text-lg font-semibold text-indigo-700">
-                {displayName.charAt(0).toUpperCase()}
-          </span>
-        )}
+        <UserAvatar
+          user={directoryUser}
+          className="h-14 w-14 ring-4 ring-indigo-50"
+        />
       </Link>
 
           <div className="min-w-0">

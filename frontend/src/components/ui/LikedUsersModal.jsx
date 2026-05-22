@@ -1,64 +1,54 @@
 import { useEffect, useState } from "react";
 import API from "../../services/api";
-import FormModal from "../ui/FormModal";
-import SkeletonCard from "../ui/SkeletonCard";
-import UserAvatar from "../ui/UserAvatar";
+import FormModal from "./FormModal";
+import SkeletonCard from "./SkeletonCard";
+import UserAvatar from "./UserAvatar";
 
-export default function UpvotersList({ type, id, onClose }) {
+export default function LikedUsersModal({ type, id, title = "Liked by", onClose }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
-    const fetchUpvoters = async () => {
+    const loadUsers = async () => {
       try {
         const res = await API.get(`/upvotes/${type}/${id}/users`);
-
-        if (mounted) {
-          setUsers(res.data?.data || []);
-        }
+        if (mounted) setUsers(res.data?.data || []);
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 
-    fetchUpvoters();
+    loadUsers();
 
     return () => {
       mounted = false;
     };
-  }, [type, id]);
+  }, [id, type]);
 
   return (
-    <FormModal title="Liked by" onClose={onClose}>
+    <FormModal title={title} onClose={onClose}>
       <div className="rounded-[24px] bg-white p-5 sm:p-6">
         <h2 className="font-poppins text-xl font-semibold text-slate-950">
-          Liked by
+          {title}
         </h2>
-
         <div className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto pr-1">
           {loading ? (
-            [1, 2, 3].map((item) => (
-              <SkeletonCard key={item} compact />
-            ))
+            [1, 2, 3].map((item) => <SkeletonCard key={item} compact />)
           ) : users.length ? (
-            users.map((u) => (
+            users.map((likedUser) => (
               <div
-                key={u._id}
+                key={likedUser._id}
                 className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3"
               >
-                <UserAvatar user={u} className="h-10 w-10" />
-
+                <UserAvatar user={likedUser} className="h-10 w-10" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-950">
-                    {u.fullName || u.username || "Student"}
+                    {likedUser.fullName || likedUser.username || "GBPIET user"}
                   </p>
-
                   <p className="truncate text-xs text-slate-500">
-                    @{u.username || "user"}
+                    @{likedUser.username || likedUser.email || "user"}
                   </p>
                 </div>
               </div>
