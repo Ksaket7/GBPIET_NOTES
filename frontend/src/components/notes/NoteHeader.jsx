@@ -17,6 +17,7 @@ import LoadingButton from "../ui/LoadingButton";
 import UpvoteButton from "../upvote/UpvoteButton";
 import UpvotersList from "../upvote/UpvotersList";
 import { useToast } from "../../context/ToastContext";
+import UserProfileLink from "../ui/UserProfileLink";
 
 export default function NoteHeader({ note }) {
   const [showUpvoters, setShowUpvoters] = useState(false);
@@ -96,7 +97,9 @@ export default function NoteHeader({ note }) {
               Uploaded by
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-slate-950">
-              {note.uploadedBy?.fullName || note.uploadedBy?.username || "GBPIET"}
+              <UserProfileLink user={note.uploadedBy}>
+                {note.uploadedBy?.fullName || note.uploadedBy?.username || "GBPIET"}
+              </UserProfileLink>
             </p>
           </div>
           <div className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">

@@ -25,6 +25,8 @@ import UpvoteButton from "../../components/upvote/UpvoteButton";
 import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import AttachmentCarousel from "../../components/ui/AttachmentCarousel";
 import UserAvatar from "../../components/ui/UserAvatar";
+import UserProfileLink from "../../components/ui/UserProfileLink";
+import FollowButton from "../../components/ui/FollowButton";
 import {
   downloadNoteFile,
   getNoteId,
@@ -239,10 +241,16 @@ function PostCard({ post }) {
         />
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-slate-950">
-            {author.fullName || author.username || "Student"}
+            <UserProfileLink user={author}>
+              {author.fullName || author.username || "Student"}
+            </UserProfileLink>
           </h3>
           <p className="text-xs text-slate-500">
-            @{author.username || "student"} - {formatDate(post.createdAt)}
+            <UserProfileLink
+              user={author}
+              showHandle
+              className="text-slate-500 hover:text-indigo-700"
+            /> - {formatDate(post.createdAt)}
           </p>
         </div>
       </div>
@@ -361,22 +369,12 @@ function ConnectionListModal({ loading, onClose, onToggleFollow, title, users })
                     </p>
                   </div>
                 </Link>
-                <button
-                  type="button"
-                  disabled={connectionUser.isSelf}
+                <FollowButton
+                  isSelf={connectionUser.isSelf}
+                  isFollowing={connectionUser.isFollowing}
                   onClick={() => onToggleFollow(connectionUser)}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 sm:shrink-0 ${
-                    connectionUser.isFollowing
-                      ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      : "bg-indigo-600 text-white hover:bg-indigo-700"
-                  }`}
-                >
-                  {connectionUser.isSelf
-                    ? "You"
-                    : connectionUser.isFollowing
-                      ? "Following"
-                      : "Follow"}
-                </button>
+                  className="rounded-full px-4 py-2 text-xs sm:shrink-0"
+                />
               </div>
             ))
           ) : (
@@ -600,13 +598,11 @@ export default function StudentProfilePage() {
                       Edit Profile
                     </button>
                   ) : (
-                    <button
-                      type="button"
+                    <FollowButton
+                      isFollowing={user.isFollowing}
                       onClick={handleToggleFollow}
-                      className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-                    >
-                      {user.isFollowing ? "Following" : "Follow"}
-                    </button>
+                      className="w-full rounded-lg py-3"
+                    />
                   )}
                 </div>
               </div>

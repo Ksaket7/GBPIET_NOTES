@@ -15,6 +15,8 @@ import ExpandableText from "../../components/ui/ExpandableText";
 import SkeletonCard from "../../components/ui/SkeletonCard";
 import SocialLikeAction from "../../components/ui/SocialLikeAction";
 import UserAvatar from "../../components/ui/UserAvatar";
+import UserProfileLink from "../../components/ui/UserProfileLink";
+import FollowButton from "../../components/ui/FollowButton";
 
 function PostCommentBox({ post }) {
   const [comments, setComments] = useState(post.comments || []);
@@ -42,7 +44,9 @@ function PostCommentBox({ post }) {
           {comments.map((comment, index) => (
             <div key={comment._id || index} className="rounded-2xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-semibold text-slate-900">
-                @{comment.user?.username || "user"}
+                <UserProfileLink user={comment.user} showHandle>
+                  @{comment.user?.username || "user"}
+                </UserProfileLink>
               </p>
               <p className="mt-1 text-sm leading-5 text-slate-600">{comment.message}</p>
             </div>
@@ -84,10 +88,17 @@ function PostCard({ post }) {
           <UserAvatar user={owner} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
-              {owner?.fullName || owner?.username || "GBPIET user"}
+              <UserProfileLink user={owner}>
+                {owner?.fullName || owner?.username || "GBPIET user"}
+              </UserProfileLink>
             </p>
             <p className="truncate text-sm text-slate-500">
-              @{owner?.username || "user"} · {timeAgo(post.createdAt)}
+              <UserProfileLink
+                user={owner}
+                showHandle
+                className="text-slate-500 hover:text-indigo-700"
+              />{" "}
+              - {timeAgo(post.createdAt)}
             </p>
           </div>
         </div>
@@ -139,24 +150,20 @@ function SuggestionCard({ user, onToggle }) {
       <UserAvatar user={user} className="h-10 w-10" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-slate-950">
-          {user.fullName || user.username}
+          <UserProfileLink user={user}>
+            {user.fullName || user.username}
+          </UserProfileLink>
         </p>
         <p className="truncate text-xs text-slate-500">
           {user.branch || "GBPIET"} / {user.year || user.role || "Student"}
         </p>
       </div>
-      <button
-        type="button"
+      <FollowButton
+        isFollowing={user.isFollowing}
+        loading={loading}
         onClick={handleFollow}
-        disabled={loading}
-        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-60 ${
-          user.isFollowing
-            ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            : "bg-indigo-600 text-white hover:bg-indigo-700"
-        }`}
-      >
-        {loading ? "..." : user.isFollowing ? "Following" : "Follow"}
-      </button>
+        className="rounded-full px-3 py-1.5 text-xs"
+      />
     </div>
   );
 }

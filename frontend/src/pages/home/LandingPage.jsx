@@ -17,6 +17,7 @@ import API from "../../services/api";
 import UpvoteButton from "../../components/upvote/UpvoteButton";
 import NoteThumbnail from "../../components/notes/NoteThumbnail";
 import UserAvatar from "../../components/ui/UserAvatar";
+import UserProfileLink from "../../components/ui/UserProfileLink";
 import { useAuth } from "../../context/AuthContext";
 import {
   downloadNoteFile,
@@ -356,7 +357,9 @@ export default function LandingPage() {
                       </span>
                     </div>
                     <h3 className="truncate font-poppins text-2xl font-semibold text-slate-950">
-                      {topContributor.name}
+                      <UserProfileLink user={topContributor}>
+                        {topContributor.name}
+                      </UserProfileLink>
                     </h3>
                     <p className="mt-1 text-sm font-medium text-slate-500">
                       {topContributor.branch || "GBPIET"} |{" "}
@@ -398,7 +401,9 @@ export default function LandingPage() {
                 />
                 <div className="mt-5 min-w-0">
                   <h3 className="truncate font-poppins text-lg font-semibold text-slate-950">
-                    {user.name}
+                    <UserProfileLink user={user}>
+                      {user.name}
+                    </UserProfileLink>
                   </h3>
                   <p className="mt-1 truncate text-sm font-medium text-slate-500">
                     {user.branch || "GBPIET"} | {roleLabel(user.year)}
@@ -480,7 +485,12 @@ export default function LandingPage() {
                       <div className="flex min-w-0 items-center gap-3">
                         <UserAvatar user={note.uploadedBy} className="h-9 w-9 shadow-sm" />
                         <span className="truncate text-sm font-semibold text-slate-700">
-                          {note.uploadedBy?.name || note.uploadedBy?.username || "Contributor"}
+                          <UserProfileLink
+                            user={note.uploadedBy}
+                            className="text-slate-700"
+                          >
+                            {note.uploadedBy?.name || note.uploadedBy?.fullName || note.uploadedBy?.username || "Contributor"}
+                          </UserProfileLink>
                         </span>
                       </div>
                       <UpvoteButton

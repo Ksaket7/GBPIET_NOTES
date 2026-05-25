@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { timeAgo } from "../../utils/timeAgo";
 import { MessageCircle, Send } from "lucide-react";
 import UserAvatar from "../ui/UserAvatar";
+import UserProfileLink from "../ui/UserProfileLink";
 
 export default function NoteComments({ noteId }) {
   const { isAuthenticated } = useAuth();
@@ -79,7 +80,9 @@ export default function NoteComments({ noteId }) {
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="break-words font-semibold text-slate-950">
-                  @{c.user?.username || "unknown"}
+                  <UserProfileLink user={c.user} showHandle>
+                    @{c.user?.username || "unknown"}
+                  </UserProfileLink>
                 </p>
 
                 <span className="text-xs text-slate-400">

@@ -28,6 +28,7 @@ import AttachmentCarousel from "../../components/ui/AttachmentCarousel";
 import ExpandableText from "../../components/ui/ExpandableText";
 import SocialLikeAction from "../../components/ui/SocialLikeAction";
 import UserAvatar from "../../components/ui/UserAvatar";
+import UserProfileLink from "../../components/ui/UserProfileLink";
 import { timeAgo } from "../../utils/timeAgo";
 import { downloadNoteFile, openNoteFile } from "../../utils/noteFileActions";
 
@@ -330,10 +331,16 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
           <UserAvatar user={owner} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
-              {owner?.fullName || "GBPIET"}
+              <UserProfileLink user={owner}>
+                {owner?.fullName || owner?.username || "GBPIET"}
+              </UserProfileLink>
             </p>
             <p className="truncate text-xs text-slate-500">
-              @{owner?.username || "unknown"} - {timeAgo(item.createdAt)}
+              <UserProfileLink
+                user={owner}
+                showHandle
+                className="text-slate-500 hover:text-indigo-700"
+              /> - {timeAgo(item.createdAt)}
             </p>
           </div>
         </div>
@@ -502,7 +509,9 @@ function PostCommentBox({ post }) {
           {comments.map((comment, index) => (
             <div key={comment._id || index} className="rounded-2xl bg-slate-50 px-4 py-3">
               <p className="text-xs font-semibold text-slate-900">
-                @{comment.user?.username || "user"}
+                <UserProfileLink user={comment.user} showHandle>
+                  @{comment.user?.username || "user"}
+                </UserProfileLink>
               </p>
               <p className="mt-1 text-sm leading-5 text-slate-600">{comment.message}</p>
             </div>

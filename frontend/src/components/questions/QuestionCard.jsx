@@ -11,6 +11,7 @@ import LoadingButton from "../ui/LoadingButton";
 import AttachmentCarousel from "../ui/AttachmentCarousel";
 import SocialLikeAction from "../ui/SocialLikeAction";
 import UserAvatar from "../ui/UserAvatar";
+import UserProfileLink from "../ui/UserProfileLink";
 import { timeAgo } from "../../utils/timeAgo";
 
 function TagPill({ tag }) {
@@ -27,15 +28,21 @@ function AnswerCard({ answer }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
       <div className="flex items-center gap-3">
-        <UserAvatar user={answer.answeredBy} className="h-9 w-9" />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-950">
-            {answer.answeredBy?.fullName || answer.answeredBy?.username || "Student"}
-          </p>
-          <p className="text-xs text-slate-500">
-            @{answer.answeredBy?.username || "user"} - {timeAgo(answer.createdAt)}
-          </p>
-        </div>
+          <UserAvatar user={answer.answeredBy} className="h-9 w-9" />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-950">
+              <UserProfileLink user={answer.answeredBy}>
+              {answer.answeredBy?.fullName || answer.answeredBy?.username || "Student"}
+              </UserProfileLink>
+            </p>
+            <p className="text-xs text-slate-500">
+              <UserProfileLink
+                user={answer.answeredBy}
+                showHandle
+                className="text-slate-500 hover:text-indigo-700"
+              /> - {timeAgo(answer.createdAt)}
+            </p>
+          </div>
       </div>
 
       {answer.content && (
@@ -111,10 +118,16 @@ export default function QuestionCard({ question }) {
           <UserAvatar user={owner} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
+              <UserProfileLink user={owner}>
               {owner?.fullName || owner?.username || "Student"}
+              </UserProfileLink>
             </p>
             <p className="truncate text-xs text-slate-500">
-              @{owner?.username || "student"} - {timeAgo(question.createdAt)}
+              <UserProfileLink
+                user={owner}
+                showHandle
+                className="text-slate-500 hover:text-indigo-700"
+              /> - {timeAgo(question.createdAt)}
             </p>
           </div>
         </div>

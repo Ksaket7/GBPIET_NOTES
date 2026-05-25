@@ -5,6 +5,7 @@ import { GraduationCap, MapPin, UserRoundCheck } from "lucide-react";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import UserAvatar from "../../components/ui/UserAvatar";
+import FollowButton from "../../components/ui/FollowButton";
 
 function DirectoryUserCard({ directoryUser, onToggleFollow }) {
   const displayName = directoryUser.fullName || directoryUser.username || "GBPIET user";
@@ -52,22 +53,12 @@ function DirectoryUserCard({ directoryUser, onToggleFollow }) {
           </div>
       </div>
 
-      <button
-        type="button"
-        disabled={directoryUser.isSelf}
+      <FollowButton
+        isSelf={directoryUser.isSelf}
+        isFollowing={directoryUser.isFollowing}
         onClick={() => onToggleFollow(directoryUser)}
-          className={`inline-flex w-full shrink-0 items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto ${
-          directoryUser.isFollowing
-              ? "border border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-              : "bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:-translate-y-0.5 hover:bg-indigo-700"
-        }`}
-      >
-        {directoryUser.isSelf
-          ? "You"
-          : directoryUser.isFollowing
-              ? "Following"
-            : "Follow"}
-      </button>
+        className="w-full shrink-0 sm:w-auto"
+      />
       </div>
     </article>
   );

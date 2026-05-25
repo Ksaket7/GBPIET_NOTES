@@ -10,6 +10,7 @@ import {
 import UpvoteButton from "../upvote/UpvoteButton";
 import NoteThumbnail from "./NoteThumbnail";
 import UserAvatar from "../ui/UserAvatar";
+import UserProfileLink from "../ui/UserProfileLink";
 
 export default function NoteCard({ note }) {
   const { isAuthenticated } = useAuth();
@@ -58,10 +59,12 @@ export default function NoteCard({ note }) {
           <UserAvatar user={owner} className="h-11 w-11" rounded="rounded-2xl" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
+              <UserProfileLink user={owner} className="truncate">
               {owner?.fullName || "Original student"}
+              </UserProfileLink>
             </p>
             <p className="truncate text-xs text-slate-500">
-              @{owner?.username || "student"} - Original student
+              <UserProfileLink user={owner} showHandle className="text-slate-500 hover:text-indigo-700" /> - Original student
             </p>
           </div>
         </div>
@@ -79,7 +82,13 @@ export default function NoteCard({ note }) {
           {note.subjectCode || "Subject"} - {note.type || "Material"}
         </p>
         <p className="text-xs text-slate-400">
-          Uploaded by {note.uploadedBy?.fullName || "GBPIET"}
+          Uploaded by{" "}
+          <UserProfileLink
+            user={note.uploadedBy}
+            className="font-semibold text-slate-500"
+          >
+            {note.uploadedBy?.fullName || "GBPIET"}
+          </UserProfileLink>
         </p>
       </div>
 
