@@ -23,6 +23,7 @@ import ConfirmModal from "../../components/ui/ConfirmModal";
 import SectionCard from "../../components/ui/SectionCard";
 import UserAvatar from "../../components/ui/UserAvatar";
 import API from "../../services/api";
+import { branchOptions } from "../../constants/profileOptions";
 
 const tabs = [
   { id: "general", label: "Overview", icon: UserRound },
@@ -30,7 +31,6 @@ const tabs = [
   { id: "profile", label: "Public Profile", icon: UserRoundCog },
 ];
 
-const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
 const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
 function InfoTile({ label, value }) {
@@ -261,6 +261,7 @@ export default function Settings() {
                     ["Year", user?.year],
                     ["Role", user?.role],
                     ["Credits", user?.credits],
+                    ["Reports", user?.reportCount || 0],
                     ["Profile Status", user?.profileCompleted === false ? "Incomplete" : "Completed"],
                   ].map(([label, value]) => (
                     <InfoTile key={label} label={label} value={value} />
@@ -292,7 +293,7 @@ export default function Settings() {
                       <span className="text-sm font-semibold text-slate-700">Branch</span>
                       <select name="branch" value={form.branch} onChange={handleChange} className="app-input">
                         <option value="">Select Branch</option>
-                        {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+                        {branchOptions.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
                       </select>
                     </label>
                     <label className="block space-y-2">

@@ -105,6 +105,32 @@ const addAnswerComment = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, answer, "Comment added successfully"));
 });
 
+const updateAnswer = asyncHandler(async (req, res) => {
+  const { answerId } = req.params;
+  const { content = "" } = req.body;
+  const userId = req.user._id;
+
+  const answer = await Answer.findById(answerId);
+  if (!answer) throw new ApiError(404, "Answer not found");
+
+  if (answer.answeredBy.toString() !== userId.toString()) {
+    throw new ApiError(403, "Not authorized to edit this answer");
+  }
+
+  const hasExistingImages = getStoredImages(answer).length > 0;
+  if (!content.trim() && !hasExistingImages) {
+    throw new ApiError(400, "Answer content or image is required");
+  }
+
+  answer.content = content;
+  await answer.save();
+  await answer.populate("answeredBy", "username fullName avatar");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, answer, "Answer updated successfully"));
+});
+
 // delete answer
 const deleteAnswer = asyncHandler(async (req, res) => {
   const { answerId } = req.params;
@@ -140,4 +166,4 @@ const deleteAnswer = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Answer deleted successfully"));
 });
 
-export { addAnswer, getAnswersByQuestion, addAnswerComment, deleteAnswer };
+export { addAnswer, getAnswersByQuestion, addAnswerComment, updateAnswer, deleteAnswer };

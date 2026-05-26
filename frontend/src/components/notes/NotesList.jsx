@@ -1,7 +1,7 @@
 import NoteCard from "./NoteCard";
 import MyNotesSkeleton from "../dashboard/MyNotesSkeleton";
 
-export default function NotesList({ notes, loading }) {
+export default function NotesList({ notes, loading, onDeleted }) {
   if (loading) {
     return <MyNotesSkeleton/>;
   }
@@ -17,7 +17,7 @@ export default function NotesList({ notes, loading }) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {notes.map((note) => (
-        <NoteCard key={note._id} note={note} />
+        <NoteCard key={note._id} note={note} onDeleted={onDeleted} />
       ))}
     </div>
   );

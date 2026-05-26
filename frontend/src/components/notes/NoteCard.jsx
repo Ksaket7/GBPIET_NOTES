@@ -11,11 +11,17 @@ import UpvoteButton from "../upvote/UpvoteButton";
 import NoteThumbnail from "./NoteThumbnail";
 import UserAvatar from "../ui/UserAvatar";
 import UserProfileLink from "../ui/UserProfileLink";
+import CardActionMenu from "../ui/CardActionMenu";
+import API from "../../services/api";
+import { useToast } from "../../context/ToastContext";
 
-export default function NoteCard({ note }) {
-  const { isAuthenticated } = useAuth();
+export default function NoteCard({ note, onDeleted }) {
+  const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const owner = note.originalStudent || note.uploadedBy;
+  const actionOwner = note.uploadedBy || owner;
+  const isOwner = actionOwner?._id === user?._id;
   const noteId = getNoteId(note);
   const hasFile = Boolean(getNoteFileUrl(note));
 
@@ -39,6 +45,12 @@ export default function NoteCard({ note }) {
     event.stopPropagation();
     if (requireLogin()) return;
     await downloadNoteFile(note);
+  };
+
+  const handleDelete = async () => {
+    await API.delete(`/notes/${noteId}`);
+    showToast("Note deleted successfully.", "success");
+    onDeleted?.(noteId);
   };
 
   return (
@@ -68,9 +80,18 @@ export default function NoteCard({ note }) {
             </p>
           </div>
         </div>
-        {note.verified && (
-          <span className="pill bg-emerald-50 text-emerald-700">Verified</span>
-        )}
+        <div className="flex items-center gap-2">
+          {note.verified && (
+            <span className="pill bg-emerald-50 text-emerald-700">Verified</span>
+          )}
+          {isAuthenticated && (
+            <CardActionMenu
+              isOwner={isOwner}
+              ownerUser={actionOwner}
+              onDelete={isOwner ? handleDelete : undefined}
+            />
+          )}
+        </div>
       </div>
 
       <div className="mt-5 space-y-2">

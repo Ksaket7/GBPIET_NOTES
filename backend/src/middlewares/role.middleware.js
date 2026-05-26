@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 
-// Roles could be: ["student", "cr", "faculty", "admin"]
+// Roles could be: ["student", "faculty", "admin"]
 export const verifyRole = (...allowedRoles) =>
   asyncHandler(async (req, res, next) => {
     const user = req.user; // added by verifyJWT

@@ -1,7 +1,7 @@
 import QuestionCard from "./QuestionCard";
 import MyNotesSkeleton from "../dashboard/MyNotesSkeleton";
 
-export default function QuestionsList({ questions, loading }) {
+export default function QuestionsList({ questions, loading, onDeleted }) {
   if (loading) {
     return <MyNotesSkeleton />;
   }
@@ -17,7 +17,7 @@ export default function QuestionsList({ questions, loading }) {
   return (
     <div className="grid w-full grid-cols-1 gap-5">
       {questions.map((q) => (
-        <QuestionCard key={q._id} question={q} />
+        <QuestionCard key={q._id} question={q} onDeleted={onDeleted} />
       ))}
     </div>
   );

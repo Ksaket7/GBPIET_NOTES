@@ -125,7 +125,15 @@ export default function QuestionsPage() {
 
           <div className="mt-6 space-y-5">
             <QuestionsFilters filters={filters} setSearchParams={setSearchParams} />
-            <QuestionsList loading={loading} questions={questions} />
+            <QuestionsList
+              loading={loading}
+              questions={questions}
+              onDeleted={(questionId) =>
+                setQuestions((currentQuestions) =>
+                  currentQuestions.filter((question) => question._id !== questionId)
+                )
+              }
+            />
           </div>
 
           {pagination && (

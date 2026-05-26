@@ -8,7 +8,7 @@ import NotesPagination from "../../components/notes/NotesPagination";
 import UploadNoteForm from "../../components/upload/UploadNote";
 import { useAuth } from "../../context/AuthContext";
 
-const canUploadNotes = (role) => ["cr", "faculty", "admin"].includes(role);
+const canUploadNotes = (role) => ["faculty", "admin"].includes(role);
 
 export default function NotesPage() {
   const { user } = useAuth();
@@ -91,7 +91,15 @@ export default function NotesPage() {
         )}
 
         <NotesFilters filters={filters} setSearchParams={setSearchParams} />
-        <NotesList loading={loading} notes={notes} />
+        <NotesList
+          loading={loading}
+          notes={notes}
+          onDeleted={(noteId) =>
+            setNotes((currentNotes) =>
+              currentNotes.filter((note) => note._id !== noteId)
+            )
+          }
+        />
 
         {pagination && (
           <NotesPagination

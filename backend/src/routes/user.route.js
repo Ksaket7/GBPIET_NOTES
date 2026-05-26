@@ -4,6 +4,9 @@ import {
   loginUser,
   googleAuth,
   completeProfile,
+  getProfileSetupOptions,
+  getReportStatus,
+  reportUser,
   logoutUser,
   deleteCurrentUserAccount,
   getUserProfile,
@@ -35,6 +38,7 @@ router.route("/login").post(loginUser);
 router.route("/google").post(googleAuth);
 router.route("/landing").get(getLandingData);
 router.route("/top-contributors").get(getTopContributors);
+router.route("/profile-setup-options").get(verifyJWT, getProfileSetupOptions);
 router.route("/complete-profile").patch(verifyJWT, completeProfile);
 
 router.route("/logout").post(verifyJWT, logoutUser);
@@ -55,6 +59,8 @@ router
   .route("/cover-image")
   .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 router.route("/cover-image").delete(verifyJWT, deleteUserCoverImage);
+router.route("/:userId/report-status").get(verifyJWT, getReportStatus);
+router.route("/:userId/report").post(verifyJWT, reportUser);
 
 router.route("/update-role").patch(verifyJWT,verifyRole("admin"), updateUserRole);
 export default router;

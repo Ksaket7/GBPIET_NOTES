@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   MessageCircle,
-  MoreHorizontal,
   Send,
   UserPlus,
 } from "lucide-react";
@@ -17,6 +16,8 @@ import SocialLikeAction from "../../components/ui/SocialLikeAction";
 import UserAvatar from "../../components/ui/UserAvatar";
 import UserProfileLink from "../../components/ui/UserProfileLink";
 import FollowButton from "../../components/ui/FollowButton";
+import CardActionMenu from "../../components/ui/CardActionMenu";
+import { useToast } from "../../context/ToastContext";
 
 function PostCommentBox({ post }) {
   const [comments, setComments] = useState(post.comments || []);
@@ -77,9 +78,38 @@ function PostCommentBox({ post }) {
   );
 }
 
-function PostCard({ post }) {
+function PostCard({ post, onPostDeleted, onPostUpdated }) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [showComments, setShowComments] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(post.text || "");
+  const [saving, setSaving] = useState(false);
   const owner = post.postedBy;
+  const isOwner = owner?._id === user?._id;
+
+  const handleDelete = async () => {
+    await API.delete(`/posts/${post._id}`);
+    showToast("Post deleted successfully.", "success");
+    onPostDeleted?.(post._id);
+  };
+
+  const handleSave = async () => {
+    if (!editText.trim() && !(post.images?.length || post.imageUrl)) return;
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      formData.append("text", editText);
+      const res = await API.patch(`/posts/${post._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      onPostUpdated?.(res.data.data);
+      setEditing(false);
+      showToast("Post updated successfully.", "success");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
@@ -102,18 +132,53 @@ function PostCard({ post }) {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="Post menu"
-        >
-          <MoreHorizontal size={18} />
-        </button>
+        <CardActionMenu
+          isOwner={isOwner}
+          canEdit
+          ownerUser={owner}
+          onEdit={() => setEditing(true)}
+          onDelete={isOwner ? handleDelete : undefined}
+        />
       </div>
 
-      <ExpandableText text={post.text} />
-
-      <AttachmentCarousel item={post} label="Community post image" />
+      {editing ? (
+        <div className="mt-4 space-y-3">
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Post content</span>
+            <textarea
+              value={editText}
+              onChange={(event) => setEditText(event.target.value)}
+              placeholder="Edit your post..."
+              className="app-input min-h-28"
+            />
+          </label>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditText(post.text || "");
+                setEditing(false);
+              }}
+              className="app-button-secondary py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <ExpandableText text={post.text} />
+          <AttachmentCarousel item={post} label="Community post image" />
+        </>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
         <SocialLikeAction type="post" id={post._id} />
@@ -308,7 +373,22 @@ export default function PostsPage() {
             ) : (
               <div className="space-y-5">
                 {posts.map((post) => (
-                  <PostCard key={post._id} post={post} />
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onPostDeleted={(postId) =>
+                      setPosts((currentPosts) =>
+                        currentPosts.filter((currentPost) => currentPost._id !== postId)
+                      )
+                    }
+                    onPostUpdated={(updatedPost) =>
+                      setPosts((currentPosts) =>
+                        currentPosts.map((currentPost) =>
+                          currentPost._id === updatedPost._id ? updatedPost : currentPost
+                        )
+                      )
+                    }
+                  />
                 ))}
               </div>
             )}

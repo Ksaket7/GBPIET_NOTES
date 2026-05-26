@@ -1,17 +1,20 @@
 import {
   Image,
   MessageSquareText,
-  MoreHorizontal,
   Send,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import API from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import LoadingButton from "../ui/LoadingButton";
 import AttachmentCarousel from "../ui/AttachmentCarousel";
 import SocialLikeAction from "../ui/SocialLikeAction";
 import UserAvatar from "../ui/UserAvatar";
 import UserProfileLink from "../ui/UserProfileLink";
+import UploadPolicyWarning from "../ui/UploadPolicyWarning";
+import CardActionMenu from "../ui/CardActionMenu";
 import { timeAgo } from "../../utils/timeAgo";
 
 function TagPill({ tag }) {
@@ -24,31 +27,106 @@ function TagPill({ tag }) {
   );
 }
 
-function AnswerCard({ answer }) {
+function AnswerCard({ answer, onDeleted, onUpdated }) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(answer.content || "");
+  const [saving, setSaving] = useState(false);
+  const isOwner = answer.answeredBy?._id === user?._id;
+
+  const handleDelete = async () => {
+    await API.delete(`/answers/${answer._id}`);
+    showToast("Answer deleted successfully.", "success");
+    onDeleted?.(answer._id);
+  };
+
+  const handleSave = async () => {
+    if (!editText.trim() && !(answer.images?.length || answer.imageUrl)) return;
+
+    try {
+      setSaving(true);
+      const res = await API.patch(`/answers/${answer._id}`, {
+        content: editText,
+      });
+      onUpdated?.(res.data.data);
+      setEditing(false);
+      showToast("Answer updated successfully.", "success");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Failed to update answer.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-      <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <UserAvatar user={answer.answeredBy} className="h-9 w-9" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-950">
-              <UserProfileLink user={answer.answeredBy}>
-              {answer.answeredBy?.fullName || answer.answeredBy?.username || "Student"}
-              </UserProfileLink>
+                <UserProfileLink user={answer.answeredBy}>
+                {answer.answeredBy?.fullName || answer.answeredBy?.username || "Student"}
+                </UserProfileLink>
             </p>
             <p className="text-xs text-slate-500">
-              <UserProfileLink
-                user={answer.answeredBy}
-                showHandle
-                className="text-slate-500 hover:text-indigo-700"
-              /> - {timeAgo(answer.createdAt)}
+                <UserProfileLink
+                  user={answer.answeredBy}
+                  showHandle
+                  className="text-slate-500 hover:text-indigo-700"
+                /> - {timeAgo(answer.createdAt)}
             </p>
           </div>
+        </div>
+        <CardActionMenu
+          isOwner={isOwner}
+          canEdit
+          ownerUser={answer.answeredBy}
+          onEdit={() => setEditing(true)}
+          onDelete={isOwner ? handleDelete : undefined}
+        />
       </div>
 
-      {answer.content && (
-        <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-          {answer.content}
-        </p>
+      {editing ? (
+        <div className="mt-4 space-y-3 rounded-2xl border border-indigo-100 bg-white p-3">
+          <label className="block space-y-2">
+            <span className="text-sm font-semibold text-slate-700">Edit answer</span>
+            <textarea
+              value={editText}
+              onChange={(event) => setEditText(event.target.value)}
+              placeholder="Update your answer..."
+              className="app-input min-h-24"
+            />
+          </label>
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEditText(answer.content || "");
+                setEditing(false);
+              }}
+              className="app-button-secondary py-2"
+            >
+              Cancel
+            </button>
+            <LoadingButton
+              type="button"
+              loading={saving}
+              disabled={!editText.trim() && !(answer.images?.length || answer.imageUrl)}
+              onClick={handleSave}
+              className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60"
+            >
+              Save
+            </LoadingButton>
+          </div>
+        </div>
+      ) : (
+        answer.content && (
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+            {answer.content}
+          </p>
+        )
       )}
 
       <AttachmentCarousel item={answer} label="Answer attachment" />
@@ -60,7 +138,9 @@ function AnswerCard({ answer }) {
   );
 }
 
-export default function QuestionCard({ question }) {
+export default function QuestionCard({ question, onDeleted }) {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [answersOpen, setAnswersOpen] = useState(false);
   const [answers, setAnswers] = useState(question.answers || []);
   const [answersLoading, setAnswersLoading] = useState(false);
@@ -68,6 +148,7 @@ export default function QuestionCard({ question }) {
   const [answerImages, setAnswerImages] = useState([]);
   const [answering, setAnswering] = useState(false);
   const owner = question.askedBy;
+  const isOwner = owner?._id === user?._id;
   const tags = question.tags?.length ? question.tags : ["qna"];
 
   useEffect(() => {
@@ -111,6 +192,26 @@ export default function QuestionCard({ question }) {
     }
   };
 
+  const handleDeleteQuestion = async () => {
+    await API.delete(`/questions/${question._id}`);
+    showToast("Question deleted successfully.", "success");
+    onDeleted?.(question._id);
+  };
+
+  const handleAnswerDeleted = (answerId) => {
+    setAnswers((currentAnswers) =>
+      currentAnswers.filter((answer) => answer._id !== answerId)
+    );
+  };
+
+  const handleAnswerUpdated = (updatedAnswer) => {
+    setAnswers((currentAnswers) =>
+      currentAnswers.map((answer) =>
+        answer._id === updatedAnswer._id ? updatedAnswer : answer
+      )
+    );
+  };
+
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md sm:p-6">
       <div className="flex items-start justify-between gap-3">
@@ -131,13 +232,11 @@ export default function QuestionCard({ question }) {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-          aria-label="Question options"
-        >
-          <MoreHorizontal size={18} />
-        </button>
+        <CardActionMenu
+          isOwner={isOwner}
+          ownerUser={owner}
+          onDelete={isOwner ? handleDeleteQuestion : undefined}
+        />
       </div>
 
       <div className="mt-4 flex flex-wrap justify-end gap-2 sm:float-right sm:ml-4">
@@ -180,13 +279,22 @@ export default function QuestionCard({ question }) {
               No answers yet. Be the first to answer.
             </p>
           ) : (
-            answers.map((answer) => <AnswerCard key={answer._id} answer={answer} />)
+            answers.map((answer) => (
+              <AnswerCard
+                key={answer._id}
+                answer={answer}
+                onDeleted={handleAnswerDeleted}
+                onUpdated={handleAnswerUpdated}
+              />
+            ))
           )}
 
           <form
             onSubmit={handleAnswerSubmit}
             className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4"
           >
+            <UploadPolicyWarning />
+
             <label className="block space-y-2">
               <span className="text-sm font-semibold text-slate-700">Answer</span>
               <textarea

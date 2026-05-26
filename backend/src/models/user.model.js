@@ -45,7 +45,7 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["student", "cr", "faculty", "admin"],
+      enum: ["student", "faculty", "admin"],
       default: "student",
     },
     branch: {
@@ -104,6 +104,19 @@ const userSchema = new Schema(
     upvotes: {
       type: Number,
       default: 0,
+    },
+    reportCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    bannedAt: {
+      type: Date,
+      default: null,
     },
     refreshToken: {
       type: String,

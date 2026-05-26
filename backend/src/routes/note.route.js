@@ -28,7 +28,7 @@ router.use(verifyJWT);
 
 router
   .route("/upload")
-  .post(verifyRole("cr", "faculty"), upload.single("file"), uploadNote);
+  .post(verifyRole("faculty", "admin"), upload.single("file"), uploadNote);
 
 router.route("/:noteId/comment").post(addComment);
 

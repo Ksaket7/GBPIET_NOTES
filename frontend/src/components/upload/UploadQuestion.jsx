@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
 import LoadingButton from "../ui/LoadingButton";
+import UploadPolicyWarning from "../ui/UploadPolicyWarning";
 
 export default function UploadQuestion({ onCreated }) {
   const { user } = useAuth();
@@ -73,6 +74,8 @@ export default function UploadQuestion({ onCreated }) {
       )}
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <UploadPolicyWarning />
+
         <label className="block space-y-2">
           <span className="text-sm font-semibold text-slate-700">Question title</span>
           <input type="text" name="title" placeholder="Question Title" value={form.title} onChange={handleChange} className="app-input" required />

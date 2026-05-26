@@ -3,6 +3,7 @@ import {
   addAnswer,
   getAnswersByQuestion,
   addAnswerComment,
+  updateAnswer,
   deleteAnswer,
 } from "../controllers/answer.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -16,6 +17,6 @@ router.route("/:questionId").post(verifyJWT, postUpload.array("images", 6), addA
 
 router.route("/:answerId/comment").post(verifyJWT, addAnswerComment);
 
-router.route("/:answerId").delete(verifyJWT, deleteAnswer);
+router.route("/:answerId").patch(verifyJWT, updateAnswer).delete(verifyJWT, deleteAnswer);
 
 export default router;

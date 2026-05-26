@@ -100,7 +100,6 @@ const initialsFor = (user) => {
 
 const roleLabel = (role) => {
   const labels = {
-    cr: "CR",
     faculty: "Faculty",
     admin: "Admin",
     student: "Student",

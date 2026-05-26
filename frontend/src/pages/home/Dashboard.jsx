@@ -6,17 +6,14 @@ import {
   ChevronRight,
   Clock3,
   Download,
-  Edit3,
   ExternalLink,
   FileQuestion,
   HelpCircle,
   MessageCircle,
   MessageSquareText,
-  MoreHorizontal,
   Plus,
   Search,
   Sparkles,
-  Trash2,
   UploadCloud,
   UsersRound,
 } from "lucide-react";
@@ -29,6 +26,7 @@ import ExpandableText from "../../components/ui/ExpandableText";
 import SocialLikeAction from "../../components/ui/SocialLikeAction";
 import UserAvatar from "../../components/ui/UserAvatar";
 import UserProfileLink from "../../components/ui/UserProfileLink";
+import CardActionMenu from "../../components/ui/CardActionMenu";
 import { timeAgo } from "../../utils/timeAgo";
 import { downloadNoteFile, openNoteFile } from "../../utils/noteFileActions";
 
@@ -286,7 +284,6 @@ function LatestFeed({ items, currentUser, onSeeAll, onOpen, onPostUpdated, onPos
 }
 
 function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(item.text || "");
   const [saving, setSaving] = useState(false);
@@ -303,7 +300,6 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Delete this post?")) return;
     await API.delete(`/posts/${item._id}`);
     onPostDeleted(item._id);
   };
@@ -318,7 +314,6 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
       });
       onPostUpdated(res.data.data);
       setEditing(false);
-      setMenuOpen(false);
     } finally {
       setSaving(false);
     }
@@ -345,41 +340,15 @@ function FeedCard({ item, currentUser, onOpen, onPostUpdated, onPostDeleted }) {
           </div>
         </div>
 
-        <div className="relative flex flex-wrap items-center justify-end gap-2">
-          {isOwner && (
-            <button
-              type="button"
-              onClick={() => setMenuOpen((value) => !value)}
-              className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-              aria-label="Post options"
-            >
-              <MoreHorizontal size={18} />
-            </button>
-          )}
-          {menuOpen && (
-            <div className="absolute right-0 top-10 z-20 w-[min(9rem,calc(100vw-1.5rem))] rounded-2xl border border-white/70 bg-white/95 p-2 shadow-xl">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(true);
-                  setMenuOpen(false);
-                }}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
-              >
-                <Edit3 size={14} />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-500 hover:bg-red-50"
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
+        {item.feedType === "post" && (
+          <CardActionMenu
+            isOwner={isOwner}
+            canEdit
+            ownerUser={owner}
+            onEdit={() => setEditing(true)}
+            onDelete={isOwner ? handleDelete : undefined}
+          />
+        )}
       </div>
 
       {editing ? (

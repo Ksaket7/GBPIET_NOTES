@@ -3,6 +3,7 @@ import { Send } from "lucide-react";
 import API from "../../services/api";
 import InputField from "./InputField";
 import FileUpload from "./FileUpload";
+import UploadPolicyWarning from "../ui/UploadPolicyWarning";
 
 const UploadForm = ({ onUploaded }) => {
   const [form, setForm] = useState({
@@ -100,6 +101,8 @@ const UploadForm = ({ onUploaded }) => {
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <UploadPolicyWarning />
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputField
             name="title"

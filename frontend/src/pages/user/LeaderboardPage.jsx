@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -24,20 +23,6 @@ const textIntensityClass = (count) => {
 };
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 const formatNumber = (value = 0) => new Intl.NumberFormat("en-IN").format(value);
 
@@ -66,38 +51,117 @@ const buildMonthlyCells = (monthly) => {
   ];
 };
 
-const buildYearMonthCells = (month, year) => {
-  const monthIndex = monthNames.findIndex(
-    (name) => name.toLowerCase() === month.label?.toLowerCase(),
-  );
-  const safeMonthIndex = Math.max(monthIndex, 0);
-  const leadingBlanks = new Date(year, safeMonthIndex, 1).getDay();
-  const days = month.days || [];
-  const trailingBlanks = (7 - ((leadingBlanks + days.length) % 7)) % 7;
-
-  return [
-    ...Array.from({ length: leadingBlanks }).map((_, index) => ({
-      key: `${month.label}-leading-${index}`,
-      blank: true,
-    })),
-    ...days.map((day) => ({
-      ...day,
-      key: `${month.label}-${day.day}`,
-      blank: false,
-    })),
-    ...Array.from({ length: trailingBlanks }).map((_, index) => ({
-      key: `${month.label}-trailing-${index}`,
-      blank: true,
-    })),
-  ];
-};
-
 const getYearContributionCount = (yearly) =>
   (yearly?.months || []).reduce(
     (total, month) =>
       total + (month.days || []).reduce((sum, day) => sum + (day.count || 0), 0),
     0,
   );
+
+const buildContributionGraphDays = (yearly) =>
+  (yearly?.months || []).flatMap((month) =>
+    (month.days || []).map((day) => ({
+      ...day,
+      label: `${month.label?.slice(0, 3) || ""} ${day.day}`,
+      key: `${month.label}-${day.day}`,
+    })),
+  );
+
+function ContributionLineChart({ days }) {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const activeDays = days.filter((day) => day.count > 0);
+  const maxCount = Math.max(...activeDays.map((day) => day.count), 1);
+  const width = 320;
+  const height = 130;
+  const paddingX = 18;
+  const paddingY = 18;
+  const graphWidth = width - paddingX * 2;
+  const graphHeight = height - paddingY * 2;
+
+  const points = activeDays.map((day, index) => {
+    const x =
+      activeDays.length === 1
+        ? width / 2
+        : paddingX + (index / (activeDays.length - 1)) * graphWidth;
+    const y = paddingY + (1 - day.count / maxCount) * graphHeight;
+
+    return { ...day, x, y };
+  });
+
+  const linePath = points
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+    .join(" ");
+
+  if (!points.length) return null;
+
+  return (
+    <div className="relative mt-3 h-36 overflow-hidden rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-sky-50 px-3 py-2 shadow-inner shadow-indigo-100/60">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-full w-full"
+        role="img"
+        aria-label="Contribution line graph"
+      >
+        <defs>
+          <linearGradient id="contributionLine" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#4f46e5" />
+            <stop offset="100%" stopColor="#0ea5e9" />
+          </linearGradient>
+        </defs>
+        <path
+          d={linePath}
+          fill="none"
+          stroke="url(#contributionLine)"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="3"
+        />
+        {points.map((point) => (
+          <g key={point.key}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="10"
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredPoint(point)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            />
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="4"
+              fill="#fff"
+              stroke="#4f46e5"
+              strokeWidth="2"
+              className="pointer-events-none"
+            />
+          </g>
+        ))}
+      </svg>
+
+      <div className="absolute bottom-2 left-4 right-4 flex justify-between text-xs font-semibold text-slate-500">
+        <span>{points[0]?.label}</span>
+        <span>{points[points.length - 1]?.label}</span>
+      </div>
+
+      {hoveredPoint && (
+        <div
+          className="pointer-events-none absolute rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-900 shadow-xl"
+          style={{
+            left: `${Math.min(Math.max((hoveredPoint.x / width) * 100, 18), 72)}%`,
+            top: `${Math.max((hoveredPoint.y / height) * 100 - 18, 8)}%`,
+          }}
+        >
+          <p>{hoveredPoint.label}</p>
+          <p className="text-indigo-600">
+            {hoveredPoint.count} contribution{hoveredPoint.count === 1 ? "" : "s"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Card({ children, className = "" }) {
   return (
@@ -114,7 +178,7 @@ function Skeleton({ className = "" }) {
 export default function LeaderboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [page, setPage] = useState(1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -156,6 +220,11 @@ export default function LeaderboardPage() {
     () => getYearContributionCount(yearlyOverview),
     [yearlyOverview],
   );
+  const contributionGraphDays = useMemo(
+    () => buildContributionGraphDays(yearlyOverview).filter((day) => day.count > 0),
+    [yearlyOverview],
+  );
+  const hasContributions = contributionGraphDays.length > 0;
 
   return (
     <main className="app-page">
@@ -166,20 +235,20 @@ export default function LeaderboardPage() {
           </h1>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-          <Card className="p-4 sm:p-6">
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <Card className="h-[260px] overflow-hidden p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Your Activity</h2>
+              <h2 className="text-base font-semibold">Weekly Activity</h2>
               <span className="text-xs font-semibold text-slate-500">Last 7 Days</span>
             </div>
             {loading ? (
-              <Skeleton className="mt-6 h-44" />
+              <Skeleton className="mt-4 h-40" />
             ) : (
               <>
-                <div className="mt-8 flex h-40 items-end justify-between gap-2">
+                <div className="mt-4 flex h-24 items-end justify-between gap-2">
                   {weekly?.days?.map((day) => (
                     <div key={day.date} className="group flex flex-1 flex-col items-center gap-2">
-                      <div className="relative flex h-28 w-full max-w-8 items-end rounded-full bg-slate-100">
+                      <div className="relative flex h-16 w-full max-w-7 items-end rounded-full bg-slate-100">
                         <div
                           className={`w-full rounded-full transition ${
                             day.isToday ? "bg-indigo-600" : "bg-indigo-200"
@@ -197,12 +266,12 @@ export default function LeaderboardPage() {
                   ))}
                 </div>
 
-                <div className="mt-6">
-                  <p className="mb-3 text-sm font-semibold text-slate-700">Previous Weeks</p>
-                  <div className="grid grid-cols-4 gap-2">
+                <div className="mt-4">
+                  <p className="mb-2 text-xs font-semibold text-slate-600">Previous Weeks</p>
+                  <div className="grid grid-cols-4 gap-1.5">
                     {dashboard?.activity?.previousWeeks?.map((week) => (
-                      <div key={week.label} className="rounded-lg bg-slate-50 p-2">
-                        <div className="h-12 rounded bg-indigo-50">
+                      <div key={week.label} className="rounded-lg bg-slate-50 p-1.5">
+                        <div className="h-7 rounded bg-indigo-50">
                           <div
                             className="h-full rounded bg-indigo-300"
                             style={{ width: `${Math.max((week.count / previousMax) * 100, week.count ? 12 : 4)}%` }}
@@ -217,42 +286,42 @@ export default function LeaderboardPage() {
             )}
           </Card>
 
-          <Card className="p-4 sm:p-6">
+          <Card className="h-[260px] overflow-hidden p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Monthly Activity</h2>
+              <h2 className="text-base font-semibold">Monthly Tracker</h2>
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span>{dashboard?.activity?.monthly?.label || "This month"}</span>
                 <span>Less</span>
-                {[0, 1, 2, 4].map((count) => (
-                  <span key={count} className={`h-3 w-3 rounded-sm ${intensityClass(count)}`} />
+                {[0, 1, 3, 5].map((count) => (
+                  <span key={count} className={`h-2.5 w-2.5 rounded-sm ${intensityClass(count)}`} />
                 ))}
                 <span>More</span>
               </div>
             </div>
             {loading ? (
-              <Skeleton className="mt-6 h-44" />
+              <Skeleton className="mt-4 h-40" />
             ) : (
-              <div className="mt-5 pb-1">
+              <div className="mt-3 pb-1">
                 <div className="w-full">
-                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+                  <div className="grid grid-cols-7 gap-1">
                     {weekDays.map((day) => (
                       <div key={day} className="text-center text-[10px] font-bold uppercase text-slate-400">
                         {day}
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 grid grid-cols-7 gap-1.5 sm:gap-2">
+                  <div className="mt-2 grid grid-cols-7 gap-1">
                     {monthlyCells.map((day) =>
                       day.blank ? (
-                        <div key={day.key} className="aspect-square rounded-lg bg-transparent" />
+                        <div key={day.key} className="h-7 rounded-lg bg-transparent sm:h-8" />
                       ) : (
                         <div
                           key={day.key}
                           title={`${new Date(day.date).toLocaleDateString()} - ${day.count} activities`}
-                          className={`relative flex aspect-square items-center justify-center rounded-xl border border-white shadow-sm ${intensityClass(day.count)}`}
+                          className={`relative flex h-7 items-center justify-center rounded-lg border border-white shadow-sm sm:h-8 ${intensityClass(day.count)}`}
                         >
                           <span
-                            className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/45 text-[10px] font-bold shadow-sm sm:h-6 sm:w-6 sm:text-[11px] ${textIntensityClass(day.count)}`}
+                            className={`flex h-4 w-4 items-center justify-center rounded-full bg-white/50 text-[9px] font-bold shadow-sm sm:h-5 sm:w-5 sm:text-[10px] ${textIntensityClass(day.count)}`}
                           >
                             {day.day}
                           </span>
@@ -264,75 +333,23 @@ export default function LeaderboardPage() {
               </div>
             )}
           </Card>
-        </div>
 
-        <Card className="p-4 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <CalendarDays size={18} className="text-indigo-600" />
-              <h2 className="text-lg font-semibold">Yearly Overview</h2>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                Year
-                <select
-                  value={selectedYear}
-                  onChange={(event) => setSelectedYear(Number(event.target.value))}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
-                >
-                  {(yearlyOverview?.availableYears || [new Date().getFullYear(), new Date().getFullYear() - 1]).map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span>Less</span>
-                {[0, 1, 2, 4].map((count) => (
-                  <span key={count} className={`h-3 w-3 rounded-sm ${intensityClass(count)}`} />
-                ))}
-                <span>More</span>
+          {hasContributions && (
+            <Card className="h-[260px] overflow-hidden p-4">
+              <div>
+                <h2 className="text-base font-semibold">Contribution Graph</h2>
+                <p className="mt-1 text-xs font-medium text-slate-500">
+                  {formatNumber(yearlyContributionCount)} contributions in {yearlyOverview?.year || selectedYear}
+                </p>
               </div>
-            </div>
-          </div>
-          <p className="mt-4 text-sm font-medium text-slate-600">
-            {loading
-              ? "Loading yearly contributions..."
-              : `${formatNumber(yearlyContributionCount)} contributions in ${yearlyOverview?.year || selectedYear}`}
-          </p>
-          {loading ? (
-            <Skeleton className="mt-6 h-28" />
-          ) : (
-            <div className="mt-6 overflow-x-auto pb-2">
-              <div className="flex min-w-max gap-5 lg:grid lg:min-w-0 lg:grid-cols-12 lg:gap-1 xl:gap-2">
-                {yearlyOverview?.months?.map((month) => (
-                  <div key={month.label} className="shrink-0 lg:min-w-0">
-                    <p className="mb-3 max-w-[80px] truncate text-[10px] font-bold uppercase text-slate-500">
-                      {month.label}
-                    </p>
-                    <div className="grid grid-flow-col grid-rows-7 gap-0.5 lg:gap-px xl:gap-0.5">
-                      {buildYearMonthCells(month, yearlyOverview.year).map((day) =>
-                      day.blank ? (
-                        <span
-                          key={day.key}
-                          className="h-6 w-6 rounded-md bg-transparent lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4"
-                        />
-                      ) : (
-                        <span
-                          key={day.key}
-                          title={`${month.label} ${day.day}: ${day.count} activities`}
-                          className={`h-6 w-6 rounded-md border border-white shadow-sm lg:h-3.5 lg:w-3.5 xl:h-4 xl:w-4 ${intensityClass(day.count)}`}
-                        />
-                      ),
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              {loading ? (
+                <Skeleton className="mt-4 h-40" />
+              ) : (
+                <ContributionLineChart days={contributionGraphDays} />
+              )}
+            </Card>
           )}
-        </Card>
+        </div>
 
         <Card className="overflow-hidden">
           <div className="p-4 sm:p-6">

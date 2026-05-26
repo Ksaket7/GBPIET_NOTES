@@ -16,6 +16,7 @@ import { Question } from "../models/question.model.js";
 import { Answer } from "../models/answer.model.js";
 import { Post } from "../models/post.model.js";
 import { Upvote } from "../models/upvote.model.js";
+import { Report } from "../models/report.model.js";
 import { recalculateUserReputation } from "../utils/updateUserReputation.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -79,6 +80,11 @@ const createUniqueUsername = async (email) => {
   return username;
 };
 
+const getAllowedProfileRoles = async () => {
+  const adminExists = await User.exists({ role: "admin" });
+  return adminExists ? ["student", "faculty"] : ["student", "faculty", "admin"];
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -100,6 +106,9 @@ const registerUser = asyncHandler(async (req, res) => {
   const normalizedEmail = email.toLowerCase();
   const existedUser = await User.findOne({ email: normalizedEmail });
   if (existedUser) {
+    if (existedUser.isBanned || existedUser.reportCount >= 2) {
+      throw new ApiError(403, "This email is banned from GBPIET Notes");
+    }
     throw new ApiError(409, "User already exists");
   }
 
@@ -131,6 +140,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (!user) {
     throw new ApiError(401, "Invalid credentials");
+  }
+
+  if (user.isBanned || user.reportCount >= 2) {
+    throw new ApiError(403, "This account is banned from GBPIET Notes");
   }
 
   const isPasswordCorrect = await user.isPasswordCorrect(password);
@@ -172,6 +185,10 @@ const googleAuth = asyncHandler(async (req, res) => {
   let user = await User.findOne({
     $or: [{ email }, { googleId: data.sub }],
   });
+
+  if (user?.isBanned || user?.reportCount >= 2) {
+    throw new ApiError(403, "This account is banned from GBPIET Notes");
+  }
 
   if (user) {
     if (!user.googleId) user.googleId = data.sub;
@@ -216,7 +233,7 @@ const completeProfile = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Username already exists");
   }
 
-  const allowedRoles = ["student", "cr", "faculty", "admin"];
+  const allowedRoles = await getAllowedProfileRoles();
   if (!allowedRoles.includes(role)) {
     throw new ApiError(400, "Invalid user type");
   }
@@ -226,12 +243,6 @@ const completeProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid academic year");
   }
 
-  const adminExists = await User.exists({
-    role: "admin",
-    _id: { $ne: req.user._id },
-  });
-  const finalRole = role === "admin" && adminExists ? "student" : role;
-
   const user = await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -240,7 +251,7 @@ const completeProfile = asyncHandler(async (req, res) => {
         username: normalizedUsername,
         branch: branch.trim(),
         year,
-        role: finalRole,
+        role,
         profileCompleted: true,
       },
     },
@@ -250,6 +261,110 @@ const completeProfile = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Profile completed successfully"));
+});
+
+const getProfileSetupOptions = asyncHandler(async (req, res) => {
+  const roles = await getAllowedProfileRoles();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { roles },
+      "Profile setup options fetched successfully"
+    )
+  );
+});
+
+const reportUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { reason = "Inappropriate content" } = req.body;
+
+  if (!userId?.trim()) {
+    throw new ApiError(400, "User ID is required");
+  }
+
+  if (userId.toString() === req.user._id.toString()) {
+    throw new ApiError(400, "You cannot report your own profile");
+  }
+
+  const reportedUser = await User.findById(userId);
+  if (!reportedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const existingReport = await Report.findOne({
+    reporter: req.user._id,
+    reportedUser: reportedUser._id,
+  });
+
+  if (existingReport) {
+    await Report.deleteOne({ _id: existingReport._id });
+  } else {
+    await Report.create({
+      reporter: req.user._id,
+      reportedUser: reportedUser._id,
+      reason: String(reason || "Inappropriate content").trim().slice(0, 300),
+    });
+  }
+
+  reportedUser.reportCount = await Report.countDocuments({
+    reportedUser: reportedUser._id,
+  });
+
+  if (reportedUser.reportCount >= 2) {
+    reportedUser.isBanned = true;
+    reportedUser.bannedAt = reportedUser.bannedAt || new Date();
+  } else {
+    reportedUser.isBanned = false;
+    reportedUser.bannedAt = null;
+  }
+
+  await reportedUser.save({ validateBeforeSave: false });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        reported: !existingReport,
+        reportCount: reportedUser.reportCount,
+        isBanned: reportedUser.isBanned,
+      },
+      existingReport ? "Report removed successfully" : "User reported successfully"
+    )
+  );
+});
+
+const getReportStatus = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId?.trim()) {
+    throw new ApiError(400, "User ID is required");
+  }
+
+  const reportedUser = await User.findById(userId).select("reportCount isBanned");
+  if (!reportedUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const isSelf = userId.toString() === req.user._id.toString();
+  const existingReport = isSelf
+    ? false
+    : await Report.exists({
+        reporter: req.user._id,
+        reportedUser: reportedUser._id,
+      });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        reported: Boolean(existingReport),
+        reportCount: reportedUser.reportCount || 0,
+        isBanned: Boolean(reportedUser.isBanned),
+      },
+      "Report status fetched successfully"
+    )
+  );
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
@@ -360,6 +475,7 @@ const deleteCurrentUserAccount = asyncHandler(async (req, res) => {
       ],
     }),
     Follow.deleteMany({ $or: [{ follower: userId }, { following: userId }] }),
+    Report.deleteMany({ $or: [{ reporter: userId }, { reportedUser: userId }] }),
     Note.deleteMany({ _id: { $in: noteIds } }),
     Post.deleteMany({ _id: { $in: postIds } }),
     Question.deleteMany({ _id: { $in: questionIds } }),
@@ -617,6 +733,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     answersCount,
     postsCount,
     isFollowing,
+    isReported,
     notes,
     questions,
     answers,
@@ -630,6 +747,9 @@ const getUserProfile = asyncHandler(async (req, res) => {
     Post.countDocuments({ postedBy: userId }),
     currentUserId
       ? Follow.exists({ follower: currentUserId, following: userId })
+      : false,
+    currentUserId && currentUserId.toString() !== userId.toString()
+      ? Report.exists({ reporter: currentUserId, reportedUser: userId })
       : false,
     Note.find({ originalStudent: userId })
       .sort({ createdAt: -1 })
@@ -666,14 +786,17 @@ const getUserProfile = asyncHandler(async (req, res) => {
       techStack: profileUser.techStack || [],
       interests: profileUser.interests || [],
       profileLinks: profileUser.profileLinks || {},
+      reportCount: profileUser.reportCount || 0,
       isSelf: currentUserId?.toString() === userId.toString(),
       isFollowing: Boolean(isFollowing),
+      isReported: Boolean(isReported),
     },
     stats: {
       followers: followersCount,
       following: followingCount,
       upvotes: profileUser.upvotes || 0,
       credits: profileUser.credits || 0,
+      reports: profileUser.reportCount || 0,
       notes: notesCount,
       questions: questionsCount,
       answers: answersCount,
@@ -703,7 +826,7 @@ const updateUserRole = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Only admin can change user roles");
   }
 
-  const validRoles = ["student", "cr", "faculty", "admin"];
+  const validRoles = ["student", "faculty", "admin"];
   if (!validRoles.includes(newRole)) {
     throw new ApiError(400, "Invalid role provided");
   }
@@ -756,7 +879,7 @@ const getFacultyUsers = asyncHandler(async (req, res) => {
 });
 
 const getStudentUsers = asyncHandler(async (req, res) => {
-  const users = await getUsersByRoles(["student", "cr", "admin"], req.user._id);
+  const users = await getUsersByRoles(["student", "admin"], req.user._id);
 
   return res
     .status(200)
@@ -1315,6 +1438,9 @@ export {
   loginUser,
   googleAuth,
   completeProfile,
+  getProfileSetupOptions,
+  getReportStatus,
+  reportUser,
   logoutUser,
   deleteCurrentUserAccount,
   getCurrentUser,

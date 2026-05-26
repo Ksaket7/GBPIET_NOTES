@@ -16,6 +16,7 @@ import {
   Send,
   Sparkles,
   ThumbsUp,
+  Flag,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import AttachmentCarousel from "../../components/ui/AttachmentCarousel";
 import UserAvatar from "../../components/ui/UserAvatar";
 import UserProfileLink from "../../components/ui/UserProfileLink";
 import FollowButton from "../../components/ui/FollowButton";
+import ReportUserButton from "../../components/ui/ReportUserButton";
 import {
   downloadNoteFile,
   getNoteId,
@@ -484,6 +486,7 @@ export default function StudentProfilePage() {
     },
     { label: "Upvotes", value: stats.upvotes || 0, icon: ThumbsUp },
     { label: "Credits", value: stats.credits || 0, icon: Award },
+    { label: "Reports", value: stats.reports || user?.reportCount || 0, icon: Flag },
     { label: "Notes", value: stats.notes || 0, icon: BookOpen },
     { label: "Questions", value: stats.questions || 0, icon: MessageSquare },
     { label: "Posts", value: stats.posts || 0, icon: Send },
@@ -520,6 +523,25 @@ export default function StudentProfilePage() {
         },
       }));
     }
+  };
+
+  const handleReportChanged = (reportData) => {
+    setProfile((current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+        user: {
+          ...current.user,
+          isReported: Boolean(reportData?.reported),
+          reportCount: reportData?.reportCount ?? current.user?.reportCount ?? 0,
+        },
+        stats: {
+          ...current.stats,
+          reports: reportData?.reportCount ?? current.stats?.reports ?? 0,
+        },
+      };
+    });
   };
 
   if (loading) {
@@ -598,11 +620,19 @@ export default function StudentProfilePage() {
                       Edit Profile
                     </button>
                   ) : (
-                    <FollowButton
-                      isFollowing={user.isFollowing}
-                      onClick={handleToggleFollow}
-                      className="w-full rounded-lg py-3"
-                    />
+                    <div className="space-y-2">
+                      <FollowButton
+                        isFollowing={user.isFollowing}
+                        onClick={handleToggleFollow}
+                        className="w-full rounded-lg py-3"
+                      />
+                      <ReportUserButton
+                        user={user}
+                        initialReported={user.isReported}
+                        onChanged={handleReportChanged}
+                        className="w-full"
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -644,7 +674,7 @@ export default function StudentProfilePage() {
           </div>
 
           <div className="space-y-6">
-            <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
+            <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
               {statItems.map((item) => (
                 <StatCard key={item.label} {...item} />
               ))}

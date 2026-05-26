@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -11,10 +11,13 @@ import {
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import UserAvatar from "../../components/ui/UserAvatar";
+import {
+  branchOptions,
+  defaultRoleOptions,
+  roleLabel,
+} from "../../constants/profileOptions";
 
-const branches = ["CSE", "CSE (AIML)", "ECE", "ME", "CE", "EE", "BT"];
 const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-const roles = ["student", "cr", "faculty", "admin"];
 
 const steps = [
   "Academic identity",
@@ -34,6 +37,28 @@ export default function CompleteProfilePage() {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState(defaultRoleOptions);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadOptions = async () => {
+      try {
+        const response = await API.get("/users/profile-setup-options");
+        if (mounted) {
+          setRoles(response.data?.data?.roles || defaultRoleOptions);
+        }
+      } catch {
+        if (mounted) setRoles(defaultRoleOptions);
+      }
+    };
+
+    loadOptions();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -201,7 +226,7 @@ export default function CompleteProfilePage() {
                     className="app-input bg-slate-50/80"
                   >
                     <option value="" disabled>Select branch</option>
-                    {branches.map((branch) => (
+                    {branchOptions.map((branch) => (
                       <option key={branch} value={branch}>{branch}</option>
                     ))}
                   </select>
@@ -239,7 +264,7 @@ export default function CompleteProfilePage() {
                     className="app-input bg-slate-50/80"
                   >
                     {roles.map((role) => (
-                      <option key={role} value={role}>{role.toUpperCase()}</option>
+                      <option key={role} value={role}>{roleLabel(role)}</option>
                     ))}
                   </select>
                 </label>

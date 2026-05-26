@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FileText, Image, Send, X } from "lucide-react";
 import API from "../../services/api";
+import UploadPolicyWarning from "../ui/UploadPolicyWarning";
 
 export default function PostComposer({ onPostCreated, onClose }) {
   const [text, setText] = useState("");
@@ -63,6 +64,8 @@ export default function PostComposer({ onPostCreated, onClose }) {
           </button>
         )}
       </div>
+
+      <UploadPolicyWarning className="mb-4" />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
