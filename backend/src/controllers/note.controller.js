@@ -1,6 +1,5 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Note } from "../models/note.model.js";
-import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -70,7 +69,6 @@ const uploadNote = asyncHandler(async (req, res) => {
     subjectCode,
     type,
     tags,
-    originalStudentUsername,
   } = req.body;
 
   if (!title || !subjectCode) {
@@ -79,25 +77,6 @@ const uploadNote = asyncHandler(async (req, res) => {
 
   if (!req.file) {
     throw new ApiError(400, "File is required");
-  }
-
-  // ✅ handle optional original student safely
-  let originalStudentId = req.user._id;
-
-  if (originalStudentUsername) {
-    const studentUser = await User.findOne({
-      username: originalStudentUsername,
-    });
-
-    if (!studentUser) {
-      throw new ApiError(404, "No user found with that username");
-    }
-
-    if (!isValidObjectId(studentUser._id)) {
-      throw new ApiError(400, "Invalid original student ID");
-    }
-
-    originalStudentId = studentUser._id;
   }
 
   // ✅ NEW: use buffer instead of path
@@ -119,7 +98,7 @@ const uploadNote = asyncHandler(async (req, res) => {
     tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
     fileUrl,
     uploadedBy: req.user._id,
-    originalStudent: originalStudentId,
+    originalStudent: req.user._id,
   });
 
   return res

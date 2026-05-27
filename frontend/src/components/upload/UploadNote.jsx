@@ -13,7 +13,6 @@ const UploadForm = ({ onUploaded }) => {
     subjectCode: "",
     type: "notes",
     tags: "",
-    originalStudentUsername: "",
   });
 
   const [file, setFile] = useState(null);
@@ -67,7 +66,6 @@ const UploadForm = ({ onUploaded }) => {
           subjectCode: "",
           type: "notes",
           tags: "",
-          originalStudentUsername: "",
         });
         setFile(null);
         onUploaded?.();
@@ -130,13 +128,6 @@ const UploadForm = ({ onUploaded }) => {
             required
           />
 
-          <InputField
-            name="originalStudentUsername"
-            label="Original student username"
-            placeholder="Original Student Username"
-            value={form.originalStudentUsername}
-            onChange={handleChange}
-          />
         </div>
 
         <label className="block space-y-2">
