@@ -8,7 +8,7 @@ import NotesPagination from "../../components/notes/NotesPagination";
 import UploadNoteForm from "../../components/upload/UploadNote";
 import { useAuth } from "../../context/AuthContext";
 
-const canUploadNotes = (role) => ["faculty", "admin"].includes(role);
+const canUploadNotes = (role) => ["student", "faculty", "admin"].includes(role);
 
 export default function NotesPage() {
   const { user } = useAuth();

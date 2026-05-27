@@ -1,7 +1,6 @@
 import express from "express";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyJWTOptional } from "../middlewares/verifyJWTOptional.js";
-import { verifyRole } from "../middlewares/role.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   uploadNote,
@@ -28,7 +27,7 @@ router.use(verifyJWT);
 
 router
   .route("/upload")
-  .post(verifyRole("faculty", "admin"), upload.single("file"), uploadNote);
+  .post(upload.single("file"), uploadNote);
 
 router.route("/:noteId/comment").post(addComment);
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
@@ -69,11 +69,27 @@ export default function Settings() {
     newPassword: "",
   }));
   const [coverFile, setCoverFile] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [coverLoading, setCoverLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const previewUser = avatarPreview ? { ...user, avatar: avatarPreview } : user;
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview("");
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(previewUrl);
+
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [avatarFile]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -124,6 +140,26 @@ export default function Settings() {
       showToast(error.response?.data?.message || "Failed to update cover image.", "error");
     } finally {
       setCoverLoading(false);
+    }
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+
+    try {
+      setAvatarLoading(true);
+      const data = new FormData();
+      data.append("avatar", avatarFile);
+      const res = await API.patch("/users/avatar", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUser?.(res.data.data);
+      setAvatarFile(null);
+      showToast("Profile picture updated.", "success");
+    } catch (error) {
+      showToast(error.response?.data?.message || "Failed to update profile picture.", "error");
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
@@ -202,7 +238,7 @@ export default function Settings() {
               </div>
               <div className="relative z-10 px-5 pb-5">
                 <UserAvatar
-                  user={user}
+                  user={previewUser}
                   className="relative z-20 -mt-12 h-24 w-24 border-4 border-white text-2xl shadow-xl shadow-slate-500/20"
                 />
                 <h2 className="mt-4 truncate font-poppins text-xl font-semibold text-slate-950">
@@ -387,6 +423,62 @@ export default function Settings() {
                     <span className="text-sm font-semibold text-slate-700">Interests</span>
                     <input name="interests" value={form.interests} onChange={handleChange} className="app-input" placeholder="Interests, comma separated. Example: Operating Systems, AI, Web Development" />
                   </label>
+
+                  <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-4">
+                        <UserAvatar
+                          user={previewUser}
+                          className="h-20 w-20 border-4 border-white text-xl shadow-lg shadow-slate-300/40"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                            <Camera size={17} className="text-indigo-600" />
+                            Profile picture
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-slate-500">
+                            Uploading a new picture replaces the Google profile image stored on your account.
+                          </p>
+                          {avatarFile && (
+                            <p className="mt-1 truncate text-xs font-semibold text-indigo-600">
+                              {avatarFile.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-indigo-700">
+                        <UploadCloud size={16} />
+                        Choose photo
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(event) => setAvatarFile(event.target.files?.[0] || null)}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleAvatarUpload}
+                        disabled={!avatarFile || avatarLoading}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <UploadCloud size={16} />
+                        {avatarLoading ? "Uploading..." : "Upload Profile Picture"}
+                      </button>
+                      {avatarFile && (
+                        <button
+                          type="button"
+                          onClick={() => setAvatarFile(null)}
+                          disabled={avatarLoading}
+                          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 disabled:opacity-60"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
                   <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
