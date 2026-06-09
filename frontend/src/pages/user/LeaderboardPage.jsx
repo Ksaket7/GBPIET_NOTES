@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Crown,
@@ -66,6 +67,43 @@ const buildContributionGraphDays = (yearly) =>
       key: `${month.label}-${day.day}`,
     })),
   );
+
+const buildYearlyCalendarWeeks = (yearly) => {
+  const months = yearly?.months || [];
+  const year = yearly?.year || new Date().getFullYear();
+  if (!months.length) return [];
+
+  const days = months.flatMap((month, monthIndex) =>
+    (month.days || []).map((day) => {
+      const date = new Date(year, monthIndex, day.day);
+      return {
+        ...day,
+        date,
+        dateKey: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day.day).padStart(2, "0")}`,
+        monthLabel: month.label,
+        weekday: date.getDay(),
+      };
+    }),
+  );
+
+  if (!days.length) return [];
+
+  const weeks = [];
+  let currentWeek = Array.from({ length: 7 }, () => null);
+
+  days.forEach((day, index) => {
+    currentWeek[day.weekday] = day;
+
+    if (day.weekday === 6 || index === days.length - 1) {
+      weeks.push(currentWeek);
+      currentWeek = Array.from({ length: 7 }, () => null);
+    }
+  });
+
+  return weeks;
+};
+
+
 
 function ContributionLineChart({ days }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -178,7 +216,7 @@ function Skeleton({ className = "" }) {
 export default function LeaderboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [page, setPage] = useState(1);
-  const [selectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

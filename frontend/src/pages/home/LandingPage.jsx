@@ -341,7 +341,7 @@ export default function LandingPage() {
             {topContributor && (
               <article className="relative overflow-hidden rounded-[28px] border border-indigo-100 bg-white p-5 shadow-xl shadow-slate-200/70 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-100/70 sm:p-6">
                 <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-indigo-600 via-violet-500 to-sky-500" />
-                <div className="relative flex min-h-52 flex-col gap-6 sm:flex-row sm:items-end">
+                <div className="relative flex min-h-52 flex-col gap-6  items-center">
                   <div className="flex flex-col items-center sm:items-start">
                     <UserAvatar
                       user={topContributor}
