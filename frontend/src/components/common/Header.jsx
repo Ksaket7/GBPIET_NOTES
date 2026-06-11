@@ -25,7 +25,11 @@ const primaryLinks = [
 ];
 
 const usersLink = { name: "Users", path: "/users", icon: UserPlus };
-const leaderboardLink = { name: "Leaderboard", path: "/leaderboard", icon: BarChart3 };
+const leaderboardLink = {
+  name: "Leaderboard",
+  path: "/leaderboard",
+  icon: BarChart3,
+};
 
 function isActivePath(pathname, link) {
   if (link.path === "/") return pathname === "/";
@@ -88,13 +92,16 @@ export default function Header() {
               <Menu size={20} />
             </button>
 
-            <Link to="/" className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
+            <Link
+              to="/"
+              className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3"
+            >
               <img
                 src={logo}
                 alt="GBPIET NOTES"
                 className="h-10 w-10 shrink-0 rounded-xl object-cover min-[380px]:h-11 min-[380px]:w-11 sm:h-12 sm:w-12"
               />
-              <span className="block max-w-[74px] truncate font-poppins text-sm font-semibold text-indigo-700 min-[380px]:max-w-[104px] min-[430px]:max-w-[142px] sm:max-w-none sm:text-lg">
+              <span className="font-poppins text-xs font-semibold text-indigo-700 min-[380px]:text-sm sm:text-lg whitespace-nowrap">
                 GBPIET NOTES
               </span>
             </Link>
@@ -127,7 +134,10 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link to="/login" className="app-button-secondary hidden sm:inline-flex">
+                <Link
+                  to="/login"
+                  className="app-button-secondary hidden sm:inline-flex"
+                >
                   <LogIn size={16} />
                   Login
                 </Link>
@@ -151,7 +161,11 @@ export default function Header() {
           />
           <aside className="relative flex h-full w-[min(82vw,320px)] animate-[slideInLeft_0.22s_ease-out] flex-col border-r border-slate-200 bg-white p-4 shadow-2xl">
             <div className="flex items-center justify-between gap-3">
-              <Link to="/" onClick={closeMenu} className="flex min-w-0 items-center gap-3">
+              <Link
+                to="/"
+                onClick={closeMenu}
+                className="flex min-w-0 items-center gap-3"
+              >
                 <img
                   src={logo}
                   alt="GBPIET Notes"
@@ -184,11 +198,19 @@ export default function Header() {
 
             {!isAuthenticated && (
               <div className="mt-auto space-y-2 pt-6">
-                <Link to="/login" onClick={closeMenu} className="app-button-secondary w-full">
+                <Link
+                  to="/login"
+                  onClick={closeMenu}
+                  className="app-button-secondary w-full"
+                >
                   <LogIn size={16} />
                   Login
                 </Link>
-                <Link to="/signup" onClick={closeMenu} className="app-button w-full">
+                <Link
+                  to="/signup"
+                  onClick={closeMenu}
+                  className="app-button w-full"
+                >
                   <UserPlus size={16} />
                   Signup
                 </Link>
